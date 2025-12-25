@@ -117,17 +117,56 @@ input:focus {
   z-index: 1;
 }
 
-/* Landing page main buttons: solid black with centered white text */
-.landing-main-btn {
-  background: #000000 !important;
+/* Landing page main buttons: light sierra blue base, black swipe on hover */
+.primary-btn.landing-main-btn,
+.secondary-btn.landing-main-btn {
+  position: relative;
+  overflow: hidden;
+  /* base state: solid light sierra blue background, white text */
+  background: var(--sierra-blue-light);
   color: #ffffff !important;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  transition: transform 0.08s ease, box-shadow 0.12s ease;
 }
 
-.landing-main-btn::after {
-  display: none;
+/* ensure all text inside landing buttons stays white */
+.landing-main-btn *,
+.landing-main-btn:hover * {
+  color: #ffffff !important;
+}
+
+/* text stays above the swipe layer */
+.primary-btn.landing-main-btn > *,
+.secondary-btn.landing-main-btn > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* swipe layer: black bar that slides from left → right on hover */
+.primary-btn.landing-main-btn::after,
+.secondary-btn.landing-main-btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: #000000;
+  transform: translateX(-100%);
+  transition: transform 0.25s ease-out;
+  z-index: 0;
+}
+
+.primary-btn.landing-main-btn:hover::after,
+.secondary-btn.landing-main-btn:hover::after {
+  transform: translateX(0%);
+}
+
+/* subtle lift on hover and keep text white over black swipe */
+.primary-btn.landing-main-btn:hover,
+.secondary-btn.landing-main-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 36px rgba(15, 82, 186, 0.8);
+  color: #ffffff;
 }
 
 .primary-btn:hover {
