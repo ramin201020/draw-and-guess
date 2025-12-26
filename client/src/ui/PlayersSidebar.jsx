@@ -39,12 +39,17 @@ export function PlayersSidebar({ room, selfId, roomId }) {
     socket.emit('room:kick', { roomId, targetId: id });
   };
 
+  const copyRoomCode = () => {
+    navigator.clipboard.writeText(roomId.toUpperCase());
+    // Optional: Show a toast or feedback
+  };
+
   return (
     <aside className="sidebar">
       <div className="sidebar-room-header">
-        <div className="room-code-pill" title="Share this code so friends can join your room">
+        <div className="room-code-pill" onClick={copyRoomCode} title="Click to copy room code">
           <span className="room-code-label">Room code</span>
-          <span className="room-code-value">{roomId}</span>
+          <span className="room-code-value">{roomId.toUpperCase()}</span>
         </div>
       </div>
 

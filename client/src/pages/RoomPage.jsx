@@ -6,29 +6,10 @@ import { ChatBox } from '../ui/ChatBox';
 import { PlayersSidebar } from '../ui/PlayersSidebar';
 import { WordHintBar } from '../ui/WordHintBar';
 
-function ConnectionStatus({ status }) {
-  const statusConfig = {
-    connecting: { color: '#fbbf24', text: 'Connecting...' },
-    connected: { color: '#10b981', text: 'Connected' },
-    disconnected: { color: '#ef4444', text: 'Disconnected' },
-    reconnecting: { color: '#f59e0b', text: 'Reconnecting...' },
-    error: { color: '#dc2626', text: 'Connection Error' }
-  };
-
-  const config = statusConfig[status] || statusConfig.connecting;
-
-  return (
-    <div className="connection-status" style={{ color: config.color }}>
-      <div className="status-dot" style={{ backgroundColor: config.color }}></div>
-      {config.text}
-    </div>
-  );
-}
-
 export function RoomPage() {
   const { roomId } = useParams();
   const navigate = useNavigate();
-  const { socket, roomState, selfId, connectionStatus } = useSocket();
+  const { socket, roomState, selfId } = useSocket();
   const [wordOptions, setWordOptions] = useState([]);
   const [pendingSelection, setPendingSelection] = useState(null);
 
@@ -66,6 +47,12 @@ export function RoomPage() {
     socket.emit('round:end', { roomId, reason: 'HOST' });
   };
 
+  const handleLeaveRoom = () => {
+    if (!socket) return;
+    socket.emit('room:leave', { roomId });
+    navigate('/');
+  };
+
   const chooseWord = (word) => {
     if (!socket) return;
     socket.emit('round:selectWord', { roomId, word });
@@ -77,7 +64,6 @@ export function RoomPage() {
       <div className="page neon-bg">
         <div className="card">
           <p>Connecting to room...</p>
-          <ConnectionStatus status={connectionStatus} />
         </div>
       </div>
     );
@@ -92,10 +78,7 @@ export function RoomPage() {
       <main className="main-panel">
         <header className="room-header">
           <div>
-            <div className="room-header-top">
-              <p className="eyebrow">Doodles Lobby · Room {roomState.id}</p>
-              <ConnectionStatus status={connectionStatus} />
-            </div>
+            <p className="eyebrow">Doodles Lobby · Room {roomState.id}</p>
             <h1 className="room-title">{roomState.status === 'LOBBY' ? 'Waiting for players' : 'Game in progress'}</h1>
             <p>
               Status: <strong>{roomState.status}</strong>
@@ -104,16 +87,21 @@ export function RoomPage() {
               <p className="lobby-hint">Invite friends, then hit start once at least two doodlers are here.</p>
             )}
           </div>
-          {isHost && (
-            <div className="host-controls">
-              <button onClick={handleStart} className="primary-btn" disabled={!canStart || connectionStatus !== 'connected'}>
-                {roomState.status === 'LOBBY' ? 'Start Game' : 'Next Round'}
-              </button>
-              {roomState.status === 'IN_ROUND' && (
-                <button onClick={handleEndRound} className="danger-btn">End Round</button>
-              )}
-            </div>
-          )}
+          <div className="host-controls">
+            {isHost && (
+              <>
+                <button onClick={handleStart} className="primary-btn" disabled={!canStart}>
+                  {roomState.status === 'LOBBY' ? 'Start Game' : 'Next Round'}
+                </button>
+                {roomState.status === 'IN_ROUND' && (
+                  <button onClick={handleEndRound} className="danger-btn">End Round</button>
+                )}
+              </>
+            )}
+            <button onClick={handleLeaveRoom} className="leave-btn">
+              Leave Room
+            </button>
+          </div>
         </header>
         <WordHintBar mask={roomState.currentRound?.mask} status={roomState.status} />
         <section className="canvas-chat">

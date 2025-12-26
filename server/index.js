@@ -237,6 +237,21 @@ io.on('connection', (socket) => {
     }
   });
 
+  socket.on('room:leave', ({ roomId }) => {
+    const room = rooms.get(roomId);
+    if (!room || !room.players.has(socket.id)) return;
+    
+    room.players.delete(socket.id);
+    socket.leave(roomId);
+    
+    // If host leaves, destroy the room
+    if (room.hostId === socket.id) {
+      destroyRoom(room.id);
+    } else {
+      io.to(room.id).emit('room:state', roomSnapshot(room));
+    }
+  });
+
   socket.on('game:start', ({ roomId }) => {
     const room = rooms.get(roomId);
     if (!room || socket.id !== room.hostId) return;
@@ -328,6 +343,21 @@ io.on('connection', (socket) => {
     if (!room || !room.currentRound) return;
     if (socket.id !== room.hostId) return;
     endRoundAndScore(room, reason || 'HOST');
+  });
+
+  socket.on('room:leave', ({ roomId }) => {
+    const room = rooms.get(roomId);
+    if (!room || !room.players.has(socket.id)) return;
+    
+    room.players.delete(socket.id);
+    socket.leave(roomId);
+    
+    // If host leaves, destroy room
+    if (room.hostId === socket.id) {
+      destroyRoom(room.id);
+    } else {
+      io.to(room.id).emit('room:state', roomSnapshot(room));
+    }
   });
 
   socket.on('disconnect', () => {
