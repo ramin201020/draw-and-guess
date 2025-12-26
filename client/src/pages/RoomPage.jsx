@@ -5,6 +5,8 @@ import { DrawingCanvas } from '../ui/DrawingCanvas';
 import { ChatBox } from '../ui/ChatBox';
 import { PlayersSidebar } from '../ui/PlayersSidebar';
 import { WordHintBar } from '../ui/WordHintBar';
+import { Timer } from '../ui/Timer';
+import { RoundResults } from '../ui/RoundResults';
 
 export function RoomPage() {
   const { roomId } = useParams();
@@ -12,6 +14,8 @@ export function RoomPage() {
   const { socket, roomState, selfId } = useSocket();
   const [wordOptions, setWordOptions] = useState([]);
   const [pendingSelection, setPendingSelection] = useState(null);
+  const [showResults, setShowResults] = useState(false);
+  const [lastRoundWord, setLastRoundWord] = useState('');
 
   const me = useMemo(() => roomState?.players?.find((p) => p.id === selfId) || null, [roomState, selfId]);
   const isHost = !!me?.isHost;
@@ -19,23 +23,59 @@ export function RoomPage() {
 
   useEffect(() => {
     if (!socket) return;
+    
     const handleWordOptions = (opts) => {
       setPendingSelection(null);
       setWordOptions(opts || []);
     };
+    
     const handleRoundStart = () => {
       setPendingSelection(null);
       setWordOptions([]);
+      setShowResults(false);
     };
+    
+    const handleRoundEnd = ({ word, state }) => {
+      setLastRoundWord(word || '');
+      setShowResults(true);
+      // Auto-hide results after 10 seconds if not host
+      if (!isHost) {
+        setTimeout(() => setShowResults(false), 10000);
+      }
+    };
+    
     socket.on('round:wordOptions', handleWordOptions);
     socket.on('round:start', handleRoundStart);
+    socket.on('round:end', handleRoundEnd);
     socket.on('room:closed', () => navigate('/'));
     socket.on('room:kicked', () => navigate('/'));
+    
     return () => {
       socket.off('round:wordOptions', handleWordOptions);
       socket.off('round:start', handleRoundStart);
+      socket.off('round:end', handleRoundEnd);
+      socket.off('room:closed');
+      socket.off('room:kicked');
     };
-  }, [socket, navigate]);
+  }, [socket, navigate, isHost]);
+
+  const handleTimeUp = () => {
+    if (!socket || !isHost) return;
+    console.log('⏰ Time is up! Ending round...');
+    socket.emit('round:end', { roomId, reason: 'TIME_UP' });
+  };
+
+  const handleNextRound = () => {
+    setShowResults(false);
+    if (!socket) return;
+    socket.emit('game:start', { roomId });
+  };
+
+  const handleBackToLobby = () => {
+    setShowResults(false);
+    // This would need server-side implementation to reset game state
+    // For now, just hide results
+  };
 
   const handleStart = () => {
     if (!socket) return;
@@ -71,9 +111,30 @@ export function RoomPage() {
 
   const playerCount = roomState.players?.length || 0;
   const canStart = isHost && roomState.status === 'LOBBY' && playerCount >= 2;
+  const isRoundActive = roomState.status === 'IN_ROUND' && roomState.currentRound?.endsAt;
 
   return (
     <div className="page neon-bg room-layout">
+      {/* Timer - only show during active rounds */}
+      {isRoundActive && (
+        <Timer 
+          endsAt={roomState.currentRound.endsAt}
+          onTimeUp={handleTimeUp}
+          isActive={true}
+        />
+      )}
+
+      {/* Round Results Modal */}
+      <RoundResults
+        isVisible={showResults}
+        word={lastRoundWord}
+        players={roomState.players}
+        onNextRound={handleNextRound}
+        onBackToLobby={handleBackToLobby}
+        isHost={isHost}
+        roundNumber={roomState.currentRound?.number || 1}
+      />
+
       <PlayersSidebar room={roomState} selfId={selfId} roomId={roomId} />
       <main className="main-panel">
         <header className="room-header">

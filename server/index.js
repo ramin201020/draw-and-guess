@@ -105,6 +105,10 @@ function clearRevealTimer(round) {
     clearTimeout(round.revealTimer);
     round.revealTimer = null;
   }
+  if (round?.roundTimer) {
+    clearTimeout(round.roundTimer);
+    round.roundTimer = null;
+  }
 }
 
 function emitMaskUpdate(room) {
@@ -283,6 +287,10 @@ io.on('connection', (socket) => {
     const nextRoundNumber = (room.currentRound?.number || 0) + 1;
     if (room.currentRound) {
       clearRevealTimer(room.currentRound);
+      // Clear any existing round timer
+      if (room.currentRound.roundTimer) {
+        clearTimeout(room.currentRound.roundTimer);
+      }
     }
     room.currentRound = {
       number: nextRoundNumber,
@@ -294,8 +302,16 @@ io.on('connection', (socket) => {
       strokes: [],
       maskState: null,
       revealTimer: null,
+      roundTimer: null,
       revealedLetters: 0
     };
+    
+    // Set automatic round end timer
+    room.currentRound.roundTimer = setTimeout(() => {
+      console.log(`⏰ Round ${nextRoundNumber} in room ${roomId} ended due to timeout`);
+      endRoundAndScore(room, 'TIME_UP');
+    }, room.settings.roundTimeSec * 1000);
+    
     // generate word options
     room.currentRound.options = pickWords(room.settings.wordsPerRound);
     io.to(drawer.id).emit('round:wordOptions', room.currentRound.options);

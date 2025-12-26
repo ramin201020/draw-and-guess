@@ -8,14 +8,12 @@ import './styles.css';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
-  <React.StrictMode>
-    <SocketProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/room/:roomId" element={<RoomPage />} />
-        </Routes>
-      </BrowserRouter>
-    </SocketProvider>
-  </React.StrictMode>
+  <SocketProvider>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/room/:roomId" element={<RoomPage />} />
+      </Routes>
+    </BrowserRouter>
+  </SocketProvider>
 );

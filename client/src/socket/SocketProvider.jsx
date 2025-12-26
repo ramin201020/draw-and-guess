@@ -15,8 +15,10 @@ export function SocketProvider({ children }) {
       ? (import.meta.env.VITE_BACKEND_URL || 'http://localhost:4000')
       : 'http://localhost:4000'; // Direct connection in development
     
-    console.log('Attempting to connect to:', backendUrl);
-    console.log('Environment:', import.meta.env.MODE);
+    console.log('🚀 SocketProvider useEffect triggered');
+    console.log('🌐 Attempting to connect to:', backendUrl);
+    console.log('🔧 Environment:', import.meta.env.MODE);
+    console.log('🏭 Production mode:', import.meta.env.PROD);
 
     const s = io(backendUrl, {
       // Connection optimization for faster connection
@@ -36,6 +38,7 @@ export function SocketProvider({ children }) {
       maxReconnectionAttempts: 5
     });
 
+    console.log('📡 Socket instance created:', s);
     setSocket(s);
 
     // Connection status tracking
