@@ -1,5 +1,5 @@
 {
-  "name": "draw-and-guess-server",
+  "name": "doodles-server",
   "version": "1.0.0",
   "description": "Realtime backend for draw-and-guess game",
   "type": "module",

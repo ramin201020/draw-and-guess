@@ -17,7 +17,40 @@ export function SocketProvider({ children }) {
     s.on('round:end', ({ state }) => setRoomState(state));
     s.on('room:closed', () => setRoomState(null));
     s.on('room:kicked', () => setRoomState(null));
-    return () => { s.disconnect(); };
+    s.on('round:maskUpdate', ({ roomId, mask }) => {
+      setRoomState((prev) => {
+        if (!prev || prev.id !== roomId) return prev;
+        if (!prev.currentRound) return prev;
+        return {
+          ...prev,
+          currentRound: { ...prev.currentRound, mask }
+        };
+      });
+    });
+    s.on('round:start', ({ drawerId, endsAt, mask }) => {
+      setRoomState((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          status: 'IN_ROUND',
+          currentRound: {
+            ...(prev.currentRound || {}),
+            drawerId,
+            endsAt,
+            mask: mask || prev.currentRound?.mask || null
+          }
+        };
+      });
+    });
+    return () => {
+      s.off('room:state');
+      s.off('round:end');
+      s.off('room:closed');
+      s.off('room:kicked');
+      s.off('round:maskUpdate');
+      s.off('round:start');
+      s.disconnect();
+    };
   }, []);
 
   const value = useMemo(() => ({ socket, roomState, selfId, setRoomState }), [socket, roomState, selfId]);

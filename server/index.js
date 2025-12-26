@@ -4,7 +4,10 @@ import cors from 'cors';
 import { Server } from 'socket.io';
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: process.env.CORS_ORIGIN || '*',
+  methods: ['GET', 'POST']
+}));
 app.use(express.json());
 app.get('/health', (_, res) => res.json({ ok: true }));
 
@@ -38,11 +41,88 @@ app.post('/rooms', (req, res) => {
 
 const server = http.createServer(app);
 const io = new Server(server, {
-  cors: { origin: '*' }
+  cors: {
+    origin: process.env.CORS_ORIGIN || '*',
+    methods: ["GET", "POST"]
+  }
 });
 
 // In-memory state
 const rooms = new Map();
+const LETTER_REVEAL_INTERVAL_MS = 15_000;
+const SHORT_WORD_DELAY_MS = 60_000;
+const MAX_WORD_LENGTH = 10;
+
+function initializeMaskState(word) {
+  if (!word) return null;
+  return word.split('').map((char) => (char === ' ' ? ' ' : '_'));
+}
+
+function maskHasHidden(maskState) {
+  return Array.isArray(maskState) && maskState.some((char) => char === '_');
+}
+
+function clearRevealTimer(round) {
+  if (round?.revealTimer) {
+    clearTimeout(round.revealTimer);
+    round.revealTimer = null;
+  }
+}
+
+function emitMaskUpdate(room) {
+  const round = room.currentRound;
+  if (!round?.maskState) return;
+  io.to(room.id).emit('round:maskUpdate', {
+    roomId: room.id,
+    mask: [...round.maskState],
+  });
+}
+
+function revealRandomLetter(room) {
+  const round = room.currentRound;
+  if (!round?.maskState || !round.word) return false;
+  const hiddenIndices = [];
+  round.maskState.forEach((char, idx) => {
+    if (char === '_') hiddenIndices.push(idx);
+  });
+  if (hiddenIndices.length === 0) {
+    clearRevealTimer(round);
+    return false;
+  }
+  const randomIndex = hiddenIndices[Math.floor(Math.random() * hiddenIndices.length)];
+  const letter = round.word[randomIndex] || '';
+  round.maskState[randomIndex] = letter.toUpperCase();
+  round.revealedLetters = (round.revealedLetters || 0) + 1;
+  emitMaskUpdate(room);
+  return true;
+}
+
+function scheduleMaskReveal(room) {
+  const round = room.currentRound;
+  if (!round?.word || !round.maskState) return;
+  clearRevealTimer(round);
+  if (!maskHasHidden(round.maskState)) return;
+  const sanitizedLength = round.word.replace(/\s/g, '').length;
+  const isShortWord = sanitizedLength <= 3;
+  const delay = isShortWord ? SHORT_WORD_DELAY_MS : LETTER_REVEAL_INTERVAL_MS;
+  round.revealTimer = setTimeout(() => {
+    const revealed = revealRandomLetter(room);
+    if (!revealed) return;
+    if (!isShortWord && maskHasHidden(round.maskState)) {
+      scheduleMaskReveal(room);
+    }
+  }, delay);
+}
+
+function destroyRoom(roomId) {
+  const room = rooms.get(roomId);
+  if (!room) return;
+  if (room.currentRound) {
+    clearRevealTimer(room.currentRound);
+  }
+  rooms.delete(roomId);
+  io.to(roomId).emit('room:closed');
+}
 
 function defaultSettings() {
   return { maxPoints: 300, roundTimeSec: 90, wordsPerRound: 3, maxPlayers: 12 };
@@ -75,7 +155,7 @@ function roomSnapshot(room) {
       number: room.currentRound.number,
       drawerId: room.currentRound.drawerId,
       endsAt: room.currentRound.endsAt,
-      mask: room.currentRound.word ? room.currentRound.word.replace(/\S/g, '_') : null,
+      mask: room.currentRound.maskState ? [...room.currentRound.maskState] : null,
       guessed: room.currentRound.correctOrder.map(p => p.playerId)
     } : null
   };
@@ -138,7 +218,22 @@ io.on('connection', (socket) => {
     players.forEach(p => p.isDrawer = p.id === drawer.id);
     const endsAt = Date.now() + room.settings.roundTimeSec * 1000;
     room.status = 'IN_ROUND';
-    room.currentRound = { number: (room.currentRound?.number || 0) + 1, drawerId: drawer.id, word: null, options: [], correctOrder: [], endsAt, strokes: [] };
+    const nextRoundNumber = (room.currentRound?.number || 0) + 1;
+    if (room.currentRound) {
+      clearRevealTimer(room.currentRound);
+    }
+    room.currentRound = {
+      number: nextRoundNumber,
+      drawerId: drawer.id,
+      word: null,
+      options: [],
+      correctOrder: [],
+      endsAt,
+      strokes: [],
+      maskState: null,
+      revealTimer: null,
+      revealedLetters: 0
+    };
     // generate word options
     room.currentRound.options = pickWords(room.settings.wordsPerRound);
     io.to(drawer.id).emit('round:wordOptions', room.currentRound.options);
@@ -149,8 +244,22 @@ io.on('connection', (socket) => {
     const room = rooms.get(roomId);
     if (!room || !room.currentRound) return;
     if (socket.id !== room.currentRound.drawerId) return;
-    room.currentRound.word = String(word || '').trim().toLowerCase();
-    io.to(room.id).emit('round:start', { drawerId: room.currentRound.drawerId, endsAt: room.currentRound.endsAt });
+    let chosenWord = String(word || '').trim().toLowerCase();
+    if (!chosenWord) return;
+    if (chosenWord.length > MAX_WORD_LENGTH) {
+      chosenWord = chosenWord.slice(0, MAX_WORD_LENGTH);
+    }
+    room.currentRound.word = chosenWord;
+    room.currentRound.maskState = initializeMaskState(chosenWord);
+    room.currentRound.revealedLetters = 0;
+    emitMaskUpdate(room);
+    scheduleMaskReveal(room);
+    io.to(room.id).emit('round:start', {
+      drawerId: room.currentRound.drawerId,
+      endsAt: room.currentRound.endsAt,
+      mask: [...room.currentRound.maskState]
+    });
+    io.to(room.id).emit('room:state', roomSnapshot(room));
   });
 
   socket.on('draw:stroke', ({ roomId, stroke }) => {
@@ -199,9 +308,7 @@ io.on('connection', (socket) => {
       if (room.players.has(socket.id)) {
         room.players.delete(socket.id);
         if (room.hostId === socket.id) {
-          // if host leaves, end the room
-          rooms.delete(room.id);
-          io.to(room.id).emit('room:closed');
+          destroyRoom(room.id);
         } else {
           io.to(room.id).emit('room:state', roomSnapshot(room));
         }
@@ -238,16 +345,20 @@ function endRoundAndScore(room, reason) {
   }
   room.status = 'ROUND_RESULTS';
   const word = r.word;
+  clearRevealTimer(r);
   room.currentRound = null;
   io.to(room.id).emit('round:end', { reason, word, state: roomSnapshot(room) });
 }
 
 function pickWords(n) {
   const pool = [
-    'apple','banana','cat','dog','house','tree','car','phone','computer','river','mountain','pizza','book','cake','heart','star','smile','ball','shoe','clock','plane','train','robot','dragon','rocket','ocean','island','bridge','camera'
-  ];
+    'apple','banana','cactus','bottle','castle','dragon','camera','guitar','rocket','mountain','pencil','notebook','cookie','window','island','sketch','pyramid','pirate','rainbow','airplane','dolphin','diamond','painter','sunrise','lantern','piano','laptop','planet','compass'
+  ].filter(word => word.length <= MAX_WORD_LENGTH);
+  const target = Math.min(n, pool.length);
   const out = new Set();
-  while (out.size < n) out.add(pool[Math.floor(Math.random()*pool.length)]);
+  while (out.size < target) {
+    out.add(pool[Math.floor(Math.random() * pool.length)]);
+  }
   return [...out];
 }
 

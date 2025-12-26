@@ -4,12 +4,14 @@ import { useSocket } from '../socket/SocketProvider';
 import { DrawingCanvas } from '../ui/DrawingCanvas';
 import { ChatBox } from '../ui/ChatBox';
 import { PlayersSidebar } from '../ui/PlayersSidebar';
+import { WordHintBar } from '../ui/WordHintBar';
 
 export function RoomPage() {
   const { roomId } = useParams();
   const navigate = useNavigate();
   const { socket, roomState, selfId } = useSocket();
   const [wordOptions, setWordOptions] = useState([]);
+  const [pendingSelection, setPendingSelection] = useState(null);
 
   const me = useMemo(() => roomState?.players?.find((p) => p.id === selfId) || null, [roomState, selfId]);
   const isHost = !!me?.isHost;
@@ -17,12 +19,21 @@ export function RoomPage() {
 
   useEffect(() => {
     if (!socket) return;
-    const handleWordOptions = (opts) => setWordOptions(opts || []);
+    const handleWordOptions = (opts) => {
+      setPendingSelection(null);
+      setWordOptions(opts || []);
+    };
+    const handleRoundStart = () => {
+      setPendingSelection(null);
+      setWordOptions([]);
+    };
     socket.on('round:wordOptions', handleWordOptions);
+    socket.on('round:start', handleRoundStart);
     socket.on('room:closed', () => navigate('/'));
     socket.on('room:kicked', () => navigate('/'));
     return () => {
       socket.off('round:wordOptions', handleWordOptions);
+      socket.off('round:start', handleRoundStart);
     };
   }, [socket, navigate]);
 
@@ -39,7 +50,7 @@ export function RoomPage() {
   const chooseWord = (word) => {
     if (!socket) return;
     socket.emit('round:selectWord', { roomId, word });
-    setWordOptions([]);
+    setPendingSelection(word);
   };
 
   if (!roomState) {
@@ -52,24 +63,36 @@ export function RoomPage() {
     );
   }
 
+  const playerCount = roomState.players?.length || 0;
+  const canStart = isHost && roomState.status === 'LOBBY' && playerCount >= 2;
+
   return (
     <div className="page neon-bg room-layout">
       <PlayersSidebar room={roomState} selfId={selfId} roomId={roomId} />
       <main className="main-panel">
         <header className="room-header">
           <div>
-            <h1>Room {roomState.id}</h1>
+            <p className="eyebrow">Doodles Lobby · Room {roomState.id}</p>
+            <h1 className="room-title">{roomState.status === 'LOBBY' ? 'Waiting for players' : 'Game in progress'}</h1>
             <p>
               Status: <strong>{roomState.status}</strong>
             </p>
+            {roomState.status === 'LOBBY' && (
+              <p className="lobby-hint">Invite friends, then hit start once at least two doodlers are here.</p>
+            )}
           </div>
           {isHost && (
             <div className="host-controls">
-              <button onClick={handleStart} className="primary-btn">Start Round</button>
-              <button onClick={handleEndRound} className="danger-btn">End Round</button>
+              <button onClick={handleStart} className="primary-btn" disabled={!canStart}>
+                {roomState.status === 'LOBBY' ? 'Start Game' : 'Next Round'}
+              </button>
+              {roomState.status === 'IN_ROUND' && (
+                <button onClick={handleEndRound} className="danger-btn">End Round</button>
+              )}
             </div>
           )}
         </header>
+        <WordHintBar mask={roomState.currentRound?.mask} status={roomState.status} />
         <section className="canvas-chat">
           <DrawingCanvas roomId={roomId} isDrawer={isDrawer} />
           <ChatBox roomId={roomId} />
@@ -80,12 +103,21 @@ export function RoomPage() {
         <div className="modal-backdrop">
           <div className="modal">
             <h2>Choose a word to draw</h2>
-            <div className="word-grid">
-              {wordOptions.map((w) => (
-                <button key={w} className="word-btn" onClick={() => chooseWord(w)}>
-                  {w}
-                </button>
-              ))}
+            <div className="word-columns">
+              {wordOptions.map((w) => {
+                const selected = pendingSelection === w;
+                return (
+                  <button
+                    key={w}
+                    className={selected ? 'word-card selected' : 'word-card'}
+                    onClick={() => chooseWord(w)}
+                    disabled={!!pendingSelection}
+                  >
+                    <span className="word-text">{w}</span>
+                    <span className="word-meta">{w.length} letters</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>

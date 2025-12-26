@@ -89,7 +89,7 @@ export function LandingPage() {
   return (
     <div className="page neon-bg">
       <div className="card">
-        <h1 className="title">Draw &amp; Guess Lobby</h1>
+        <h1 className="title">Welcome to Doodles</h1>
         <label>
           Name
           <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" />
