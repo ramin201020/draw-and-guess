@@ -10,26 +10,29 @@ export function SocketProvider({ children }) {
   const [connectionStatus, setConnectionStatus] = useState('connecting');
 
   useEffect(() => {
-    // Use proxy in development, direct URL in production
+    // Use proxy in development for socket connection
     const backendUrl = import.meta.env.PROD 
       ? (import.meta.env.VITE_BACKEND_URL || 'http://localhost:4000')
-      : '/'; // Use proxy in development
+      : 'http://localhost:4000'; // Direct connection in development
+    
+    console.log('Attempting to connect to:', backendUrl);
+    console.log('Environment:', import.meta.env.MODE);
 
     const s = io(backendUrl, {
-      // Connection optimization
+      // Connection optimization for faster connection
       transports: ['websocket', 'polling'], // Prefer websocket, fallback to polling
       upgrade: true,
       rememberUpgrade: true,
-      // Performance settings
+      // Reduced timeouts for faster connection
       timeout: 5000,
       forceNew: false,
       // Security settings
       withCredentials: false,
-      // Reconnection settings for reliability
+      // Aggressive reconnection for faster recovery
       reconnection: true,
       reconnectionAttempts: 5,
-      reconnectionDelay: 1000,
-      reconnectionDelayMax: 5000,
+      reconnectionDelay: 500, // Reduced from 1000ms
+      reconnectionDelayMax: 2000, // Reduced from 5000ms
       maxReconnectionAttempts: 5
     });
 
@@ -37,29 +40,39 @@ export function SocketProvider({ children }) {
 
     // Connection status tracking
     s.on('connect', () => {
-      console.log('Socket connected:', s.id);
+      console.log('✅ Socket connected successfully:', s.id);
       setSelfId(s.id);
       setConnectionStatus('connected');
     });
 
     s.on('disconnect', (reason) => {
-      console.log('Socket disconnected:', reason);
+      console.log('❌ Socket disconnected:', reason);
       setConnectionStatus('disconnected');
+      setSelfId(null);
     });
 
     s.on('connect_error', (error) => {
-      console.error('Socket connection error:', error);
+      console.error('🔥 Socket connection error:', error);
       setConnectionStatus('error');
     });
 
     s.on('reconnect', (attemptNumber) => {
-      console.log('Socket reconnected after', attemptNumber, 'attempts');
+      console.log('🔄 Socket reconnected after', attemptNumber, 'attempts');
       setConnectionStatus('connected');
     });
 
     s.on('reconnect_attempt', (attemptNumber) => {
-      console.log('Socket reconnection attempt:', attemptNumber);
+      console.log('🔄 Socket reconnection attempt:', attemptNumber);
       setConnectionStatus('reconnecting');
+    });
+
+    s.on('reconnect_error', (error) => {
+      console.error('🔥 Socket reconnection error:', error);
+    });
+
+    s.on('reconnect_failed', () => {
+      console.error('💀 Socket reconnection failed - giving up');
+      setConnectionStatus('failed');
     });
 
     // Game event handlers
@@ -101,6 +114,8 @@ export function SocketProvider({ children }) {
       s.off('connect_error');
       s.off('reconnect');
       s.off('reconnect_attempt');
+      s.off('reconnect_error');
+      s.off('reconnect_failed');
       s.off('room:state');
       s.off('round:end');
       s.off('room:closed');

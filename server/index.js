@@ -25,6 +25,16 @@ app.get('/health', (_, res) => res.json({
   uptime: process.uptime()
 }));
 
+// Test endpoint to check socket connections
+app.get('/test-socket', (_, res) => {
+  const connectedSockets = io.sockets.sockets.size;
+  res.json({
+    ok: true,
+    connectedSockets,
+    socketIds: Array.from(io.sockets.sockets.keys())
+  });
+});
+
 // API endpoint for room creation
 app.post('/rooms', (req, res) => {
   const { socketId, name, settings, avatar } = req.body || {};
@@ -206,6 +216,15 @@ function scoreSequence(M) {
 }
 
 io.on('connection', (socket) => {
+  console.log('New socket connection:', socket.id);
+  
+  socket.on('disconnect', (reason) => {
+    console.log('Socket disconnected:', socket.id, 'reason:', reason);
+  });
+
+  socket.on('error', (error) => {
+    console.error('Socket error:', socket.id, error);
+  });
   socket.on('room:create', (payload, cb) => {
     const room = createRoom(socket, payload || {});
     socket.join(room.id);

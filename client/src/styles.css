@@ -136,10 +136,21 @@ input:hover {
   box-shadow: 0 15px 35px rgba(255, 140, 0, 0.35);
 }
 
-.primary-btn:disabled {
-  opacity: 0.5;
+.primary-btn:disabled,
+.secondary-btn:disabled {
+  opacity: 0.6;
   cursor: not-allowed;
   box-shadow: none;
+  transform: none !important;
+  animation: none !important;
+}
+
+.primary-btn:disabled:hover,
+.secondary-btn:disabled:hover {
+  background: #ff8c00;
+  color: #fff;
+  transform: none !important;
+  animation: none !important;
 }
 
 .primary-btn:not(:disabled):hover {

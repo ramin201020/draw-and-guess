@@ -3,12 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { useSocket } from '../socket/SocketProvider';
 
 export function LandingPage() {
-  const { socket, selfId, setRoomState } = useSocket();
+  const { socket, selfId, connectionStatus, setRoomState } = useSocket();
   const [name, setName] = useState('');
   const [roomId, setRoomId] = useState('');
   const [maxPoints, setMaxPoints] = useState(300);
   const [roundTimeSec, setRoundTimeSec] = useState(90);
   const [wordsPerRound, setWordsPerRound] = useState(3);
+  const [isCreating, setIsCreating] = useState(false);
+  const [isJoining, setIsJoining] = useState(false);
   const navigate = useNavigate();
 
   const parseNumberOrDefault = (value, defaultValue) => {
@@ -30,70 +32,146 @@ export function LandingPage() {
   };
 
   const handleCreate = async () => {
-    if (!selfId) {
-      alert('Connecting to game server... please wait a moment.');
+    if (isCreating) return; // Prevent double-clicks
+    
+    // Check connection status first
+    if (connectionStatus !== 'connected' || !socket || !selfId) {
+      alert(`Cannot create room: ${getConnectionStatusText()}. Please wait for connection.`);
       return;
     }
 
-    const payload = {
-      socketId: selfId,
-      name: name || 'Host',
-      settings: {
-        maxPoints: parseNumberOrDefault(maxPoints, 300),
-        roundTimeSec: parseNumberOrDefault(roundTimeSec, 90),
-        wordsPerRound: parseNumberOrDefault(wordsPerRound, 3),
-      },
-    };
+    setIsCreating(true);
 
     try {
-      // Use proxy in development, direct URL in production
-      const backendUrl = import.meta.env.PROD 
-        ? (import.meta.env.VITE_BACKEND_URL || 'http://localhost:4000')
-        : ''; // Use proxy in development
-      
-      const response = await fetch(`${backendUrl}/rooms`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+      // Use socket-based room creation for faster response
+      const payload = {
+        name: name || 'Host',
+        settings: {
+          maxPoints: parseNumberOrDefault(maxPoints, 300),
+          roundTimeSec: parseNumberOrDefault(roundTimeSec, 90),
+          wordsPerRound: parseNumberOrDefault(wordsPerRound, 3),
+        },
+      };
+
+      console.log('Creating room via socket with payload:', payload);
+
+      // Use socket for immediate response
+      socket.emit('room:create', payload, (response) => {
+        setIsCreating(false);
+        
+        if (response?.ok) {
+          console.log('Room created successfully:', response);
+          setRoomState(response.state);
+          // Navigate immediately without waiting
+          navigate(`/room/${response.roomId}`, { replace: true });
+        } else {
+          console.error('Failed to create room:', response);
+          alert(`Could not create room: ${response?.error || 'Unknown error'}`);
+        }
       });
 
-      const data = await response.json();
-      if (!response.ok || !data?.ok) {
-        console.warn('Failed to create room via HTTP', data);
-        alert('Could not create room. Please try again in a moment.');
-        return;
-      }
+      // Fallback timeout in case socket doesn't respond
+      setTimeout(() => {
+        if (isCreating) {
+          setIsCreating(false);
+          alert('Room creation timed out. Please try again.');
+        }
+      }, 5000);
 
-      setRoomState(data.state);
-      navigate(`/room/${data.roomId}`);
     } catch (err) {
-      console.error('Error creating room via HTTP', err);
-      alert('Could not create room. Please check your connection and try again.');
+      console.error('Error creating room:', err);
+      setIsCreating(false);
+      alert(`Could not create room: ${err.message}`);
     }
   };
 
   const handleJoin = () => {
-    if (!roomId) return;
-    if (!socket || !socket.connected) {
-      alert('Connecting to game server... please make sure the server is running.');
+    if (isJoining) return; // Prevent double-clicks
+    
+    if (!roomId.trim()) {
+      alert('Please enter a room code');
       return;
     }
+    
+    if (!socket || !socket.connected) {
+      alert('Cannot join room: Not connected to server. Please wait for connection.');
+      return;
+    }
+
+    setIsJoining(true);
+
     socket.emit(
       'room:join',
       { roomId: roomId.trim(), name: name || 'Player' },
       (res) => {
+        setIsJoining(false);
+        
         if (res?.ok) {
+          console.log('Joined room successfully:', res);
           setRoomState(res.state);
-          navigate(`/room/${roomId.trim()}`);
+          navigate(`/room/${roomId.trim()}`, { replace: true });
+        } else {
+          console.error('Failed to join room:', res);
+          alert(`Could not join room: ${res?.error || 'Room not found or full'}`);
         }
       }
     );
+
+    // Fallback timeout
+    setTimeout(() => {
+      if (isJoining) {
+        setIsJoining(false);
+        alert('Join room timed out. Please try again.');
+      }
+    }, 5000);
+  };
+
+  const getConnectionStatusColor = () => {
+    switch (connectionStatus) {
+      case 'connected': return '#4ade80';
+      case 'connecting': return '#fbbf24';
+      case 'reconnecting': return '#f59e0b';
+      case 'disconnected': return '#ef4444';
+      case 'error': return '#dc2626';
+      case 'failed': return '#991b1b';
+      default: return '#6b7280';
+    }
+  };
+
+  const getConnectionStatusText = () => {
+    switch (connectionStatus) {
+      case 'connected': return '🟢 Connected';
+      case 'connecting': return '🟡 Connecting...';
+      case 'reconnecting': return '🟠 Reconnecting...';
+      case 'disconnected': return '🔴 Disconnected';
+      case 'error': return '❌ Connection Error';
+      case 'failed': return '💀 Connection Failed';
+      default: return '⚪ Unknown';
+    }
   };
 
   return (
     <div className="page neon-bg">
       <div className="card">
-        <h1 className="title">Welcome to Doodles</h1>
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          marginBottom: '1rem'
+        }}>
+          <h1 className="title" style={{ margin: 0 }}>Welcome to Doodles</h1>
+          <div style={{ 
+            color: getConnectionStatusColor(),
+            fontSize: '0.9rem',
+            fontWeight: '600',
+            padding: '0.5rem 1rem',
+            borderRadius: '20px',
+            backgroundColor: 'rgba(255,255,255,0.1)',
+            border: `2px solid ${getConnectionStatusColor()}`
+          }}>
+            {getConnectionStatusText()}
+          </div>
+        </div>
         <label>
           Name
           <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" />
@@ -113,7 +191,13 @@ export function LandingPage() {
             Word options for drawer
             <input type="number" value={wordsPerRound} onChange={handleNumericChange(setWordsPerRound)} />
           </label>
-          <button onClick={handleCreate} className="primary-btn landing-main-btn">Create Room</button>
+          <button 
+            onClick={handleCreate} 
+            className="primary-btn landing-main-btn"
+            disabled={isCreating || connectionStatus !== 'connected'}
+          >
+            {isCreating ? '🔄 Creating Room...' : 'Create Room'}
+          </button>
         </div>
 
         <div className="section">
@@ -126,7 +210,13 @@ export function LandingPage() {
               placeholder="Paste or type a code like ab12cd"
             />
           </label>
-          <button onClick={handleJoin} className="secondary-btn landing-main-btn">Join by code</button>
+          <button 
+            onClick={handleJoin} 
+            className="secondary-btn landing-main-btn"
+            disabled={isJoining || connectionStatus !== 'connected' || !roomId.trim()}
+          >
+            {isJoining ? '🔄 Joining Room...' : 'Join by code'}
+          </button>
         </div>
       </div>
     </div>
