@@ -7,6 +7,12 @@
     "dev:client": "npm run dev --prefix client",
     "dev:server": "npm run dev --prefix server",
     "install:all": "npm install --prefix client && npm install --prefix server",
+    "start": "./start-servers.sh",
+    "stop": "./stop-servers.sh",
+    "pm2:start": "pm2 start ecosystem.config.js",
+    "pm2:stop": "pm2 stop all",
+    "pm2:status": "pm2 status",
+    "pm2:logs": "pm2 logs",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
