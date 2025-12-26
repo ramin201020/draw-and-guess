@@ -1,20 +1,21 @@
 :root {
   --primary: #ff8c00;
   --primary-dark: #e67e00;
-  --bg-main: linear-gradient(135deg, #ff8c00 0%, #ff9500 25%, #ffa500 50%, #ffb347 75%, #1a1a2e 100%);
-  --bg-secondary: linear-gradient(135deg, #ff9500 0%, #ffa500 30%, #ffb347 60%, #16213e 100%);
-  --bg-tertiary: linear-gradient(135deg, #ffa500 0%, #ffb347 40%, #ffc266 70%, #0f3460 100%);
+  --bg-main: linear-gradient(180deg, #1e3a8a 0%, #3b82f6 20%, #6366f1 40%, #8b5cf6 60%, #d946ef 80%, #ef4444 100%);
+  --bg-secondary: linear-gradient(180deg, #2563eb 0%, #3b82f6 25%, #6366f1 50%, #8b5cf6 75%, #ef4444 100%);
+  --bg-tertiary: linear-gradient(180deg, #3b82f6 0%, #6366f1 30%, #8b5cf6 60%, #d946ef 90%, #dc2626 100%);
   --text-primary: #ffffff;
   --text-secondary: #f0f0f0;
   --text-muted: #e0e0e0;
-  --border-color: rgba(255, 140, 0, 0.3);
+  --border-color: rgba(255, 255, 255, 0.2);
   --danger: #ff5c7c;
   --success: #4ade80;
   --canvas-bg: #0d0d1a;
-  --panel-bg: linear-gradient(135deg, #ff8c00 0%, #ff9500 20%, #ffa500 40%, #16213e 100%);
-  --panel-border: rgba(255, 140, 0, 0.4);
-  --chat-bg: linear-gradient(135deg, #ffb347 0%, #ffc266 30%, #1d4ed8 70%, #0ea5e9 100%);
-  --chat-border: rgba(29, 78, 216, 0.4);
+  --panel-bg: linear-gradient(180deg, #1e3a8a 0%, #3b82f6 30%, #6366f1 60%, #ef4444 100%);
+  --panel-border: rgba(255, 255, 255, 0.3);
+  --chat-bg: linear-gradient(180deg, #6366f1 0%, #8b5cf6 30%, #d946ef 60%, #ef4444 100%);
+  --chat-border: rgba(255, 255, 255, 0.3);
+  --button-hover-orange: rgba(255, 140, 0, 0.8);
 }
 
 * {
@@ -39,10 +40,10 @@ body {
 }
 
 .card {
-  background: linear-gradient(135deg, rgba(255, 140, 0, 0.9) 0%, rgba(255, 149, 0, 0.8) 30%, rgba(255, 165, 0, 0.7) 60%, rgba(22, 33, 62, 0.95) 100%);
+  background: linear-gradient(180deg, rgba(30, 58, 138, 0.9) 0%, rgba(59, 130, 246, 0.8) 25%, rgba(99, 102, 241, 0.7) 50%, rgba(139, 92, 246, 0.6) 75%, rgba(239, 68, 68, 0.9) 100%);
   border: 1px solid var(--panel-border);
   border-radius: 20px;
-  box-shadow: 0 20px 60px rgba(255, 140, 0, 0.2);
+  box-shadow: 0 20px 60px rgba(59, 130, 246, 0.2);
   padding: 2rem;
   width: 100%;
   max-width: 720px;
@@ -72,17 +73,24 @@ input {
   width: 100%;
   margin-top: 0.25rem;
   padding: 0.65rem 0.85rem;
-  border-radius: 12px;
-  border: 1px solid var(--panel-border);
-  background: linear-gradient(135deg, rgba(255, 165, 0, 0.4) 0%, rgba(255, 179, 71, 0.2) 50%, rgba(22, 33, 62, 0.8) 100%);
+  border-radius: 20px;
+  border: 3px solid var(--panel-border);
+  background: linear-gradient(180deg, rgba(59, 130, 246, 0.4) 0%, rgba(99, 102, 241, 0.2) 50%, rgba(239, 68, 68, 0.4) 100%);
   color: var(--text-primary);
   backdrop-filter: blur(5px);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 input:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 0 2px rgba(255, 140, 0, 0.25);
+  border-width: 3px;
+  box-shadow: 0 0 0 3px rgba(255, 140, 0, 0.25);
+}
+
+input:hover {
+  border-color: rgba(255, 140, 0, 0.6);
+}
 }
 
 .primary-btn,
@@ -90,12 +98,14 @@ input:focus {
 .danger-btn,
 .leave-btn {
   border: none;
-  border-radius: 999px;
+  border-radius: 25px;
   padding: 0.6rem 1.4rem;
   cursor: pointer;
   font-weight: 600;
   font-size: 0.95rem;
-  transition: transform 0.1s ease, box-shadow 0.15s ease, background-color 0.3s ease;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
 }
 
 .primary-btn {
@@ -111,7 +121,8 @@ input:focus {
 }
 
 .primary-btn:not(:disabled):hover {
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 20px 40px rgba(255, 140, 0, 0.4);
 }
 
 .primary-btn.landing-main-btn:not(:disabled):hover {
@@ -126,6 +137,7 @@ input:focus {
   position: relative;
   overflow: hidden;
   z-index: 1;
+  border-radius: 25px;
 }
 
 .landing-main-btn::before {
@@ -135,9 +147,10 @@ input:focus {
   left: -100%;
   width: 100%;
   height: 100%;
-  background: #000;
+  background: var(--button-hover-orange);
   transition: left 0.3s ease;
   z-index: -1;
+  border-radius: 25px;
 }
 
 .landing-main-btn:hover::before {
@@ -150,14 +163,17 @@ input:focus {
 }
 
 .secondary-btn {
-  background: linear-gradient(135deg, rgba(255, 165, 0, 0.6) 0%, rgba(255, 179, 71, 0.4) 50%, rgba(22, 33, 62, 0.8) 100%);
+  background: linear-gradient(180deg, rgba(59, 130, 246, 0.6) 0%, rgba(99, 102, 241, 0.4) 50%, rgba(239, 68, 68, 0.6) 100%);
   color: var(--text-primary);
   border: 1px solid var(--panel-border);
   backdrop-filter: blur(5px);
+  border-radius: 25px;
 }
 
 .secondary-btn:hover {
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  background: var(--button-hover-orange);
+  box-shadow: 0 10px 25px rgba(255, 140, 0, 0.3);
 }
 
 .secondary-btn.landing-main-btn:hover {
@@ -167,23 +183,32 @@ input:focus {
 .danger-btn {
   background: var(--danger);
   color: #fff;
+  border-radius: 25px;
+}
+
+.danger-btn:hover {
+  transform: translateY(-2px);
+  background: var(--button-hover-orange);
+  box-shadow: 0 10px 25px rgba(255, 140, 0, 0.3);
 }
 
 .danger-btn.small {
   padding: 0.25rem 0.6rem;
   font-size: 0.75rem;
+  border-radius: 20px;
 }
 
 .leave-btn {
   background: #fff;
   color: #000;
   border: 1px solid var(--panel-border);
+  border-radius: 25px;
 }
 
 .leave-btn:hover {
   background: var(--danger);
   color: #fff;
-  transform: translateY(-1px);
+  transform: translateY(-2px);
 }
 
 .room-layout {
@@ -196,11 +221,11 @@ input:focus {
 }
 
 .sidebar {
-  background: linear-gradient(135deg, rgba(255, 140, 0, 0.9) 0%, rgba(255, 149, 0, 0.8) 25%, rgba(255, 165, 0, 0.7) 50%, rgba(22, 33, 62, 0.9) 100%);
+  background: linear-gradient(180deg, rgba(30, 58, 138, 0.9) 0%, rgba(59, 130, 246, 0.8) 30%, rgba(99, 102, 241, 0.7) 60%, rgba(239, 68, 68, 0.9) 100%);
   border: 1px solid var(--panel-border);
   border-radius: 16px;
   padding: 1rem;
-  box-shadow: 0 18px 50px rgba(255, 140, 0, 0.2);
+  box-shadow: 0 18px 50px rgba(59, 130, 246, 0.2);
   backdrop-filter: blur(10px);
 }
 
@@ -215,16 +240,17 @@ input:focus {
   display: inline-flex;
   flex-direction: column;
   padding: 0.45rem 0.85rem;
-  border-radius: 999px;
+  border-radius: 25px;
   border: 1px solid var(--panel-border);
-  background: linear-gradient(135deg, rgba(255, 165, 0, 0.8) 0%, rgba(255, 179, 71, 0.6) 50%, rgba(22, 33, 62, 0.8) 100%);
+  background: linear-gradient(180deg, rgba(59, 130, 246, 0.8) 0%, rgba(99, 102, 241, 0.6) 50%, rgba(239, 68, 68, 0.8) 100%);
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: all 0.3s ease;
   backdrop-filter: blur(5px);
 }
 
 .room-code-pill:hover {
-  background: linear-gradient(135deg, rgba(255, 165, 0, 0.9) 0%, rgba(255, 179, 71, 0.7) 50%, rgba(15, 52, 96, 0.9) 100%);
+  background: linear-gradient(180deg, rgba(59, 130, 246, 0.9) 0%, rgba(99, 102, 241, 0.7) 50%, rgba(220, 38, 38, 0.9) 100%);
+  transform: translateY(-1px);
 }
 
 .room-code-label {
@@ -257,9 +283,9 @@ input:focus {
   align-items: center;
   gap: 0.75rem;
   padding: 0.6rem 0.8rem;
-  border-radius: 14px;
+  border-radius: 20px;
   border: 1px solid transparent;
-  background: linear-gradient(135deg, rgba(255, 165, 0, 0.6) 0%, rgba(255, 179, 71, 0.4) 40%, rgba(15, 52, 96, 0.8) 100%);
+  background: linear-gradient(180deg, rgba(59, 130, 246, 0.6) 0%, rgba(99, 102, 241, 0.4) 50%, rgba(239, 68, 68, 0.6) 100%);
   backdrop-filter: blur(5px);
 }
 
@@ -339,13 +365,13 @@ input:focus {
 }
 
 .main-panel {
-  background: linear-gradient(135deg, rgba(255, 140, 0, 0.9) 0%, rgba(255, 149, 0, 0.8) 20%, rgba(255, 165, 0, 0.7) 40%, rgba(22, 33, 62, 0.95) 100%);
+  background: linear-gradient(180deg, rgba(30, 58, 138, 0.9) 0%, rgba(59, 130, 246, 0.8) 25%, rgba(99, 102, 241, 0.7) 50%, rgba(139, 92, 246, 0.6) 75%, rgba(239, 68, 68, 0.9) 100%);
   border-radius: 18px;
   border: 1px solid var(--panel-border);
   padding: 1.2rem;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 25px 70px rgba(255, 140, 0, 0.2);
+  box-shadow: 0 25px 70px rgba(59, 130, 246, 0.2);
   backdrop-filter: blur(10px);
 }
 
@@ -388,8 +414,8 @@ input:focus {
   gap: 0.35rem;
   padding: 0.75rem;
   border: 1px dashed var(--panel-border);
-  border-radius: 14px;
-  background: linear-gradient(135deg, rgba(255, 165, 0, 0.6) 0%, rgba(255, 179, 71, 0.4) 50%, rgba(22, 33, 62, 0.8) 100%);
+  border-radius: 20px;
+  background: linear-gradient(180deg, rgba(59, 130, 246, 0.6) 0%, rgba(99, 102, 241, 0.4) 50%, rgba(239, 68, 68, 0.6) 100%);
   margin-bottom: 1rem;
   backdrop-filter: blur(5px);
 }
@@ -406,7 +432,7 @@ input:focus {
 .hint-letter {
   min-width: 36px;
   height: 44px;
-  border-radius: 10px;
+  border-radius: 15px;
   border: 1px solid var(--panel-border);
   display: flex;
   align-items: center;
@@ -414,7 +440,7 @@ input:focus {
   font-size: 1.2rem;
   font-weight: 600;
   color: var(--text-secondary);
-  background: linear-gradient(135deg, rgba(255, 179, 71, 0.5) 0%, rgba(255, 194, 102, 0.3) 50%, rgba(15, 52, 96, 0.7) 100%);
+  background: linear-gradient(180deg, rgba(99, 102, 241, 0.5) 0%, rgba(139, 92, 246, 0.3) 50%, rgba(239, 68, 68, 0.5) 100%);
   backdrop-filter: blur(3px);
 }
 
@@ -447,16 +473,16 @@ input:focus {
   position: relative;
   padding: 20px;
   border-radius: 24px;
-  background: linear-gradient(135deg, 
-    #ff8c00 0%, 
-    #ff9500 25%, 
-    #ffa500 50%, 
-    #ffb347 75%, 
-    #ffc266 100%
+  background: linear-gradient(180deg, 
+    rgba(59, 130, 246, 0.8) 0%, 
+    rgba(99, 102, 241, 0.7) 25%, 
+    rgba(139, 92, 246, 0.6) 50%, 
+    rgba(217, 70, 239, 0.7) 75%, 
+    rgba(239, 68, 68, 0.8) 100%
   );
   box-shadow: 
-    0 0 30px rgba(255, 140, 0, 0.3),
-    inset 0 0 20px rgba(255, 140, 0, 0.1);
+    0 0 30px rgba(59, 130, 246, 0.3),
+    inset 0 0 20px rgba(59, 130, 246, 0.1);
 }
 
 .canvas-container::before {
@@ -467,10 +493,12 @@ input:focus {
   right: 10px;
   bottom: 10px;
   border-radius: 20px;
-  background: linear-gradient(135deg, 
-    rgba(255, 140, 0, 0.1) 0%, 
-    rgba(255, 149, 0, 0.05) 50%, 
-    rgba(255, 165, 0, 0.1) 100%
+  background: linear-gradient(180deg, 
+    rgba(59, 130, 246, 0.1) 0%, 
+    rgba(99, 102, 241, 0.05) 25%,
+    rgba(139, 92, 246, 0.05) 50%, 
+    rgba(217, 70, 239, 0.05) 75%,
+    rgba(239, 68, 68, 0.1) 100%
   );
   pointer-events: none;
   z-index: 0;
@@ -542,14 +570,21 @@ input:focus {
 }
 
 .tool-button {
-  border-radius: 999px;
+  border-radius: 25px;
   border: 1px solid var(--panel-border);
-  background: linear-gradient(135deg, rgba(255, 165, 0, 0.7) 0%, rgba(255, 179, 71, 0.5) 50%, rgba(22, 33, 62, 0.8) 100%);
+  background: linear-gradient(180deg, rgba(59, 130, 246, 0.7) 0%, rgba(99, 102, 241, 0.5) 50%, rgba(239, 68, 68, 0.7) 100%);
   padding: 0.35rem 1rem;
   cursor: pointer;
   font-weight: 600;
   color: var(--text-secondary);
   backdrop-filter: blur(5px);
+  transition: all 0.3s ease;
+}
+
+.tool-button:hover {
+  background: var(--button-hover-orange);
+  transform: translateY(-1px);
+  box-shadow: 0 5px 15px rgba(255, 140, 0, 0.3);
 }
 
 .tool-button.active {
@@ -587,10 +622,11 @@ input:focus {
   justify-content: center;
   gap: 0.25rem;
   border: 1px dashed var(--panel-border);
-  background: linear-gradient(135deg, rgba(255, 165, 0, 0.5) 0%, rgba(255, 179, 71, 0.3) 50%, rgba(22, 33, 62, 0.7) 100%);
+  background: linear-gradient(180deg, rgba(59, 130, 246, 0.5) 0%, rgba(99, 102, 241, 0.3) 50%, rgba(239, 68, 68, 0.5) 100%);
   font-size: 0.75rem;
   color: var(--text-secondary);
   backdrop-filter: blur(3px);
+  border-radius: 10px;
 }
 
 .swatch.custom input {
@@ -663,7 +699,7 @@ input:focus {
 }
 
 .chat-box {
-  background: linear-gradient(135deg, rgba(255, 179, 71, 0.7) 0%, rgba(255, 194, 102, 0.5) 20%, rgba(29, 78, 216, 0.8) 60%, rgba(14, 165, 233, 0.9) 100%);
+  background: linear-gradient(180deg, rgba(99, 102, 241, 0.7) 0%, rgba(139, 92, 246, 0.6) 30%, rgba(217, 70, 239, 0.7) 60%, rgba(239, 68, 68, 0.8) 100%);
   border: 1px solid var(--chat-border);
   border-radius: 16px;
   padding: 0.85rem;
@@ -699,12 +735,23 @@ input:focus {
 
 .chat-input {
   flex: 1;
-  border-radius: 999px;
-  border: 1px solid var(--chat-border);
+  border-radius: 25px;
+  border: 3px solid var(--panel-border);
   padding: 0.6rem 1rem;
-  background: linear-gradient(135deg, rgba(255, 194, 102, 0.6) 0%, rgba(29, 78, 216, 0.7) 50%, rgba(14, 165, 233, 0.8) 100%);
+  background: linear-gradient(180deg, rgba(139, 92, 246, 0.6) 0%, rgba(217, 70, 239, 0.5) 50%, rgba(239, 68, 68, 0.6) 100%);
   color: var(--text-primary);
   backdrop-filter: blur(5px);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.chat-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(255, 140, 0, 0.25);
+}
+
+.chat-input:hover {
+  border-color: rgba(255, 140, 0, 0.6);
 }
 
 .modal-backdrop {
@@ -718,12 +765,12 @@ input:focus {
 }
 
 .modal {
-  background: linear-gradient(135deg, rgba(255, 140, 0, 0.9) 0%, rgba(255, 149, 0, 0.8) 30%, rgba(255, 165, 0, 0.7) 60%, rgba(22, 33, 62, 0.95) 100%);
+  background: linear-gradient(180deg, rgba(30, 58, 138, 0.9) 0%, rgba(59, 130, 246, 0.8) 30%, rgba(99, 102, 241, 0.7) 60%, rgba(239, 68, 68, 0.9) 100%);
   border-radius: 18px;
   padding: 1.5rem;
   border: 1px solid var(--panel-border);
   width: min(500px, 90%);
-  box-shadow: 0 25px 60px rgba(255, 140, 0, 0.3);
+  box-shadow: 0 25px 60px rgba(59, 130, 246, 0.3);
   backdrop-filter: blur(15px);
 }
 
@@ -740,9 +787,9 @@ input:focus {
 }
 
 .word-card {
-  border-radius: 16px;
+  border-radius: 20px;
   border: 1px solid var(--panel-border);
-  background: linear-gradient(135deg, rgba(255, 165, 0, 0.6) 0%, rgba(255, 179, 71, 0.4) 50%, rgba(22, 33, 62, 0.8) 100%);
+  background: linear-gradient(180deg, rgba(59, 130, 246, 0.6) 0%, rgba(99, 102, 241, 0.4) 50%, rgba(239, 68, 68, 0.6) 100%);
   padding: 0.75rem;
   text-align: center;
   cursor: pointer;
@@ -752,10 +799,13 @@ input:focus {
   color: var(--text-primary);
   font-weight: 600;
   backdrop-filter: blur(5px);
+  transition: all 0.3s ease;
 }
 
 .word-card:hover:not(:disabled) {
   border-color: var(--primary);
+  background: var(--button-hover-orange);
+  transform: translateY(-2px);
 }
 
 .word-card.selected {
