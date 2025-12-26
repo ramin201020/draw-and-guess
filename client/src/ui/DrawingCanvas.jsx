@@ -26,12 +26,30 @@ const CANVAS_BACKGROUNDS = [
 export function DrawingCanvas({ roomId, isDrawer }) {
   const { socket } = useSocket();
   const canvasRef = useRef(null);
+  const sliderRef = useRef(null);
   const [color, setColor] = useState(COLOR_SWATCHES[0]);
   const [brushSize, setBrushSize] = useState(6);
   const [isErasing, setIsErasing] = useState(false);
   const [drawing, setDrawing] = useState(false);
   const [lastPoint, setLastPoint] = useState(null);
   const [canvasBackground, setCanvasBackground] = useState('light');
+
+  const handleBrushSizeChange = (e) => {
+    const newSize = Number(e.target.value);
+    setBrushSize(newSize);
+    
+    // Add vibration effect when slider reaches the end
+    if (newSize === 28 || newSize === 2) {
+      if (sliderRef.current) {
+        sliderRef.current.classList.add('slider-vibrate');
+        setTimeout(() => {
+          if (sliderRef.current) {
+            sliderRef.current.classList.remove('slider-vibrate');
+          }
+        }, 400);
+      }
+    }
+  };
 
   const drawStroke = useCallback((ctx, stroke) => {
     if (!ctx || !stroke) return;
@@ -206,12 +224,13 @@ export function DrawingCanvas({ roomId, isDrawer }) {
         <div className="toolbar-group size-control">
           <label htmlFor="brush-size">Size</label>
           <input
+            ref={sliderRef}
             id="brush-size"
             type="range"
             min="2"
             max="28"
             value={brushSize}
-            onChange={(e) => setBrushSize(Number(e.target.value))}
+            onChange={handleBrushSizeChange}
           />
           <span>{brushSize}px</span>
         </div>
