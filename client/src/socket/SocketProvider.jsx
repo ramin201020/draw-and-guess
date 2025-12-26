@@ -7,16 +7,67 @@ export function SocketProvider({ children }) {
   const [socket, setSocket] = useState(null);
   const [roomState, setRoomState] = useState(null);
   const [selfId, setSelfId] = useState(null);
+  const [connectionStatus, setConnectionStatus] = useState('connecting');
 
   useEffect(() => {
-    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:4000';
-    const s = io(backendUrl);
+    // Use proxy in development, direct URL in production
+    const backendUrl = import.meta.env.PROD 
+      ? (import.meta.env.VITE_BACKEND_URL || 'http://localhost:4000')
+      : '/'; // Use proxy in development
+
+    const s = io(backendUrl, {
+      // Connection optimization
+      transports: ['websocket', 'polling'], // Prefer websocket, fallback to polling
+      upgrade: true,
+      rememberUpgrade: true,
+      // Performance settings
+      timeout: 5000,
+      forceNew: false,
+      // Security settings
+      withCredentials: false,
+      // Reconnection settings for reliability
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
+      maxReconnectionAttempts: 5
+    });
+
     setSocket(s);
-    s.on('connect', () => setSelfId(s.id));
+
+    // Connection status tracking
+    s.on('connect', () => {
+      console.log('Socket connected:', s.id);
+      setSelfId(s.id);
+      setConnectionStatus('connected');
+    });
+
+    s.on('disconnect', (reason) => {
+      console.log('Socket disconnected:', reason);
+      setConnectionStatus('disconnected');
+    });
+
+    s.on('connect_error', (error) => {
+      console.error('Socket connection error:', error);
+      setConnectionStatus('error');
+    });
+
+    s.on('reconnect', (attemptNumber) => {
+      console.log('Socket reconnected after', attemptNumber, 'attempts');
+      setConnectionStatus('connected');
+    });
+
+    s.on('reconnect_attempt', (attemptNumber) => {
+      console.log('Socket reconnection attempt:', attemptNumber);
+      setConnectionStatus('reconnecting');
+    });
+
+    // Game event handlers
     s.on('room:state', (state) => setRoomState(state));
     s.on('round:end', ({ state }) => setRoomState(state));
     s.on('room:closed', () => setRoomState(null));
     s.on('room:kicked', () => setRoomState(null));
+    
     s.on('round:maskUpdate', ({ roomId, mask }) => {
       setRoomState((prev) => {
         if (!prev || prev.id !== roomId) return prev;
@@ -27,6 +78,7 @@ export function SocketProvider({ children }) {
         };
       });
     });
+    
     s.on('round:start', ({ drawerId, endsAt, mask }) => {
       setRoomState((prev) => {
         if (!prev) return prev;
@@ -42,7 +94,13 @@ export function SocketProvider({ children }) {
         };
       });
     });
+
     return () => {
+      s.off('connect');
+      s.off('disconnect');
+      s.off('connect_error');
+      s.off('reconnect');
+      s.off('reconnect_attempt');
       s.off('room:state');
       s.off('round:end');
       s.off('room:closed');
@@ -53,7 +111,13 @@ export function SocketProvider({ children }) {
     };
   }, []);
 
-  const value = useMemo(() => ({ socket, roomState, selfId, setRoomState }), [socket, roomState, selfId]);
+  const value = useMemo(() => ({ 
+    socket, 
+    roomState, 
+    selfId, 
+    connectionStatus,
+    setRoomState 
+  }), [socket, roomState, selfId, connectionStatus]);
 
   return <SocketContext.Provider value={value}>{children}</SocketContext.Provider>;
 }

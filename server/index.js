@@ -4,15 +4,29 @@ import cors from 'cors';
 import { Server } from 'socket.io';
 
 const app = express();
-app.use(cors({
-  origin: process.env.CORS_ORIGIN || '*',
-  methods: ['GET', 'POST']
-}));
-app.use(express.json());
-app.get('/health', (_, res) => res.json({ ok: true }));
 
-// HTTP endpoint to create a room using an existing Socket.IO connection
-app.post('/rooms', (req, res) => {
+// Enhanced CORS configuration
+const corsOptions = {
+  origin: process.env.NODE_ENV === 'production' 
+    ? process.env.CORS_ORIGIN?.split(',') || ['http://localhost:5173']
+    : ['http://localhost:5173', 'http://127.0.0.1:5173'],
+  methods: ['GET', 'POST'],
+  credentials: false,
+  optionsSuccessStatus: 200
+};
+
+app.use(cors(corsOptions));
+app.use(express.json({ limit: '1mb' }));
+
+// Health check endpoint
+app.get('/health', (_, res) => res.json({ 
+  ok: true, 
+  timestamp: new Date().toISOString(),
+  uptime: process.uptime()
+}));
+
+// API endpoint for room creation
+app.post('/api/rooms', (req, res) => {
   const { socketId, name, settings, avatar } = req.body || {};
   const hostSocket = io.sockets.sockets.get(socketId);
 
@@ -40,10 +54,24 @@ app.post('/rooms', (req, res) => {
 });
 
 const server = http.createServer(app);
+
+// Enhanced Socket.IO configuration
 const io = new Server(server, {
-  cors: {
-    origin: process.env.CORS_ORIGIN || '*',
-    methods: ["GET", "POST"]
+  cors: corsOptions,
+  // Performance optimizations
+  pingTimeout: 60000,
+  pingInterval: 25000,
+  upgradeTimeout: 10000,
+  maxHttpBufferSize: 1e6, // 1MB
+  // Transport configuration
+  transports: ['websocket', 'polling'],
+  allowUpgrades: true,
+  // Compression
+  compression: true,
+  // Connection state recovery
+  connectionStateRecovery: {
+    maxDisconnectionDuration: 2 * 60 * 1000, // 2 minutes
+    skipMiddlewares: true,
   }
 });
 

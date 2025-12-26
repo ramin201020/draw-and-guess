@@ -6,10 +6,29 @@ import { ChatBox } from '../ui/ChatBox';
 import { PlayersSidebar } from '../ui/PlayersSidebar';
 import { WordHintBar } from '../ui/WordHintBar';
 
+function ConnectionStatus({ status }) {
+  const statusConfig = {
+    connecting: { color: '#fbbf24', text: 'Connecting...' },
+    connected: { color: '#10b981', text: 'Connected' },
+    disconnected: { color: '#ef4444', text: 'Disconnected' },
+    reconnecting: { color: '#f59e0b', text: 'Reconnecting...' },
+    error: { color: '#dc2626', text: 'Connection Error' }
+  };
+
+  const config = statusConfig[status] || statusConfig.connecting;
+
+  return (
+    <div className="connection-status" style={{ color: config.color }}>
+      <div className="status-dot" style={{ backgroundColor: config.color }}></div>
+      {config.text}
+    </div>
+  );
+}
+
 export function RoomPage() {
   const { roomId } = useParams();
   const navigate = useNavigate();
-  const { socket, roomState, selfId } = useSocket();
+  const { socket, roomState, selfId, connectionStatus } = useSocket();
   const [wordOptions, setWordOptions] = useState([]);
   const [pendingSelection, setPendingSelection] = useState(null);
 
@@ -58,6 +77,7 @@ export function RoomPage() {
       <div className="page neon-bg">
         <div className="card">
           <p>Connecting to room...</p>
+          <ConnectionStatus status={connectionStatus} />
         </div>
       </div>
     );
@@ -72,7 +92,10 @@ export function RoomPage() {
       <main className="main-panel">
         <header className="room-header">
           <div>
-            <p className="eyebrow">Doodles Lobby · Room {roomState.id}</p>
+            <div className="room-header-top">
+              <p className="eyebrow">Doodles Lobby · Room {roomState.id}</p>
+              <ConnectionStatus status={connectionStatus} />
+            </div>
             <h1 className="room-title">{roomState.status === 'LOBBY' ? 'Waiting for players' : 'Game in progress'}</h1>
             <p>
               Status: <strong>{roomState.status}</strong>
@@ -83,7 +106,7 @@ export function RoomPage() {
           </div>
           {isHost && (
             <div className="host-controls">
-              <button onClick={handleStart} className="primary-btn" disabled={!canStart}>
+              <button onClick={handleStart} className="primary-btn" disabled={!canStart || connectionStatus !== 'connected'}>
                 {roomState.status === 'LOBBY' ? 'Start Game' : 'Next Round'}
               </button>
               {roomState.status === 'IN_ROUND' && (
