@@ -40,10 +40,10 @@ body {
 }
 
 .card {
-  background: linear-gradient(180deg, rgba(30, 58, 138, 0.9) 0%, rgba(59, 130, 246, 0.8) 25%, rgba(99, 102, 241, 0.7) 50%, rgba(139, 92, 246, 0.6) 75%, rgba(239, 68, 68, 0.9) 100%);
+  background: #4dd0e1;
   border: 1px solid var(--panel-border);
   border-radius: 20px;
-  box-shadow: 0 20px 60px rgba(59, 130, 246, 0.2);
+  box-shadow: 0 20px 60px rgba(77, 208, 225, 0.3);
   padding: 2rem;
   width: 100%;
   max-width: 720px;
@@ -52,7 +52,7 @@ body {
 
 .title {
   margin: 0 0 1.5rem;
-  color: var(--text-primary);
+  color: #1a1a1a;
   font-size: 2rem;
 }
 
@@ -66,7 +66,7 @@ label {
   display: block;
   margin-bottom: 1rem;
   font-size: 0.9rem;
-  color: var(--text-secondary);
+  color: #2d2d2d;
 }
 
 input {
@@ -226,11 +226,11 @@ input:hover {
 }
 
 .sidebar {
-  background: linear-gradient(180deg, rgba(30, 58, 138, 0.9) 0%, rgba(59, 130, 246, 0.8) 30%, rgba(99, 102, 241, 0.7) 60%, rgba(239, 68, 68, 0.9) 100%);
+  background: #4dd0e1;
   border: 1px solid var(--panel-border);
   border-radius: 16px;
   padding: 1rem;
-  box-shadow: 0 18px 50px rgba(59, 130, 246, 0.2);
+  box-shadow: 0 18px 50px rgba(77, 208, 225, 0.3);
   backdrop-filter: blur(10px);
 }
 
@@ -370,13 +370,13 @@ input:hover {
 }
 
 .main-panel {
-  background: linear-gradient(180deg, rgba(30, 58, 138, 0.9) 0%, rgba(59, 130, 246, 0.8) 25%, rgba(99, 102, 241, 0.7) 50%, rgba(139, 92, 246, 0.6) 75%, rgba(239, 68, 68, 0.9) 100%);
+  background: #4dd0e1;
   border-radius: 18px;
   border: 1px solid var(--panel-border);
   padding: 1.2rem;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 25px 70px rgba(59, 130, 246, 0.2);
+  box-shadow: 0 25px 70px rgba(77, 208, 225, 0.3);
   backdrop-filter: blur(10px);
 }
 
@@ -392,14 +392,14 @@ input:hover {
   text-transform: uppercase;
   letter-spacing: 0.12em;
   font-size: 0.75rem;
-  color: var(--text-secondary);
+  color: #2d2d2d;
   margin: 0;
 }
 
 .room-title {
   margin: 0.15rem 0;
   font-size: 1.6rem;
-  color: var(--text-primary);
+  color: #1a1a1a;
 }
 
 .lobby-hint {
@@ -771,17 +771,17 @@ input:hover {
 }
 
 .modal {
-  background: linear-gradient(180deg, rgba(30, 58, 138, 0.9) 0%, rgba(59, 130, 246, 0.8) 30%, rgba(99, 102, 241, 0.7) 60%, rgba(239, 68, 68, 0.9) 100%);
+  background: #4dd0e1;
   border-radius: 18px;
   padding: 1.5rem;
   border: 1px solid var(--panel-border);
   width: min(500px, 90%);
-  box-shadow: 0 25px 60px rgba(59, 130, 246, 0.3);
+  box-shadow: 0 25px 60px rgba(77, 208, 225, 0.4);
   backdrop-filter: blur(15px);
 }
 
 .modal h2 {
-  color: var(--text-primary);
+  color: #1a1a1a;
   margin-top: 0;
 }
 
