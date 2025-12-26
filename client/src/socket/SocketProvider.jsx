@@ -9,7 +9,10 @@ export function SocketProvider({ children }) {
   const [selfId, setSelfId] = useState(null);
   const [connectionStatus, setConnectionStatus] = useState('connecting');
 
+  console.log('🚀 SocketProvider component mounted/re-rendered');
+
   useEffect(() => {
+    console.log('🔄 SocketProvider useEffect triggered - starting connection process');
     // Use proxy in development for socket connection
     const backendUrl = import.meta.env.PROD 
       ? (import.meta.env.VITE_BACKEND_URL || 'http://localhost:4000')
@@ -39,23 +42,39 @@ export function SocketProvider({ children }) {
     });
 
     console.log('📡 Socket instance created:', s);
+    console.log('🔧 Socket options:', {
+      transports: ['websocket', 'polling'],
+      timeout: 5000,
+      reconnection: true
+    });
     setSocket(s);
+
+    // Test connection immediately
+    setTimeout(() => {
+      console.log('🧪 Testing socket connection after 2 seconds...');
+      console.log('🔗 Socket connected:', s.connected);
+      console.log('🆔 Socket ID:', s.id);
+      console.log('🚀 Socket ready state:', s.readyState);
+    }, 2000);
 
     // Connection status tracking
     s.on('connect', () => {
       console.log('✅ Socket connected successfully:', s.id);
+      console.log('🔗 Socket connected state:', s.connected);
       setSelfId(s.id);
       setConnectionStatus('connected');
     });
 
     s.on('disconnect', (reason) => {
       console.log('❌ Socket disconnected:', reason);
+      console.log('🔗 Socket connected state:', s.connected);
       setConnectionStatus('disconnected');
       setSelfId(null);
     });
 
     s.on('connect_error', (error) => {
       console.error('🔥 Socket connection error:', error);
+      console.log('🔗 Error details:', error.message, error.type);
       setConnectionStatus('error');
     });
 

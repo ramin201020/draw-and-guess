@@ -9,6 +9,8 @@ export function LandingPage() {
   const [maxPoints, setMaxPoints] = useState(300);
   const [roundTimeSec, setRoundTimeSec] = useState(90);
   const [wordsPerRound, setWordsPerRound] = useState(3);
+  const [maxLettersRevealed, setMaxLettersRevealed] = useState(4);
+  const [maxWordLength, setMaxWordLength] = useState(10);
   const [isCreating, setIsCreating] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
   const navigate = useNavigate();
@@ -50,6 +52,8 @@ export function LandingPage() {
           maxPoints: parseNumberOrDefault(maxPoints, 300),
           roundTimeSec: parseNumberOrDefault(roundTimeSec, 90),
           wordsPerRound: parseNumberOrDefault(wordsPerRound, 3),
+          maxLettersRevealed: parseNumberOrDefault(maxLettersRevealed, 4),
+          maxWordLength: parseNumberOrDefault(maxWordLength, 10),
         },
       };
 
@@ -157,9 +161,11 @@ export function LandingPage() {
           display: 'flex', 
           justifyContent: 'space-between', 
           alignItems: 'center',
-          marginBottom: '1rem'
+          marginBottom: '1rem',
+          flexWrap: 'wrap',
+          gap: '1rem'
         }}>
-          <h1 className="title" style={{ margin: 0 }}>Welcome to Doodles</h1>
+          <h1 className="title" style={{ margin: 0, flex: '1 1 auto' }}>Welcome to Doodles</h1>
           <div style={{ 
             color: getConnectionStatusColor(),
             fontSize: '0.9rem',
@@ -167,7 +173,8 @@ export function LandingPage() {
             padding: '0.5rem 1rem',
             borderRadius: '20px',
             backgroundColor: 'rgba(255,255,255,0.1)',
-            border: `2px solid ${getConnectionStatusColor()}`
+            border: `2px solid ${getConnectionStatusColor()}`,
+            whiteSpace: 'nowrap'
           }}>
             {getConnectionStatusText()}
           </div>
@@ -179,18 +186,40 @@ export function LandingPage() {
 
         <div className="section">
           <h2>Create Room</h2>
-          <label>
-            Max points (first guess)
-            <input type="number" value={maxPoints} onChange={handleNumericChange(setMaxPoints)} />
-          </label>
-          <label>
-            Round time (seconds)
-            <input type="number" value={roundTimeSec} onChange={handleNumericChange(setRoundTimeSec)} />
-          </label>
-          <label>
-            Word options for drawer
-            <input type="number" value={wordsPerRound} onChange={handleNumericChange(setWordsPerRound)} />
-          </label>
+          <div className="settings-grid">
+            <label>
+              Max points (first guess)
+              <input type="number" value={maxPoints} onChange={handleNumericChange(setMaxPoints)} />
+            </label>
+            <label>
+              Round time (seconds)
+              <input type="number" value={roundTimeSec} onChange={handleNumericChange(setRoundTimeSec)} />
+            </label>
+            <label>
+              Word options for drawer
+              <input type="number" value={wordsPerRound} onChange={handleNumericChange(setWordsPerRound)} />
+            </label>
+            <label>
+              Max letters revealed
+              <input 
+                type="number" 
+                value={maxLettersRevealed} 
+                onChange={handleNumericChange(setMaxLettersRevealed)}
+                min="1"
+                max="8"
+              />
+            </label>
+            <label>
+              Max word length
+              <input 
+                type="number" 
+                value={maxWordLength} 
+                onChange={handleNumericChange(setMaxWordLength)}
+                min="3"
+                max="15"
+              />
+            </label>
+          </div>
           <button 
             onClick={handleCreate} 
             className="primary-btn landing-main-btn"

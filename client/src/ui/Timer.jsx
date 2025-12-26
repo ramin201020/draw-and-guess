@@ -52,9 +52,12 @@ export function Timer({ endsAt, onTimeUp, isActive = true }) {
 
   const getProgressPercentage = () => {
     if (!endsAt) return 0;
-    const totalTime = 90; // Default round time in seconds
-    const elapsed = totalTime - timeLeft;
-    return Math.min(100, (elapsed / totalTime) * 100);
+    // Calculate total time from the round settings (default 90 seconds)
+    const now = Date.now();
+    const totalDuration = 90 * 1000; // 90 seconds in milliseconds
+    const timeRemaining = Math.max(0, endsAt - now);
+    const timeElapsed = totalDuration - timeRemaining;
+    return Math.min(100, Math.max(0, (timeElapsed / totalDuration) * 100));
   };
 
   if (!isActive || timeLeft <= 0) {

@@ -87,9 +87,9 @@ const io = new Server(server, {
 
 // In-memory state
 const rooms = new Map();
-const LETTER_REVEAL_INTERVAL_MS = 15_000;
+const LETTER_REVEAL_INTERVAL_MS = 60_000; // Changed to 60 seconds
 const SHORT_WORD_DELAY_MS = 60_000;
-const MAX_WORD_LENGTH = 10;
+const MAX_WORD_LENGTH = 15; // Made configurable
 
 function initializeMaskState(word) {
   if (!word) return null;
@@ -144,13 +144,24 @@ function scheduleMaskReveal(room) {
   if (!round?.word || !round.maskState) return;
   clearRevealTimer(round);
   if (!maskHasHidden(round.maskState)) return;
+  
+  // Check if we've reached the maximum letters revealed
+  const maxRevealed = room.settings.maxLettersRevealed || 4;
+  if (round.revealedLetters >= maxRevealed) {
+    console.log(`Max letters revealed (${maxRevealed}) reached for room ${room.id}`);
+    return;
+  }
+  
   const sanitizedLength = round.word.replace(/\s/g, '').length;
   const isShortWord = sanitizedLength <= 3;
   const delay = isShortWord ? SHORT_WORD_DELAY_MS : LETTER_REVEAL_INTERVAL_MS;
+  
   round.revealTimer = setTimeout(() => {
     const revealed = revealRandomLetter(room);
     if (!revealed) return;
-    if (!isShortWord && maskHasHidden(round.maskState)) {
+    
+    // Continue revealing if we haven't reached the max and there are still hidden letters
+    if (round.revealedLetters < maxRevealed && maskHasHidden(round.maskState)) {
       scheduleMaskReveal(room);
     }
   }, delay);
@@ -167,7 +178,14 @@ function destroyRoom(roomId) {
 }
 
 function defaultSettings() {
-  return { maxPoints: 300, roundTimeSec: 90, wordsPerRound: 3, maxPlayers: 12 };
+  return { 
+    maxPoints: 300, 
+    roundTimeSec: 90, 
+    wordsPerRound: 3, 
+    maxPlayers: 12,
+    maxLettersRevealed: 4,
+    maxWordLength: 10
+  };
 }
 
 function createRoom(hostSocket, payload) {
@@ -313,7 +331,7 @@ io.on('connection', (socket) => {
     }, room.settings.roundTimeSec * 1000);
     
     // generate word options
-    room.currentRound.options = pickWords(room.settings.wordsPerRound);
+    room.currentRound.options = pickWords(room.settings.wordsPerRound, room.settings.maxWordLength || 10);
     io.to(drawer.id).emit('round:wordOptions', room.currentRound.options);
     io.to(room.id).emit('room:state', roomSnapshot(room));
   });
@@ -324,9 +342,12 @@ io.on('connection', (socket) => {
     if (socket.id !== room.currentRound.drawerId) return;
     let chosenWord = String(word || '').trim().toLowerCase();
     if (!chosenWord) return;
-    if (chosenWord.length > MAX_WORD_LENGTH) {
-      chosenWord = chosenWord.slice(0, MAX_WORD_LENGTH);
+    
+    const maxLength = room.settings.maxWordLength || 10;
+    if (chosenWord.length > maxLength) {
+      chosenWord = chosenWord.slice(0, maxLength);
     }
+    
     room.currentRound.word = chosenWord;
     room.currentRound.maskState = initializeMaskState(chosenWord);
     room.currentRound.revealedLetters = 0;
@@ -443,10 +464,14 @@ function endRoundAndScore(room, reason) {
   io.to(room.id).emit('round:end', { reason, word, state: roomSnapshot(room) });
 }
 
-function pickWords(n) {
+function pickWords(n, maxWordLength = 10) {
   const pool = [
-    'apple','banana','cactus','bottle','castle','dragon','camera','guitar','rocket','mountain','pencil','notebook','cookie','window','island','sketch','pyramid','pirate','rainbow','airplane','dolphin','diamond','painter','sunrise','lantern','piano','laptop','planet','compass'
-  ].filter(word => word.length <= MAX_WORD_LENGTH);
+    'apple','banana','cactus','bottle','castle','dragon','camera','guitar','rocket','mountain','pencil','notebook','cookie','window','island','sketch','pyramid','pirate','rainbow','airplane','dolphin','diamond','painter','sunrise','lantern','piano','laptop','planet','compass',
+    'butterfly','elephant','giraffe','kangaroo','penguin','octopus','flamingo','hedgehog','squirrel','hamster','rabbit','turtle','lizard','spider','beetle','dragonfly','ladybug','caterpillar','grasshopper','firefly',
+    'sandwich','hamburger','pizza','spaghetti','chocolate','strawberry','watermelon','pineapple','coconut','avocado','broccoli','carrot','tomato','potato','onion','garlic','pepper','mushroom','cucumber','lettuce',
+    'computer','keyboard','monitor','speaker','headphone','microphone','telephone','television','radio','camera','printer','scanner','tablet','smartphone','laptop','desktop','software','hardware','internet','website',
+    'bicycle','motorcycle','airplane','helicopter','submarine','spaceship','rocket','train','bus','truck','car','boat','ship','yacht','canoe','kayak','skateboard','scooter','rollerblade','snowboard'
+  ].filter(word => word.length <= maxWordLength);
   const target = Math.min(n, pool.length);
   const out = new Set();
   while (out.size < target) {
