@@ -5,26 +5,26 @@
   --primary-lighter: #ffc947;
   --primary-accent: #ff6f00;
   --primary-deep: #f57c00;
-  --bg-main: #2e7d32;
-  --bg-secondary: #388e3c;
-  --bg-tertiary: #43a047;
-  --text-primary: #ffffff;
-  --text-secondary: #f0f0f0;
-  --text-muted: #e0e0e0;
-  --border-color: rgba(255, 255, 255, 0.2);
+  --bg-main: #fdf2e9;
+  --bg-secondary: #faf0e6;
+  --bg-tertiary: #f5e6d3;
+  --text-primary: #2c3e50;
+  --text-secondary: #34495e;
+  --text-muted: #7f8c8d;
+  --border-color: rgba(52, 73, 94, 0.2);
   --danger: #ff5c7c;
   --success: #4ade80;
   --canvas-bg: #0d0d1a;
-  --panel-bg: #2e7d32;
-  --panel-border: rgba(255, 255, 255, 0.3);
-  --chat-bg: #388e3c;
-  --chat-border: rgba(255, 255, 255, 0.3);
-  --button-hover-cream-peach: #ffeaa7;
+  --panel-bg: #fdf2e9;
+  --panel-border: rgba(52, 73, 94, 0.3);
+  --chat-bg: #faf0e6;
+  --chat-border: rgba(52, 73, 94, 0.3);
+  --button-hover-light-blue: #87ceeb;
   --shadow-color: rgba(255, 140, 0, 0.3);
-  --panel-green: #2e7d32;
-  --panel-green-light: #4caf50;
-  --panel-green-dark: #1b5e20;
-  --panel-green-focus: #66bb6a;
+  --panel-peach: #fdf2e9;
+  --panel-peach-light: #faf0e6;
+  --panel-peach-dark: #f5e6d3;
+  --panel-peach-focus: #f0dcc9;
 }
 
 * {
@@ -50,13 +50,13 @@ body {
 }
 
 .card {
-  background: var(--panel-green);
+  background: var(--panel-peach);
   border: 1px solid var(--panel-border);
   border-radius: 20px;
   box-shadow: 
-    0 25px 70px rgba(38, 166, 154, 0.3),
-    0 15px 40px rgba(38, 166, 154, 0.2),
-    0 8px 20px rgba(38, 166, 154, 0.15);
+    0 25px 70px rgba(253, 242, 233, 0.3),
+    0 15px 40px rgba(253, 242, 233, 0.2),
+    0 8px 20px rgba(253, 242, 233, 0.15);
   padding: 2rem;
   width: 100%;
   max-width: 720px;
@@ -65,7 +65,7 @@ body {
 
 .title {
   margin: 0 0 1.5rem;
-  color: #1a1a1a;
+  color: var(--text-primary);
   font-size: 2.5rem;
   font-weight: 700;
 }
@@ -80,7 +80,7 @@ body {
   font-size: 1.8rem;
   font-weight: 600;
   margin-bottom: 1rem;
-  color: #1a1a1a;
+  color: var(--text-primary);
 }
 
 label {
@@ -88,7 +88,7 @@ label {
   margin-bottom: 1rem;
   font-size: 1.1rem;
   font-weight: 500;
-  color: #2d2d2d;
+  color: var(--text-primary);
 }
 
 input {
@@ -97,8 +97,8 @@ input {
   padding: 0.8rem 1rem;
   border-radius: 20px;
   border: 3px solid var(--panel-border);
-  background: var(--panel-green-light);
-  color: #1a1a1a;
+  background: var(--panel-peach-light);
+  color: var(--text-primary);
   backdrop-filter: blur(5px);
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
   font-size: 1rem;
@@ -144,9 +144,9 @@ input:hover {
 
 .primary-btn:not(:disabled):hover {
   transform: translateY(-2px) translateX(8px);
-  background: var(--button-hover-cream-peach);
-  color: #333;
-  box-shadow: 0 20px 40px rgba(255, 234, 167, 0.4);
+  background: var(--button-hover-light-blue);
+  color: #fff;
+  box-shadow: 0 20px 40px rgba(135, 206, 235, 0.4);
   animation: buttonVibrate 0.3s ease-in-out;
 }
 
@@ -182,7 +182,7 @@ input:hover {
   left: -100%;
   width: 100%;
   height: 100%;
-  background: var(--button-hover-cream-peach);
+  background: var(--button-hover-light-blue);
   transition: left 0.3s ease;
   z-index: -1;
   border-radius: 25px;
@@ -193,7 +193,7 @@ input:hover {
 }
 
 .landing-main-btn:hover {
-  color: #333;
+  color: #fff;
   transform: translateX(12px);
   animation: sliderVibrate 0.4s ease-in-out;
 }
@@ -217,9 +217,9 @@ input:hover {
 
 .secondary-btn:hover {
   transform: translateY(-2px) translateX(8px);
-  background: var(--button-hover-cream-peach);
-  color: #333;
-  box-shadow: 0 20px 40px rgba(255, 234, 167, 0.4);
+  background: var(--button-hover-light-blue);
+  color: #fff;
+  box-shadow: 0 20px 40px rgba(135, 206, 235, 0.4);
   animation: buttonVibrate 0.3s ease-in-out;
 }
 
@@ -269,14 +269,14 @@ input:hover {
 }
 
 .sidebar {
-  background: var(--panel-green);
+  background: var(--panel-peach);
   border: 1px solid var(--panel-border);
   border-radius: 16px;
   padding: 1rem;
   box-shadow: 
-    0 20px 50px rgba(38, 166, 154, 0.3),
-    0 12px 30px rgba(38, 166, 154, 0.2),
-    0 6px 15px rgba(38, 166, 154, 0.1);
+    0 20px 50px rgba(253, 242, 233, 0.3),
+    0 12px 30px rgba(253, 242, 233, 0.2),
+    0 6px 15px rgba(253, 242, 233, 0.1);
   backdrop-filter: blur(10px);
 }
 
@@ -293,17 +293,17 @@ input:hover {
   padding: 0.45rem 0.85rem;
   border-radius: 25px;
   border: 1px solid var(--panel-border);
-  background: var(--panel-green-light);
+  background: var(--panel-peach-light);
   cursor: pointer;
   transition: all 0.3s ease;
   backdrop-filter: blur(5px);
-  box-shadow: 0 8px 20px rgba(38, 166, 154, 0.2);
+  box-shadow: 0 8px 20px rgba(253, 242, 233, 0.2);
 }
 
 .room-code-pill:hover {
-  background: var(--panel-green-focus);
+  background: var(--panel-peach-focus);
   transform: translateY(-1px);
-  box-shadow: 0 12px 25px rgba(38, 166, 154, 0.3);
+  box-shadow: 0 12px 25px rgba(253, 242, 233, 0.3);
 }
 
 .room-code-label {
@@ -421,16 +421,16 @@ input:hover {
 }
 
 .main-panel {
-  background: var(--panel-green);
+  background: var(--panel-peach);
   border-radius: 18px;
   border: 1px solid var(--panel-border);
   padding: 1.2rem;
   display: flex;
   flex-direction: column;
   box-shadow: 
-    0 30px 80px rgba(38, 166, 154, 0.3),
-    0 18px 45px rgba(38, 166, 154, 0.2),
-    0 9px 22px rgba(38, 166, 154, 0.15);
+    0 30px 80px rgba(253, 242, 233, 0.3),
+    0 18px 45px rgba(253, 242, 233, 0.2),
+    0 9px 22px rgba(253, 242, 233, 0.15);
   backdrop-filter: blur(10px);
 }
 
@@ -447,7 +447,7 @@ input:hover {
   letter-spacing: 0.12em;
   font-size: 0.9rem;
   font-weight: 600;
-  color: #2d2d2d;
+  color: var(--text-secondary);
   margin: 0;
 }
 
@@ -455,7 +455,7 @@ input:hover {
   margin: 0.15rem 0;
   font-size: 2rem;
   font-weight: 700;
-  color: #1a1a1a;
+  color: var(--text-primary);
 }
 
 .lobby-hint {
@@ -502,7 +502,7 @@ input:hover {
   font-size: 1.4rem;
   font-weight: 600;
   color: var(--text-secondary);
-  background: #2e7d32;
+  background: var(--panel-peach-light);
   backdrop-filter: blur(3px);
 }
 
@@ -521,14 +521,17 @@ input:hover {
 .canvas-chat {
   flex: 1;
   display: grid;
-  grid-template-columns: minmax(0, 3fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 2.5fr) minmax(280px, 1fr);
   gap: 1rem;
+  align-items: start;
 }
 
 .canvas-panel {
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .canvas-container {
@@ -549,7 +552,7 @@ input:hover {
   right: 10px;
   bottom: 10px;
   border-radius: 20px;
-  background: rgba(46, 125, 50, 0.1);
+  background: rgba(253, 242, 233, 0.1);
   pointer-events: none;
   z-index: 0;
 }
@@ -622,7 +625,7 @@ input:hover {
 .tool-button {
   border-radius: 25px;
   border: 1px solid var(--panel-border);
-  background: #2e7d32;
+  background: var(--panel-peach-light);
   padding: 0.35rem 1rem;
   cursor: pointer;
   font-weight: 600;
@@ -632,10 +635,10 @@ input:hover {
 }
 
 .tool-button:hover {
-  background: var(--button-hover-cream-peach);
-  color: #333;
+  background: var(--button-hover-light-blue);
+  color: #fff;
   transform: translateY(-1px) translateX(4px);
-  box-shadow: 0 5px 15px rgba(255, 234, 167, 0.3);
+  box-shadow: 0 5px 15px rgba(135, 206, 235, 0.3);
   animation: toolButtonVibrate 0.2s ease-in-out;
 }
 
@@ -700,7 +703,7 @@ input:hover {
   justify-content: center;
   gap: 0.25rem;
   border: 1px dashed var(--panel-border);
-  background: #2e7d32;
+  background: var(--panel-peach-light);
   font-size: 0.75rem;
   color: var(--text-secondary);
   backdrop-filter: blur(3px);
@@ -718,7 +721,9 @@ input:hover {
 .draw-canvas {
   position: relative;
   z-index: 1;
-  flex: 1;
+  width: 100%;
+  height: 500px;
+  max-width: 100%;
   border-radius: 16px;
   border: 2px solid rgba(255, 255, 255, 0.8);
   background: #ffffff;
@@ -726,7 +731,6 @@ input:hover {
     0 8px 32px rgba(0, 0, 0, 0.1),
     inset 0 0 0 1px rgba(255, 255, 255, 0.9);
   touch-action: none;
-  min-height: 500px;
   order: 1;
 }
 
@@ -774,16 +778,18 @@ input:hover {
 .chat-panel {
   display: flex;
   flex-direction: column;
+  min-width: 280px;
+  max-width: 100%;
 }
 
 .chat-box {
-  background: #2e7d32;
+  background: var(--panel-peach-light);
   border: 1px solid var(--chat-border);
   border-radius: 16px;
   padding: 0.85rem;
   flex: 1;
   overflow-y: auto;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 1px 0 rgba(52, 73, 94, 0.1);
   backdrop-filter: blur(10px);
 }
 
@@ -816,8 +822,8 @@ input:hover {
   border-radius: 25px;
   border: 3px solid var(--panel-border);
   padding: 0.6rem 1rem;
-  background: var(--panel-green-light);
-  color: #1a1a1a;
+  background: var(--panel-peach-light);
+  color: var(--text-primary);
   backdrop-filter: blur(5px);
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
@@ -826,7 +832,7 @@ input:hover {
   outline: none;
   border-color: var(--primary-accent);
   box-shadow: 0 0 0 3px rgba(255, 111, 0, 0.25);
-  background: var(--panel-green-focus);
+  background: var(--panel-peach-focus);
 }
 
 .chat-input:hover {
@@ -844,17 +850,17 @@ input:hover {
 }
 
 .modal {
-  background: var(--panel-green);
+  background: var(--panel-peach);
   border-radius: 18px;
   padding: 1.5rem;
   border: 1px solid var(--panel-border);
   width: min(500px, 90%);
-  box-shadow: 0 25px 60px rgba(38, 166, 154, 0.4);
+  box-shadow: 0 25px 60px rgba(253, 242, 233, 0.4);
   backdrop-filter: blur(15px);
 }
 
 .modal h2 {
-  color: #1a1a1a;
+  color: var(--text-primary);
   margin-top: 0;
 }
 
@@ -883,8 +889,8 @@ input:hover {
 
 .word-card:hover:not(:disabled) {
   border-color: var(--primary-light);
-  background: var(--button-hover-cream-peach);
-  color: #333;
+  background: var(--button-hover-light-blue);
+  color: #fff;
   transform: translateY(-2px) translateX(4px);
   animation: wordCardVibrate 0.2s ease-in-out;
 }
