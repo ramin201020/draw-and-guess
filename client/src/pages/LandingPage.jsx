@@ -46,7 +46,11 @@ export function LandingPage() {
     };
 
     try {
-      const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:4000';
+      // Use proxy in development, direct URL in production
+      const backendUrl = import.meta.env.PROD 
+        ? (import.meta.env.VITE_BACKEND_URL || 'http://localhost:4000')
+        : ''; // Use proxy in development
+      
       const response = await fetch(`${backendUrl}/rooms`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

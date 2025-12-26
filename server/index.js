@@ -26,7 +26,7 @@ app.get('/health', (_, res) => res.json({
 }));
 
 // API endpoint for room creation
-app.post('/api/rooms', (req, res) => {
+app.post('/rooms', (req, res) => {
   const { socketId, name, settings, avatar } = req.body || {};
   const hostSocket = io.sockets.sockets.get(socketId);
 
