@@ -16,6 +16,13 @@ const COLOR_SWATCHES = [
   '#ffffff'
 ];
 
+const CANVAS_BACKGROUNDS = [
+  { name: 'White', value: 'light', color: '#ffffff' },
+  { name: 'Light Gray', value: 'gray', color: '#f5f5f5' },
+  { name: 'Beige', value: 'beige', color: '#f9f7f4' },
+  { name: 'Dark', value: 'dark', color: '#0d0d1a' }
+];
+
 export function DrawingCanvas({ roomId, isDrawer }) {
   const { socket } = useSocket();
   const canvasRef = useRef(null);
@@ -24,6 +31,7 @@ export function DrawingCanvas({ roomId, isDrawer }) {
   const [isErasing, setIsErasing] = useState(false);
   const [drawing, setDrawing] = useState(false);
   const [lastPoint, setLastPoint] = useState(null);
+  const [canvasBackground, setCanvasBackground] = useState('light');
 
   const drawStroke = useCallback((ctx, stroke) => {
     if (!ctx || !stroke) return;
@@ -167,6 +175,18 @@ export function DrawingCanvas({ roomId, isDrawer }) {
 
   return (
     <div className="canvas-panel">
+      <div className="canvas-container">
+        <canvas
+          ref={canvasRef}
+          className={`draw-canvas ${canvasBackground} ${isDrawer ? '' : 'spectator'}`}
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={stopDrawing}
+          onPointerLeave={stopDrawing}
+          onPointerCancel={stopDrawing}
+        />
+      </div>
+
       <div className="canvas-toolbar">
         <div className="toolbar-group">
           <button
@@ -182,6 +202,7 @@ export function DrawingCanvas({ roomId, isDrawer }) {
             Eraser
           </button>
         </div>
+
         <div className="toolbar-group size-control">
           <label htmlFor="brush-size">Size</label>
           <input
@@ -194,6 +215,19 @@ export function DrawingCanvas({ roomId, isDrawer }) {
           />
           <span>{brushSize}px</span>
         </div>
+
+        <div className="toolbar-group canvas-bg-selector">
+          <label>Canvas:</label>
+          {CANVAS_BACKGROUNDS.map((bg) => (
+            <button
+              key={bg.value}
+              className={`canvas-bg-option ${bg.value} ${canvasBackground === bg.value ? 'active' : ''}`}
+              onClick={() => setCanvasBackground(bg.value)}
+              title={bg.name}
+            />
+          ))}
+        </div>
+
         {isDrawer && (
           <button className="secondary-btn" onClick={clearCanvas}>
             Clear
@@ -220,15 +254,6 @@ export function DrawingCanvas({ roomId, isDrawer }) {
         </label>
       </div>
 
-      <canvas
-        ref={canvasRef}
-        className={isDrawer ? 'draw-canvas' : 'draw-canvas spectator'}
-        onPointerDown={handlePointerDown}
-        onPointerMove={handlePointerMove}
-        onPointerUp={stopDrawing}
-        onPointerLeave={stopDrawing}
-        onPointerCancel={stopDrawing}
-      />
       {!isDrawer && <div className="hint-text">Guess by typing in the chat below.</div>}
     </div>
   );

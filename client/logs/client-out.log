@@ -7,3 +7,19 @@
 2025-12-26T18:29:17: 
 2025-12-26T18:29:17:   ➜  Local:   http://localhost:5173/
 2025-12-26T18:29:17:   ➜  Network: use --host to expose
+2025-12-26T18:51:50: 
+2025-12-26T18:51:50: > doodles-client@1.0.0 dev
+2025-12-26T18:51:50: > vite
+2025-12-26T18:51:50: 
+2025-12-26T18:51:53: 
+2025-12-26T18:51:53:   VITE v5.4.21  ready in 2828 ms
+2025-12-26T18:51:53: 
+2025-12-26T18:51:53:   ➜  Local:   http://localhost:5173/
+2025-12-26T18:51:53:   ➜  Network: use --host to expose
+2025-12-26T18:54:50: 6:54:50 PM [vite] hmr update /src/styles.css
+2025-12-26T18:55:19: 6:55:19 PM [vite] hmr update /src/styles.css
+2025-12-26T18:58:45: 6:58:45 PM [vite] hmr update /src/ui/DrawingCanvas.jsx
+2025-12-26T19:00:30: 7:00:30 PM [vite] hmr update /src/ui/DrawingCanvas.jsx
+2025-12-26T19:01:21: 7:01:21 PM [vite] hmr update /src/styles.css
+2025-12-26T19:01:42: 7:01:42 PM [vite] hmr update /src/styles.css
+2025-12-26T19:02:11: 7:02:11 PM [vite] hmr update /src/styles.css
