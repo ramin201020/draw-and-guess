@@ -112,9 +112,10 @@ export function RoomPage() {
   const playerCount = roomState.players?.length || 0;
   const canStart = isHost && roomState.status === 'LOBBY' && playerCount >= 2;
   const isRoundActive = roomState.status === 'IN_ROUND' && roomState.currentRound?.endsAt;
+  const showSidebar = roomState.status === 'LOBBY' || roomState.status === 'ROUND_RESULTS';
 
   return (
-    <div className="page neon-bg room-layout">
+    <div className={`page neon-bg ${showSidebar ? 'room-layout' : 'room-layout-no-sidebar'}`}>
       {/* Timer - only show during active rounds */}
       {isRoundActive && (
         <Timer 
@@ -135,7 +136,10 @@ export function RoomPage() {
         roundNumber={roomState.currentRound?.number || 1}
       />
 
-      <PlayersSidebar room={roomState} selfId={selfId} roomId={roomId} />
+      {/* Players Sidebar - only show in lobby and results */}
+      {showSidebar && (
+        <PlayersSidebar room={roomState} selfId={selfId} roomId={roomId} />
+      )}
       <main className="main-panel">
         <header className="room-header">
           <div>
