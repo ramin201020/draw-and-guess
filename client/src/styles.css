@@ -50,7 +50,7 @@
 
 body {
   margin: 0;
-  font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-family: 'Poppins', 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
   background: linear-gradient(135deg, var(--orange-peach), var(--orange-amber), var(--primary-light));
   color: var(--text-primary);
   min-height: 100vh;
@@ -85,6 +85,7 @@ body {
   color: var(--text-primary);
   font-size: 2.5rem;
   font-weight: 700;
+  font-family: 'Poppins', sans-serif;
 }
 
 .section {
@@ -557,6 +558,7 @@ input:hover {
   margin: 0.3rem 0 0.5rem;
   font-size: 2.2rem;
   font-weight: 800;
+  font-family: 'Poppins', sans-serif;
   color: var(--text-primary);
   background: linear-gradient(135deg, var(--primary-deep), var(--primary-accent));
   -webkit-background-clip: text;

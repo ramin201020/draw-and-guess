@@ -395,6 +395,13 @@ io.on('connection', (socket) => {
     io.to(room.id).emit('draw:clear');
   });
 
+  socket.on('draw:fill', ({ roomId, x, y, color, canvasWidth, canvasHeight }) => {
+    const room = rooms.get(roomId);
+    if (!room || !room.currentRound) return;
+    if (socket.id !== room.currentRound.drawerId) return;
+    socket.to(room.id).emit('draw:fill', { x, y, color, canvasWidth, canvasHeight });
+  });
+
   socket.on('chat:message', ({ roomId, text }) => {
     const room = rooms.get(roomId);
     if (!room || !room.currentRound) return;

@@ -23,6 +23,52 @@ const CANVAS_BACKGROUNDS = [
   { name: 'Dark', value: 'dark', color: '#0d0d1a' }
 ];
 
+// Flood fill algorithm
+function floodFill(imageData, startX, startY, fillColor) {
+  const { data, width, height } = imageData;
+  const startPos = (startY * width + startX) * 4;
+  const startR = data[startPos];
+  const startG = data[startPos + 1];
+  const startB = data[startPos + 2];
+  const startA = data[startPos + 3];
+  
+  const fillR = parseInt(fillColor.slice(1, 3), 16);
+  const fillG = parseInt(fillColor.slice(3, 5), 16);
+  const fillB = parseInt(fillColor.slice(5, 7), 16);
+  
+  // If the start color is the same as fill color, return
+  if (startR === fillR && startG === fillG && startB === fillB) return;
+  
+  const stack = [[startX, startY]];
+  const visited = new Set();
+  
+  while (stack.length > 0) {
+    const [x, y] = stack.pop();
+    const key = `${x},${y}`;
+    
+    if (visited.has(key) || x < 0 || x >= width || y < 0 || y >= height) continue;
+    visited.add(key);
+    
+    const pos = (y * width + x) * 4;
+    const r = data[pos];
+    const g = data[pos + 1];
+    const b = data[pos + 2];
+    const a = data[pos + 3];
+    
+    // If this pixel doesn't match the start color, skip it
+    if (r !== startR || g !== startG || b !== startB || a !== startA) continue;
+    
+    // Fill this pixel
+    data[pos] = fillR;
+    data[pos + 1] = fillG;
+    data[pos + 2] = fillB;
+    data[pos + 3] = 255;
+    
+    // Add neighboring pixels to stack
+    stack.push([x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1]);
+  }
+}
+
 export function DrawingCanvas({ roomId, isDrawer }) {
   const { socket } = useSocket();
   const canvasRef = useRef(null);
@@ -30,6 +76,7 @@ export function DrawingCanvas({ roomId, isDrawer }) {
   const [color, setColor] = useState(COLOR_SWATCHES[0]);
   const [brushSize, setBrushSize] = useState(6);
   const [isErasing, setIsErasing] = useState(false);
+  const [isFilling, setIsFilling] = useState(false);
   const [drawing, setDrawing] = useState(false);
   const [lastPoint, setLastPoint] = useState(null);
   const [canvasBackground, setCanvasBackground] = useState('light');
@@ -99,11 +146,21 @@ export function DrawingCanvas({ roomId, isDrawer }) {
       const ctx = canvas.getContext('2d');
       ctx.clearRect(0, 0, canvas.width, canvas.height);
     };
+    const handleFill = (payload) => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      floodFill(imageData, payload.x, payload.y, payload.color);
+      ctx.putImageData(imageData, 0, 0);
+    };
     socket.on('draw:stroke', handleIncomingStroke);
     socket.on('draw:clear', handleClear);
+    socket.on('draw:fill', handleFill);
     return () => {
       socket.off('draw:stroke', handleIncomingStroke);
       socket.off('draw:clear', handleClear);
+      socket.off('draw:fill', handleFill);
     };
   }, [socket, drawStroke]);
 
@@ -153,12 +210,32 @@ export function DrawingCanvas({ roomId, isDrawer }) {
     canvas.setPointerCapture(event.pointerId);
     const point = getCanvasPoint(event);
     if (!point) return;
+    
+    // Handle fill tool
+    if (isFilling) {
+      const ctx = canvas.getContext('2d');
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      floodFill(imageData, Math.floor(point.x), Math.floor(point.y), color);
+      ctx.putImageData(imageData, 0, 0);
+      
+      // Emit fill action to other players
+      socket?.emit('draw:fill', { 
+        roomId, 
+        x: Math.floor(point.x), 
+        y: Math.floor(point.y), 
+        color,
+        canvasWidth: canvas.width,
+        canvasHeight: canvas.height
+      });
+      return;
+    }
+    
     setDrawing(true);
     setLastPoint(point);
   };
 
   const handlePointerMove = (event) => {
-    if (!drawing || !lastPoint || !isDrawer) return;
+    if (!drawing || !lastPoint || !isDrawer || isFilling) return;
     event.preventDefault();
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -198,10 +275,20 @@ export function DrawingCanvas({ roomId, isDrawer }) {
   const selectColor = (hex) => {
     setColor(hex);
     setIsErasing(false);
+    setIsFilling(false);
   };
 
   const toggleTool = (tool) => {
-    setIsErasing(tool === 'ERASER');
+    if (tool === 'ERASER') {
+      setIsErasing(true);
+      setIsFilling(false);
+    } else if (tool === 'FILL') {
+      setIsFilling(true);
+      setIsErasing(false);
+    } else {
+      setIsErasing(false);
+      setIsFilling(false);
+    }
   };
 
   return (
@@ -232,7 +319,7 @@ export function DrawingCanvas({ roomId, isDrawer }) {
       <div className={`canvas-toolbar ${isMobile && toolsMinimized ? 'minimized' : ''}`}>
         <div className="toolbar-group">
           <button
-            className={!isErasing ? 'tool-button active' : 'tool-button'}
+            className={!isErasing && !isFilling ? 'tool-button active' : 'tool-button'}
             onClick={() => toggleTool('BRUSH')}
           >
             🖌️ {!isMobile && 'Brush'}
@@ -243,9 +330,15 @@ export function DrawingCanvas({ roomId, isDrawer }) {
           >
             🧽 {!isMobile && 'Eraser'}
           </button>
+          <button
+            className={isFilling ? 'tool-button active' : 'tool-button'}
+            onClick={() => toggleTool('FILL')}
+          >
+            🪣 {!isMobile && 'Fill'}
+          </button>
         </div>
 
-        {(!isMobile || !toolsMinimized) && (
+        {(!isMobile || !toolsMinimized) && !isFilling && (
           <>
             <div className="toolbar-group size-control">
               <label htmlFor="brush-size">{isMobile ? 'Size' : 'Brush Size'}</label>
@@ -288,7 +381,7 @@ export function DrawingCanvas({ roomId, isDrawer }) {
           {COLOR_SWATCHES.map((hex) => (
             <button
               key={hex}
-              className={!isErasing && color === hex ? 'swatch active' : 'swatch'}
+              className={!isErasing && !isFilling && color === hex ? 'swatch active' : 'swatch'}
               style={{ backgroundColor: hex }}
               onClick={() => selectColor(hex)}
             />
