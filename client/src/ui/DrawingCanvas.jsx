@@ -285,6 +285,7 @@ export function DrawingCanvas({ roomId, isDrawer }) {
 
   return (
     <div className="canvas-panel">
+      {/* Canvas Container - Edge to Edge on Mobile */}
       <div className="canvas-container">
         <canvas
           ref={canvasRef}
@@ -303,7 +304,7 @@ export function DrawingCanvas({ roomId, isDrawer }) {
           className="mobile-minimize-btn"
           onClick={() => setToolsMinimized(!toolsMinimized)}
         >
-          {toolsMinimized ? '🔧 Show Tools' : '📱 Minimize'}
+          {toolsMinimized ? '🔧' : '📱'}
         </button>
       )}
 

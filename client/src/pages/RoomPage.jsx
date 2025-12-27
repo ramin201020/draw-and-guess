@@ -167,63 +167,71 @@ export function RoomPage() {
         roundNumber={roomState.currentRound?.number || 1}
       />
 
-      <main className="main-panel">
-        <header className="room-header-overlay">
-          <div className="room-info-compact">
-            <div className="room-status-line">
-              <span className="room-code-compact">{roomState.id}</span>
-              <span className={`status-badge ${roomState.status.toLowerCase()}`}>
-                {roomState.status === 'LOBBY' ? '⏳ Lobby' : 
-                 roomState.status === 'IN_ROUND' ? '🎨 Drawing' : 
-                 roomState.status === 'ROUND_RESULTS' ? '📊 Results' : 
-                 roomState.status === 'GAME_COMPLETE' ? '🏆 Complete' : roomState.status}
+      {/* Compact Header for Mobile */}
+      <header className="room-header-overlay">
+        <div className="room-info-compact">
+          <div className="room-status-line">
+            <span className="room-code-compact">{roomState.id}</span>
+            <span className={`status-badge ${roomState.status.toLowerCase()}`}>
+              {roomState.status === 'LOBBY' ? '⏳ Lobby' : 
+               roomState.status === 'IN_ROUND' ? '🎨 Drawing' : 
+               roomState.status === 'ROUND_RESULTS' ? '📊 Results' : 
+               roomState.status === 'GAME_COMPLETE' ? '🏆 Complete' : roomState.status}
+            </span>
+            <span className="player-count">
+              {playerCount} {playerCount === 1 ? 'player' : 'players'}
+            </span>
+            {roomState.gameState && (
+              <span className="round-indicator">
+                Round {roomState.gameState.currentRoundNumber}/{roomState.gameState.totalRounds}
               </span>
-              <span className="player-count">
-                {playerCount} {playerCount === 1 ? 'player' : 'players'}
-              </span>
-              {roomState.gameState && (
-                <span className="round-indicator">
-                  Round {roomState.gameState.currentRoundNumber}/{roomState.gameState.totalRounds}
-                </span>
+            )}
+          </div>
+          {roomState.status === 'LOBBY' && (
+            <p className="lobby-hint-compact">Invite friends, then hit start once at least two doodlers are here.</p>
+          )}
+          {roomState.status === 'IN_ROUND' && (
+            <p className="lobby-hint-compact">
+              🎨 {isDrawer ? 'Your turn to draw!' : 
+                  roomState.players?.find(p => p.isDrawer)?.name ? 
+                  `${roomState.players.find(p => p.isDrawer).name} is drawing` : 
+                  'Someone is drawing'}
+            </p>
+          )}
+          {roomState.status === 'ROUND_RESULTS' && autoProgressCountdown && (
+            <p className="lobby-hint-compact">⏱️ Next {roomState.gameState?.currentRoundNumber >= roomState.gameState?.totalRounds ? 'game results' : 'round'} in {autoProgressCountdown}s...</p>
+          )}
+        </div>
+        <div className="host-controls-compact">
+          <VoiceChat roomId={roomId} selfId={selfId} players={roomState.players} />
+          {isHost && (
+            <>
+              <button onClick={handleStart} className="primary-btn compact" disabled={!canStart}>
+                {roomState.status === 'LOBBY' ? 'Start' : 'Next'}
+              </button>
+              {roomState.status === 'IN_ROUND' && (
+                <button onClick={handleEndRound} className="danger-btn compact">End</button>
               )}
-            </div>
-            {roomState.status === 'LOBBY' && (
-              <p className="lobby-hint-compact">Invite friends, then hit start once at least two doodlers are here.</p>
-            )}
-            {roomState.status === 'IN_ROUND' && (
-              <p className="lobby-hint-compact">
-                🎨 {isDrawer ? 'Your turn to draw!' : 
-                    roomState.players?.find(p => p.isDrawer)?.name ? 
-                    `${roomState.players.find(p => p.isDrawer).name} is drawing` : 
-                    'Someone is drawing'}
-              </p>
-            )}
-            {roomState.status === 'ROUND_RESULTS' && autoProgressCountdown && (
-              <p className="lobby-hint-compact">⏱️ Next {roomState.gameState?.currentRoundNumber >= roomState.gameState?.totalRounds ? 'game results' : 'round'} in {autoProgressCountdown}s...</p>
-            )}
-          </div>
-          <div className="host-controls-compact">
-            <VoiceChat roomId={roomId} selfId={selfId} players={roomState.players} />
-            {isHost && (
-              <>
-                <button onClick={handleStart} className="primary-btn compact" disabled={!canStart}>
-                  {roomState.status === 'LOBBY' ? 'Start' : 'Next'}
-                </button>
-                {roomState.status === 'IN_ROUND' && (
-                  <button onClick={handleEndRound} className="danger-btn compact">End</button>
-                )}
-              </>
-            )}
-            <button onClick={handleLeaveRoom} className="leave-btn compact">
-              Leave
-            </button>
-          </div>
-        </header>
-        <WordHintBar mask={roomState.currentRound?.mask} status={roomState.status} />
+            </>
+          )}
+          <button onClick={handleLeaveRoom} className="leave-btn compact">
+            Leave
+          </button>
+        </div>
+      </header>
+
+      {/* Word Hint Bar */}
+      <WordHintBar mask={roomState.currentRound?.mask} status={roomState.status} />
+
+      {/* Main Content Area */}
+      <main className="main-content">
+        {/* Canvas Section - Edge to Edge on Mobile */}
         <section className="canvas-section">
           <DrawingCanvas roomId={roomId} isDrawer={isDrawer} />
         </section>
-        <div className="mobile-bottom-section">
+
+        {/* Mobile Bottom Panel - Players and Chat */}
+        <div className="mobile-bottom-panel">
           <PlayersSidebar room={roomState} selfId={selfId} roomId={roomId} />
           <ChatBox roomId={roomId} />
         </div>
