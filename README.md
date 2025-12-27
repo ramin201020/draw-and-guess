@@ -84,12 +84,25 @@ pm2 delete all                   # Remove all processes
 
 - **Real-time Drawing**: Canvas with multiple tools and colors
 - **Live Chat**: Guess words through chat
+- **Voice Chat**: Built-in voice communication during gameplay 🎤
 - **Room System**: Create and join private rooms
 - **Scoring**: Points for correct guesses
 - **Host Controls**: Start games, kick players, end rounds
 - **Leave/Join**: Players can leave and join anytime
 - **Dark Theme**: Modern orange-accented dark UI
 - **Responsive**: Works on desktop and mobile
+
+## 🎤 Voice Chat
+
+The game includes a built-in voice chat system for better communication:
+
+- **Audio-only** - No video, just voice
+- **Mute/Unmute** - Toggle your microphone
+- **Visual indicators** - See who's in voice and who's muted
+- **Peer-to-peer** - Direct audio streaming using WebRTC
+- **Secure** - Encrypted audio, no recording
+
+See [VOICE_CHAT.md](VOICE_CHAT.md) for detailed documentation.
 
 ## 🔧 Technical Stack
 
