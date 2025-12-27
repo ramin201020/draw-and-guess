@@ -69,18 +69,18 @@ const server = http.createServer(app);
 const io = new Server(server, {
   cors: corsOptions,
   // Performance optimizations
-  pingTimeout: 60000,
-  pingInterval: 25000,
-  upgradeTimeout: 10000,
+  pingTimeout: 120000, // Increased from 60s to 2 minutes
+  pingInterval: 30000,  // Increased from 25s to 30s
+  upgradeTimeout: 30000, // Increased from 10s to 30s
   maxHttpBufferSize: 1e6, // 1MB
   // Transport configuration
   transports: ['websocket', 'polling'],
   allowUpgrades: true,
   // Compression
   compression: true,
-  // Connection state recovery
+  // Connection state recovery - enhanced for mobile
   connectionStateRecovery: {
-    maxDisconnectionDuration: 2 * 60 * 1000, // 2 minutes
+    maxDisconnectionDuration: 10 * 60 * 1000, // Increased to 10 minutes
     skipMiddlewares: true,
   }
 });
@@ -242,6 +242,24 @@ io.on('connection', (socket) => {
   
   socket.on('disconnect', (reason) => {
     console.log('Socket disconnected:', socket.id, 'reason:', reason);
+    
+    // Don't immediately remove player on mobile disconnect
+    if (reason === 'transport close' || reason === 'ping timeout') {
+      console.log('Mobile-friendly disconnect detected, keeping player in room temporarily');
+      return;
+    }
+    
+    // Only remove player for intentional disconnects
+    for (const room of rooms.values()) {
+      if (room.players.has(socket.id)) {
+        room.players.delete(socket.id);
+        if (room.hostId === socket.id) {
+          destroyRoom(room.id);
+        } else {
+          io.to(room.id).emit('room:state', roomSnapshot(room));
+        }
+      }
+    }
   });
 
   socket.on('error', (error) => {
@@ -417,17 +435,23 @@ io.on('connection', (socket) => {
   });
 
   socket.on('disconnect', () => {
-    // remove player from any room
-    for (const room of rooms.values()) {
-      if (room.players.has(socket.id)) {
-        room.players.delete(socket.id);
-        if (room.hostId === socket.id) {
-          destroyRoom(room.id);
-        } else {
-          io.to(room.id).emit('room:state', roomSnapshot(room));
+    // Delayed cleanup for mobile reconnection
+    setTimeout(() => {
+      for (const room of rooms.values()) {
+        if (room.players.has(socket.id)) {
+          // Check if socket reconnected
+          const reconnectedSocket = io.sockets.sockets.get(socket.id);
+          if (!reconnectedSocket) {
+            room.players.delete(socket.id);
+            if (room.hostId === socket.id) {
+              destroyRoom(room.id);
+            } else {
+              io.to(room.id).emit('room:state', roomSnapshot(room));
+            }
+          }
         }
       }
-    }
+    }, 30000); // 30 second grace period for reconnection
   });
 });
 
