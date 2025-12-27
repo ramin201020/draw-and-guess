@@ -174,8 +174,10 @@ export function RoomPage() {
         <WordHintBar mask={roomState.currentRound?.mask} status={roomState.status} />
         <section className="canvas-chat">
           <DrawingCanvas roomId={roomId} isDrawer={isDrawer} />
-          <PlayersSidebar room={roomState} selfId={selfId} roomId={roomId} />
-          <ChatBox roomId={roomId} />
+          <div className="mobile-bottom-section">
+            <PlayersSidebar room={roomState} selfId={selfId} roomId={roomId} />
+            <ChatBox roomId={roomId} />
+          </div>
         </section>
       </main>
 

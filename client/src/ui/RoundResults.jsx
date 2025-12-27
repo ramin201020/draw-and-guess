@@ -76,27 +76,27 @@ export function RoundResults({
           {isHost && (
             <>
               <button 
-                className="primary-btn" 
+                className="modern-btn modern-btn-primary" 
                 onClick={onNextRound}
               >
-                🎮 Next Round
+                <span className="btn-icon">🎮</span>
+                <span className="btn-text">Next Round</span>
+                <div className="btn-hover-effect"></div>
               </button>
               <button 
-                className="secondary-btn" 
+                className="modern-btn modern-btn-secondary" 
                 onClick={onBackToLobby}
               >
-                🏠 Back to Lobby
+                <span className="btn-icon">🏠</span>
+                <span className="btn-text">Back to Lobby</span>
+                <div className="btn-hover-effect"></div>
               </button>
             </>
           )}
           {!isHost && (
-            <div style={{ 
-              textAlign: 'center', 
-              color: 'var(--text-secondary)',
-              fontSize: '1.1rem',
-              fontWeight: '500'
-            }}>
-              ⏳ Waiting for host to start next round...
+            <div className="waiting-message">
+              <div className="waiting-spinner">⏳</div>
+              <span>Waiting for host to start next round...</span>
             </div>
           )}
         </div>
