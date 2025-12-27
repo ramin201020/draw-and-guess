@@ -115,7 +115,7 @@ export function RoomPage() {
   const showSidebar = roomState.status === 'LOBBY' || roomState.status === 'ROUND_RESULTS';
 
   return (
-    <div className={`page neon-bg ${showSidebar ? 'room-layout' : 'room-layout-no-sidebar'}`}>
+    <div className="page neon-bg room-layout-no-sidebar">
       {/* Timer - only show during active rounds */}
       {isRoundActive && (
         <Timer 
@@ -136,10 +136,6 @@ export function RoomPage() {
         roundNumber={roomState.currentRound?.number || 1}
       />
 
-      {/* Players Sidebar - only show in lobby and results */}
-      {showSidebar && (
-        <PlayersSidebar room={roomState} selfId={selfId} roomId={roomId} />
-      )}
       <main className="main-panel">
         <header className="room-header">
           <div>
@@ -171,6 +167,7 @@ export function RoomPage() {
         <WordHintBar mask={roomState.currentRound?.mask} status={roomState.status} />
         <section className="canvas-chat">
           <DrawingCanvas roomId={roomId} isDrawer={isDrawer} />
+          <PlayersSidebar room={roomState} selfId={selfId} roomId={roomId} />
           <ChatBox roomId={roomId} />
         </section>
       </main>
