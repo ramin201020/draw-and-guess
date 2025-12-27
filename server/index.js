@@ -189,7 +189,7 @@ function defaultSettings() {
 }
 
 function createRoom(hostSocket, payload) {
-  const roomId = payload?.roomId || Math.random().toString(36).slice(2, 8);
+  const roomId = (payload?.roomId || Math.random().toString(36).slice(2, 8)).toUpperCase();
   const settings = { ...defaultSettings(), ...(payload?.settings || {}) };
   const room = {
     id: roomId,
@@ -257,7 +257,7 @@ io.on('connection', (socket) => {
   });
 
   socket.on('room:join', ({ roomId, name, avatar }, cb) => {
-    const room = rooms.get(roomId);
+    const room = rooms.get(roomId?.toUpperCase());
     if (!room) return cb?.({ ok: false, error: 'ROOM_NOT_FOUND' });
     if (room.players.size >= room.settings.maxPlayers) return cb?.({ ok: false, error: 'ROOM_FULL' });
     const player = { id: socket.id, name: name?.slice(0, 24) || 'Player', score: 0, debt: 0, isHost: false, isDrawer: false, avatar: avatar || null };
