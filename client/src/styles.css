@@ -67,8 +67,8 @@ body {
 }
 
 .card {
-  background: linear-gradient(135deg, var(--orange-peach), var(--panel-peach-light));
-  border: 1px solid var(--panel-border);
+  background: #fff3e0;
+  border: 3px solid #ff8c00;
   border-radius: 20px;
   box-shadow: 
     0 25px 70px rgba(255, 140, 0, 0.3),
@@ -127,8 +127,8 @@ input {
   margin-top: 0.25rem;
   padding: 0.8rem 1rem;
   border-radius: 20px;
-  border: 3px solid var(--panel-border);
-  background: var(--panel-peach-light);
+  border: 3px solid #ff8c00;
+  background: #fff3e0;
   color: var(--text-primary);
   backdrop-filter: blur(5px);
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
@@ -331,14 +331,14 @@ input:hover {
 }
 
 .sidebar {
-  background: var(--panel-peach);
-  border: 1px solid var(--panel-border);
+  background: #fff3e0;
+  border: 3px solid #ff8c00;
   border-radius: 16px;
   padding: 1rem;
   box-shadow: 
-    0 20px 50px rgba(253, 242, 233, 0.3),
-    0 12px 30px rgba(253, 242, 233, 0.2),
-    0 6px 15px rgba(253, 242, 233, 0.1);
+    0 20px 50px rgba(255, 140, 0, 0.3),
+    0 12px 30px rgba(255, 140, 0, 0.2),
+    0 6px 15px rgba(255, 140, 0, 0.1);
   backdrop-filter: blur(10px);
   grid-column: 1;
   grid-row: 2;
@@ -485,16 +485,16 @@ input:hover {
 }
 
 .main-panel {
-  background: var(--panel-peach);
+  background: #fff3e0;
   border-radius: 18px;
-  border: 1px solid var(--panel-border);
+  border: 3px solid #ff8c00;
   padding: 1.2rem;
   display: flex;
   flex-direction: column;
   box-shadow: 
-    0 30px 80px rgba(253, 242, 233, 0.3),
-    0 18px 45px rgba(253, 242, 233, 0.2),
-    0 9px 22px rgba(253, 242, 233, 0.15);
+    0 30px 80px rgba(255, 140, 0, 0.3),
+    0 18px 45px rgba(255, 140, 0, 0.2),
+    0 9px 22px rgba(255, 140, 0, 0.15);
   backdrop-filter: blur(10px);
 }
 
@@ -609,6 +609,7 @@ input:hover {
   box-shadow: none;
   width: 100%;
   height: 100%;
+  min-height: 50vh;
 }
 
 .canvas-container::before {
@@ -805,7 +806,8 @@ input:hover {
   position: relative;
   z-index: 1;
   width: 100%;
-  height: 500px;
+  height: 100%;
+  min-height: 50vh;
   max-width: 100%;
   border-radius: 0;
   border: none;
@@ -858,13 +860,15 @@ input:hover {
 }
 
 .chat-box {
-  background: var(--panel-peach-light);
-  border: 1px solid var(--chat-border);
+  background: #fff3e0;
+  border: 3px solid #ff8c00;
   border-radius: 16px;
   padding: 0.85rem;
   flex: 1;
   overflow-y: auto;
-  box-shadow: inset 0 1px 0 rgba(52, 73, 94, 0.1);
+  box-shadow: 
+    0 10px 30px rgba(255, 140, 0, 0.3),
+    0 6px 15px rgba(255, 140, 0, 0.2);
   backdrop-filter: blur(10px);
 }
 
@@ -1173,17 +1177,32 @@ input:hover {
     font-size: 1.5rem;
   }
   
-  .draw-canvas {
-    height: 250px;
-    min-height: 250px;
+  .canvas-chat {
+    height: calc(100vh - 120px);
+    grid-template-rows: 1fr 1fr;
+    gap: 0.3rem;
+    padding: 0.3rem;
   }
   
   .canvas-container {
-    padding: 10px;
+    min-height: 42vh;
   }
   
+  .draw-canvas {
+    min-height: 42vh;
+  }
+  
+  .sidebar,
   .chat-box {
-    max-height: 150px;
+    max-height: 35vh;
+    padding: 0.4rem;
+    border: 2px solid #ff8c00;
+  }
+  
+  .chat-input {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.85rem;
+    border: 2px solid #ff8c00;
   }
   
   .hint-letter {
@@ -1194,6 +1213,7 @@ input:hover {
   
   .player-card {
     grid-template-columns: auto 1fr auto;
+    padding: 0.4rem 0.6rem;
   }
   
   .player-asset {
@@ -1202,11 +1222,18 @@ input:hover {
   
   .canvas-toolbar {
     justify-content: center;
+    padding: 0.4rem;
   }
   
   .toolbar-group {
     flex-wrap: wrap;
     justify-content: center;
+  }
+  
+  .tool-button {
+    padding: 0.4rem;
+    font-size: 1rem;
+    min-width: 40px;
   }
   
   /* Mobile connection status */
@@ -1219,6 +1246,14 @@ input:hover {
   .card > div:first-child > div:last-child {
     align-self: center;
     margin-top: 0.5rem;
+  }
+  
+  .primary-btn,
+  .secondary-btn,
+  .danger-btn,
+  .leave-btn {
+    padding: 0.7rem 1.2rem;
+    font-size: 0.95rem;
   }
 }
 
@@ -1698,6 +1733,7 @@ input:hover {
     height: 100vh;
     max-width: 100%;
     margin: 0;
+    padding: 0;
   }
   
   .main-panel {
@@ -1706,12 +1742,14 @@ input:hover {
     height: 100vh;
     display: flex;
     flex-direction: column;
+    background: linear-gradient(135deg, #fff3e0, #ffe0b2, #ffcc80);
   }
   
   .room-header {
     padding: 0.5rem;
     margin-bottom: 0.5rem;
-    background: var(--panel-peach);
+    background: #fff3e0;
+    border: 2px solid #ff8c00;
     border-radius: 10px;
   }
   
@@ -1729,9 +1767,10 @@ input:hover {
     flex: 1;
     display: grid;
     grid-template-columns: 1fr 1fr;
-    grid-template-rows: 2fr 1fr;
+    grid-template-rows: 1fr 1fr;
     gap: 0.5rem;
-    height: calc(100vh - 120px); /* Account for header */
+    height: calc(100vh - 140px);
+    padding: 0.5rem;
   }
   
   .canvas-panel {
@@ -1739,21 +1778,25 @@ input:hover {
     grid-row: 1;
     min-height: 0;
     position: relative;
+    height: 100%;
   }
   
   .canvas-container {
     height: 100%;
+    width: 100%;
     padding: 0;
     border-radius: 0;
     background: linear-gradient(135deg, #fff3e0, #ffe0b2, #ffcc80, #ffb74d, #ff8c00);
+    min-height: 45vh;
   }
   
   .draw-canvas {
     width: 100%;
     height: 100%;
+    min-height: 45vh;
     border-radius: 0;
     border: none;
-    background: linear-gradient(135deg, #fff3e0, #ffe0b2, #ffcc80);
+    background: #ffffff;
   }
   
   .sidebar {
@@ -1761,6 +1804,11 @@ input:hover {
     grid-row: 2;
     min-height: 0;
     padding: 0.5rem;
+    background: #fff3e0;
+    border: 2px solid #ff8c00;
+    border-radius: 12px;
+    overflow-y: auto;
+    max-height: 40vh;
   }
   
   .chat-panel {
@@ -1769,6 +1817,7 @@ input:hover {
     min-height: 0;
     display: flex;
     flex-direction: column;
+    max-height: 40vh;
   }
   
   .chat-box {
@@ -1776,16 +1825,24 @@ input:hover {
     min-height: 0;
     padding: 0.5rem;
     font-size: 0.9rem;
+    background: #fff3e0;
+    border: 2px solid #ff8c00;
+    border-radius: 12px;
+    overflow-y: auto;
   }
   
   .chat-input {
     padding: 0.5rem 0.8rem;
     font-size: 0.9rem;
+    background: #fff3e0;
+    border: 2px solid #ff8c00;
   }
   
   /* Show mobile minimize button */
   .mobile-minimize-btn {
     display: block;
+    background: #ff8c00;
+    border: 2px solid #ff6f00;
   }
   
   /* Mobile toolbar adjustments */
@@ -1794,10 +1851,11 @@ input:hover {
     bottom: 10px;
     left: 10px;
     right: 10px;
-    background: var(--panel-peach);
+    background: #fff3e0;
+    border: 2px solid #ff8c00;
     border-radius: 15px;
     padding: 0.5rem;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 12px rgba(255, 140, 0, 0.3);
     z-index: 5;
     flex-wrap: wrap;
     justify-content: center;
@@ -1811,6 +1869,8 @@ input:hover {
     padding: 0.5rem;
     font-size: 1.1rem;
     min-width: 44px;
+    background: #ffe0b2;
+    border: 1px solid #ff8c00;
   }
   
   .size-control {
@@ -1837,6 +1897,7 @@ input:hover {
     width: 20px;
     height: 20px;
     margin: 0.1rem;
+    border: 2px solid #ff8c00;
   }
   
   /* Mobile swatch grid */
@@ -1845,10 +1906,11 @@ input:hover {
     bottom: 80px;
     left: 10px;
     right: 10px;
-    background: var(--panel-peach);
+    background: #fff3e0;
+    border: 2px solid #ff8c00;
     border-radius: 15px;
     padding: 0.5rem;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 12px rgba(255, 140, 0, 0.3);
     z-index: 4;
     grid-template-columns: repeat(6, 1fr);
     gap: 0.3rem;
@@ -1857,11 +1919,13 @@ input:hover {
   .swatch {
     height: 28px;
     border-radius: 6px;
+    border: 2px solid #ff8c00;
   }
   
   .swatch.custom {
     font-size: 0.7rem;
     padding: 0.2rem;
+    background: #ffe0b2;
   }
   
   /* Hide elements when minimized */
@@ -1873,12 +1937,16 @@ input:hover {
   .hint-bar {
     padding: 0.5rem;
     margin-bottom: 0.5rem;
+    background: #ffe0b2;
+    border: 2px solid #ff8c00;
   }
   
   .hint-letter {
     min-width: 28px;
     height: 36px;
     font-size: 1.1rem;
+    background: #fff3e0;
+    border: 1px solid #ff8c00;
   }
   
   /* Host controls mobile */
@@ -1894,5 +1962,23 @@ input:hover {
   .leave-btn {
     padding: 0.8rem 1.5rem;
     font-size: 1rem;
+    background: #ff8c00;
+    border: 2px solid #ff6f00;
+  }
+  
+  .leave-btn {
+    background: #fff;
+    color: #000;
+    border: 2px solid #ff8c00;
+  }
+  
+  /* Player cards mobile */
+  .player-card {
+    background: #ffe0b2;
+    border: 2px solid #ff8c00;
+  }
+  
+  .player-avatar {
+    background: #ff8c00;
   }
 }
