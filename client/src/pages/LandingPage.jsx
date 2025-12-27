@@ -165,7 +165,7 @@ export function LandingPage() {
           flexWrap: 'wrap',
           gap: '1rem'
         }}>
-          <h1 className="title" style={{ margin: 0, flex: '1 1 auto' }}>Welcome to Doodles</h1>
+          <h1 className="title doodles-logo" style={{ margin: 0, flex: '1 1 auto' }}>Doodles</h1>
           <div style={{ 
             color: getConnectionStatusColor(),
             fontSize: '0.9rem',

@@ -1,3 +1,24 @@
+/* Custom Font Loading */
+@font-face {
+  font-family: 'CustomFont';
+  src: url('./assets/fonts/YourFont.woff2') format('woff2'),
+       url('./assets/fonts/YourFont.woff') format('woff'),
+       url('./assets/fonts/YourFont.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'CustomFont';
+  src: url('./assets/fonts/YourFont-Bold.woff2') format('woff2'),
+       url('./assets/fonts/YourFont-Bold.woff') format('woff'),
+       url('./assets/fonts/YourFont-Bold.ttf') format('truetype');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   /* Orange theme with different shades */
   --primary: #ff8c00;
@@ -50,7 +71,7 @@
 
 body {
   margin: 0;
-  font-family: 'Poppins', 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-family: 'CustomFont', 'Poppins', 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
   background: linear-gradient(135deg, var(--orange-peach), var(--orange-amber), var(--primary-light));
   color: var(--text-primary);
   min-height: 100vh;
@@ -85,7 +106,33 @@ body {
   color: var(--text-primary);
   font-size: 2.5rem;
   font-weight: 700;
-  font-family: 'Poppins', sans-serif;
+  font-family: 'CustomFont', 'Poppins', sans-serif;
+}
+
+.doodles-logo {
+  font-size: 4rem;
+  font-weight: 900;
+  font-family: 'CustomFont', 'Poppins', sans-serif;
+  background: linear-gradient(135deg, #ff6f00, #ff8c00, #ffab40, #ff6f00);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-align: center;
+  text-shadow: 0 4px 8px rgba(255, 140, 0, 0.3);
+  letter-spacing: -0.02em;
+  margin: 1rem 0 2rem 0 !important;
+}
+
+@media (max-width: 768px) {
+  .doodles-logo {
+    font-size: 3rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .doodles-logo {
+    font-size: 2.5rem;
+  }
 }
 
 .section {
@@ -558,7 +605,7 @@ input:hover {
   margin: 0.3rem 0 0.5rem;
   font-size: 2.2rem;
   font-weight: 800;
-  font-family: 'Poppins', sans-serif;
+  font-family: 'CustomFont', 'Poppins', sans-serif;
   color: var(--text-primary);
   background: linear-gradient(135deg, var(--primary-deep), var(--primary-accent));
   -webkit-background-clip: text;
