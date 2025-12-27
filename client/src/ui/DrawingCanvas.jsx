@@ -72,7 +72,6 @@ function floodFill(imageData, startX, startY, fillColor) {
 export function DrawingCanvas({ roomId, isDrawer }) {
   const { socket } = useSocket();
   const canvasRef = useRef(null);
-  const sliderRef = useRef(null);
   const [color, setColor] = useState(COLOR_SWATCHES[0]);
   const [brushSize, setBrushSize] = useState(6);
   const [isErasing, setIsErasing] = useState(false);
@@ -86,7 +85,12 @@ export function DrawingCanvas({ roomId, isDrawer }) {
   // Check if mobile on mount and resize
   useEffect(() => {
     const checkMobile = () => {
-      setIsMobile(window.innerWidth <= 768);
+      const isMobileDevice = window.innerWidth <= 768;
+      setIsMobile(isMobileDevice);
+      // On mobile, tools are extended by default (not minimized)
+      if (isMobileDevice) {
+        setToolsMinimized(false);
+      }
     };
     
     checkMobile();
@@ -97,18 +101,6 @@ export function DrawingCanvas({ roomId, isDrawer }) {
   const handleBrushSizeChange = (e) => {
     const newSize = Number(e.target.value);
     setBrushSize(newSize);
-    
-    // Add vibration effect when slider reaches the end
-    if (newSize === 28 || newSize === 2) {
-      if (sliderRef.current) {
-        sliderRef.current.classList.add('slider-vibrate');
-        setTimeout(() => {
-          if (sliderRef.current) {
-            sliderRef.current.classList.remove('slider-vibrate');
-          }
-        }, 400);
-      }
-    }
   };
 
   const drawStroke = useCallback((ctx, stroke) => {
@@ -343,7 +335,6 @@ export function DrawingCanvas({ roomId, isDrawer }) {
             <div className="toolbar-group size-control">
               <label htmlFor="brush-size">{isMobile ? 'Size' : 'Brush Size'}</label>
               <input
-                ref={sliderRef}
                 id="brush-size"
                 type="range"
                 min="2"

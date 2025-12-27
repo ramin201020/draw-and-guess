@@ -87,6 +87,7 @@ const io = new Server(server, {
 
 // In-memory state
 const rooms = new Map();
+const voiceRooms = new Map(); // Track voice chat participants
 const LETTER_REVEAL_INTERVAL_MS = 60_000; // Changed to 60 seconds
 const SHORT_WORD_DELAY_MS = 60_000;
 const MAX_WORD_LENGTH = 15; // Made configurable
@@ -184,7 +185,9 @@ function defaultSettings() {
     wordsPerRound: 3, 
     maxPlayers: 12,
     maxLettersRevealed: 4,
-    maxWordLength: 10
+    maxWordLength: 10,
+    totalRounds: 3,
+    customWords: []
   };
 }
 
@@ -198,6 +201,15 @@ function createRoom(hostSocket, payload) {
     players: new Map(),
     status: 'LOBBY',
     currentRound: null,
+    gameState: {
+      currentRoundNumber: 0,
+      totalRounds: settings.totalRounds || 3,
+      drawersThisRound: new Set(),
+      allDrawersCompleted: false,
+      playerDrawOrder: [],
+      nextDrawerIndex: 0,
+      autoProgressTimer: null
+    },
     chat: []
   };
   rooms.set(roomId, room);
@@ -210,15 +222,37 @@ function roomSnapshot(room) {
     hostId: room.hostId,
     settings: room.settings,
     status: room.status,
-    players: [...room.players.values()].map(p => ({ id: p.id, name: p.name, score: p.score, debt: p.debt, isHost: p.isHost, isDrawer: p.isDrawer, avatar: p.avatar })),
+    players: [...room.players.values()].map(p => ({ 
+      id: p.id, 
+      name: p.name, 
+      score: p.score, 
+      debt: p.debt, 
+      isHost: p.isHost, 
+      isDrawer: p.isDrawer, 
+      avatar: p.avatar,
+      hasDrawnThisRound: room.gameState?.drawersThisRound?.has(p.id) || false
+    })),
     currentRound: room.currentRound ? {
       number: room.currentRound.number,
       drawerId: room.currentRound.drawerId,
       endsAt: room.currentRound.endsAt,
       mask: room.currentRound.maskState ? [...room.currentRound.maskState] : null,
       guessed: room.currentRound.correctOrder.map(p => p.playerId)
-    } : null
+    } : null,
+    gameState: {
+      currentRoundNumber: room.gameState?.currentRoundNumber || 0,
+      totalRounds: room.gameState?.totalRounds || 3,
+      allDrawersCompleted: room.gameState?.allDrawersCompleted || false,
+      nextDrawerName: getNextDrawerName(room),
+      autoProgressCountdown: room.gameState?.autoProgressCountdown || null
+    }
   };
+}
+
+function getNextDrawerName(room) {
+  if (!room.gameState?.playerDrawOrder?.length) return null;
+  const nextDrawer = room.gameState.playerDrawOrder[room.gameState.nextDrawerIndex];
+  return room.players.get(nextDrawer)?.name || null;
 }
 
 function scoreSequence(M) {
@@ -278,9 +312,26 @@ io.on('connection', (socket) => {
     const room = rooms.get(roomId?.toUpperCase());
     if (!room) return cb?.({ ok: false, error: 'ROOM_NOT_FOUND' });
     if (room.players.size >= room.settings.maxPlayers) return cb?.({ ok: false, error: 'ROOM_FULL' });
-    const player = { id: socket.id, name: name?.slice(0, 24) || 'Player', score: 0, debt: 0, isHost: false, isDrawer: false, avatar: avatar || null };
+    
+    const player = { 
+      id: socket.id, 
+      name: name?.slice(0, 24) || 'Player', 
+      score: 0, 
+      debt: 0, 
+      isHost: false, 
+      isDrawer: false, 
+      avatar: avatar || null 
+    };
+    
     room.players.set(socket.id, player);
     socket.join(room.id);
+    
+    // If joining mid-game, add to the front of the draw order (will play first in next round)
+    if (room.status !== 'LOBBY' && room.gameState?.playerDrawOrder) {
+      // Don't add to current round, but will be first in next round
+      console.log(`Player ${name} joined mid-game in room ${room.id}`);
+    }
+    
     cb?.({ ok: true, state: roomSnapshot(room) });
     io.to(room.id).emit('room:state', roomSnapshot(room));
   });
@@ -315,43 +366,12 @@ io.on('connection', (socket) => {
     const room = rooms.get(roomId);
     if (!room || socket.id !== room.hostId) return;
     if (room.players.size < 2) return; // need at least drawer + guesser
-    const players = [...room.players.values()];
-    const drawer = players[Math.floor(Math.random() * players.length)];
-    players.forEach(p => p.isDrawer = p.id === drawer.id);
-    const endsAt = Date.now() + room.settings.roundTimeSec * 1000;
-    room.status = 'IN_ROUND';
-    const nextRoundNumber = (room.currentRound?.number || 0) + 1;
-    if (room.currentRound) {
-      clearRevealTimer(room.currentRound);
-      // Clear any existing round timer
-      if (room.currentRound.roundTimer) {
-        clearTimeout(room.currentRound.roundTimer);
-      }
-    }
-    room.currentRound = {
-      number: nextRoundNumber,
-      drawerId: drawer.id,
-      word: null,
-      options: [],
-      correctOrder: [],
-      endsAt,
-      strokes: [],
-      maskState: null,
-      revealTimer: null,
-      roundTimer: null,
-      revealedLetters: 0
-    };
     
-    // Set automatic round end timer
-    room.currentRound.roundTimer = setTimeout(() => {
-      console.log(`⏰ Round ${nextRoundNumber} in room ${roomId} ended due to timeout`);
-      endRoundAndScore(room, 'TIME_UP');
-    }, room.settings.roundTimeSec * 1000);
+    // Initialize game state
+    initializeGameState(room);
     
-    // generate word options
-    room.currentRound.options = pickWords(room.settings.wordsPerRound, room.settings.maxWordLength || 10);
-    io.to(drawer.id).emit('round:wordOptions', room.currentRound.options);
-    io.to(room.id).emit('room:state', roomSnapshot(room));
+    // Start the first drawer's turn
+    startNextDrawerTurn(room);
   });
 
   socket.on('round:selectWord', ({ roomId, word }) => {
@@ -423,7 +443,7 @@ io.on('connection', (socket) => {
     const room = rooms.get(roomId);
     if (!room || !room.currentRound) return;
     if (socket.id !== room.hostId) return;
-    endRoundAndScore(room, reason || 'HOST');
+    endDrawerTurn(room, reason || 'HOST');
   });
 
   socket.on('room:leave', ({ roomId }) => {
@@ -458,22 +478,278 @@ io.on('connection', (socket) => {
           }
         }
       }
+      
+      // Clean up voice chat
+      for (const [roomId, participants] of voiceRooms.entries()) {
+        if (participants.has(socket.id)) {
+          participants.delete(socket.id);
+          socket.to(roomId).emit('voice:user-left', { userId: socket.id });
+          socket.to(roomId).emit('voice:participants', Array.from(participants));
+          
+          if (participants.size === 0) {
+            voiceRooms.delete(roomId);
+          }
+        }
+      }
     }, 30000); // 30 second grace period for reconnection
+  });
+
+  // Voice chat handlers
+  socket.on('voice:join', ({ roomId }) => {
+    const room = rooms.get(roomId);
+    if (!room || !room.players.has(socket.id)) return;
+    
+    if (!voiceRooms.has(roomId)) {
+      voiceRooms.set(roomId, new Set());
+    }
+    
+    const participants = voiceRooms.get(roomId);
+    participants.add(socket.id);
+    
+    // Notify existing participants about new user
+    socket.to(roomId).emit('voice:user-joined', { userId: socket.id });
+    
+    // Send current participants to new user
+    socket.emit('voice:participants', Array.from(participants));
+    
+    // Notify all participants about updated list
+    io.to(roomId).emit('voice:participants', Array.from(participants));
+    
+    console.log(`User ${socket.id} joined voice chat in room ${roomId}`);
+  });
+
+  socket.on('voice:leave', ({ roomId }) => {
+    const participants = voiceRooms.get(roomId);
+    if (participants && participants.has(socket.id)) {
+      participants.delete(socket.id);
+      
+      // Notify other participants
+      socket.to(roomId).emit('voice:user-left', { userId: socket.id });
+      socket.to(roomId).emit('voice:participants', Array.from(participants));
+      
+      if (participants.size === 0) {
+        voiceRooms.delete(roomId);
+      }
+      
+      console.log(`User ${socket.id} left voice chat in room ${roomId}`);
+    }
+  });
+
+  socket.on('voice:offer', ({ roomId, targetId, offer }) => {
+    const room = rooms.get(roomId);
+    if (!room || !room.players.has(socket.id)) return;
+    
+    socket.to(targetId).emit('voice:offer', {
+      fromId: socket.id,
+      offer: offer
+    });
+  });
+
+  socket.on('voice:answer', ({ roomId, targetId, answer }) => {
+    const room = rooms.get(roomId);
+    if (!room || !room.players.has(socket.id)) return;
+    
+    socket.to(targetId).emit('voice:answer', {
+      fromId: socket.id,
+      answer: answer
+    });
+  });
+
+  socket.on('voice:ice-candidate', ({ roomId, targetId, candidate }) => {
+    const room = rooms.get(roomId);
+    if (!room || !room.players.has(socket.id)) return;
+    
+    socket.to(targetId).emit('voice:ice-candidate', {
+      fromId: socket.id,
+      candidate: candidate
+    });
+  });
+
+  socket.on('voice:mute-status', ({ roomId, isMuted }) => {
+    const room = rooms.get(roomId);
+    if (!room || !room.players.has(socket.id)) return;
+    
+    socket.to(roomId).emit('voice:user-muted', {
+      userId: socket.id,
+      isMuted: isMuted
+    });
   });
 });
 
-function endRoundAndScore(room, reason) {
+function initializeGameState(room) {
+  const players = [...room.players.values()];
+  // Reverse order: last joined plays first, first joined plays last
+  const playerDrawOrder = players.map(p => p.id).reverse();
+  
+  room.gameState = {
+    currentRoundNumber: 1,
+    totalRounds: room.settings.totalRounds || 3,
+    drawersThisRound: new Set(),
+    allDrawersCompleted: false,
+    playerDrawOrder,
+    nextDrawerIndex: 0,
+    autoProgressTimer: null,
+    autoProgressCountdown: null
+  };
+}
+
+function getNextDrawer(room) {
+  if (!room.gameState?.playerDrawOrder?.length) return null;
+  
+  const drawOrder = room.gameState.playerDrawOrder;
+  const nextIndex = room.gameState.nextDrawerIndex;
+  
+  if (nextIndex >= drawOrder.length) {
+    // All players have drawn, round is complete
+    room.gameState.allDrawersCompleted = true;
+    return null;
+  }
+  
+  const nextDrawerId = drawOrder[nextIndex];
+  const nextDrawer = room.players.get(nextDrawerId);
+  
+  // Skip players who left the game
+  if (!nextDrawer) {
+    room.gameState.nextDrawerIndex++;
+    return getNextDrawer(room);
+  }
+  
+  return nextDrawer;
+}
+
+function startAutoProgressTimer(room, delay = 10000) {
+  if (room.gameState.autoProgressTimer) {
+    clearTimeout(room.gameState.autoProgressTimer);
+    clearInterval(room.gameState.countdownInterval);
+  }
+  
+  // Start countdown
+  let countdown = 10;
+  room.gameState.autoProgressCountdown = countdown;
+  io.to(room.id).emit('room:state', roomSnapshot(room));
+  
+  room.gameState.countdownInterval = setInterval(() => {
+    countdown--;
+    room.gameState.autoProgressCountdown = countdown;
+    io.to(room.id).emit('autoProgress:countdown', { countdown });
+    
+    if (countdown <= 0) {
+      clearInterval(room.gameState.countdownInterval);
+      room.gameState.autoProgressCountdown = null;
+    }
+  }, 1000);
+  
+  room.gameState.autoProgressTimer = setTimeout(() => {
+    clearInterval(room.gameState.countdownInterval);
+    room.gameState.autoProgressCountdown = null;
+    
+    if (room.gameState.allDrawersCompleted) {
+      // Move to next round or end game
+      if (room.gameState.currentRoundNumber >= room.gameState.totalRounds) {
+        endGame(room);
+      } else {
+        startNextRound(room);
+      }
+    } else {
+      // Start next drawer's turn
+      startNextDrawerTurn(room);
+    }
+  }, delay);
+}
+
+function startNextRound(room) {
+  room.gameState.currentRoundNumber++;
+  room.gameState.drawersThisRound.clear();
+  room.gameState.allDrawersCompleted = false;
+  room.gameState.nextDrawerIndex = 0;
+  
+  // Update player draw order for new players who joined mid-game
+  const currentPlayers = [...room.players.values()];
+  const newPlayers = currentPlayers.filter(p => !room.gameState.playerDrawOrder.includes(p.id));
+  
+  // Add new players to the beginning (they play first)
+  room.gameState.playerDrawOrder = [...newPlayers.map(p => p.id), ...room.gameState.playerDrawOrder];
+  
+  startNextDrawerTurn(room);
+}
+
+function startNextDrawerTurn(room) {
+  const nextDrawer = getNextDrawer(room);
+  
+  if (!nextDrawer) {
+    // Round complete, show results
+    room.status = 'ROUND_RESULTS';
+    io.to(room.id).emit('round:complete', { 
+      roundNumber: room.gameState.currentRoundNumber,
+      state: roomSnapshot(room) 
+    });
+    startAutoProgressTimer(room);
+    return;
+  }
+  
+  // Clear canvas for new drawer
+  io.to(room.id).emit('draw:clear');
+  
+  // Set up new drawing turn
+  const players = [...room.players.values()];
+  players.forEach(p => p.isDrawer = p.id === nextDrawer.id);
+  
+  const endsAt = Date.now() + room.settings.roundTimeSec * 1000;
+  room.status = 'IN_ROUND';
+  
+  if (room.currentRound) {
+    clearRevealTimer(room.currentRound);
+    if (room.currentRound.roundTimer) {
+      clearTimeout(room.currentRound.roundTimer);
+    }
+  }
+  
+  room.currentRound = {
+    number: room.gameState.currentRoundNumber,
+    drawerId: nextDrawer.id,
+    word: null,
+    options: [],
+    correctOrder: [],
+    endsAt,
+    strokes: [],
+    maskState: null,
+    revealTimer: null,
+    roundTimer: null,
+    revealedLetters: 0
+  };
+  
+  // Set automatic turn end timer
+  room.currentRound.roundTimer = setTimeout(() => {
+    console.log(`⏰ Turn for ${nextDrawer.name} in room ${room.id} ended due to timeout`);
+    endDrawerTurn(room, 'TIME_UP');
+  }, room.settings.roundTimeSec * 1000);
+  
+  // Generate word options (including custom words)
+  room.currentRound.options = pickWords(room.settings.wordsPerRound, room.settings.maxWordLength || 10, room.settings.customWords || []);
+  io.to(nextDrawer.id).emit('round:wordOptions', room.currentRound.options);
+  io.to(room.id).emit('room:state', roomSnapshot(room));
+}
+
+function endDrawerTurn(room, reason) {
   const { currentRound: r } = room;
   if (!r) return;
+  
+  // Mark this drawer as completed
+  room.gameState.drawersThisRound.add(r.drawerId);
+  room.gameState.nextDrawerIndex++;
+  
+  // Score this turn
   const M = room.settings.maxPoints;
   const seq = scoreSequence(M);
-  // score guessers in order
+  
+  // Score guessers in order
   r.correctOrder.forEach((entry, idx) => {
     const p = room.players.get(entry.playerId);
     if (!p) return;
     const points = seq[idx] ?? 0;
     p.score += points;
   });
+  
   const drawer = room.players.get(r.drawerId);
   if (drawer) {
     if (r.correctOrder.length === 0) {
@@ -488,26 +764,86 @@ function endRoundAndScore(room, reason) {
       drawer.score += award;
     }
   }
-  room.status = 'ROUND_RESULTS';
+  
   const word = r.word;
   clearRevealTimer(r);
   room.currentRound = null;
-  io.to(room.id).emit('round:end', { reason, word, state: roomSnapshot(room) });
+  
+  // Check if all players have drawn
+  if (room.gameState.nextDrawerIndex >= room.gameState.playerDrawOrder.length) {
+    room.gameState.allDrawersCompleted = true;
+  }
+  
+  // Emit turn end
+  io.to(room.id).emit('drawer:turnEnd', { 
+    reason, 
+    word, 
+    drawerId: r.drawerId,
+    state: roomSnapshot(room) 
+  });
+  
+  // Auto-progress to next turn or round
+  startAutoProgressTimer(room, 3000); // 3 second delay between turns
 }
 
-function pickWords(n, maxWordLength = 10) {
-  const pool = [
+function endGame(room) {
+  room.status = 'GAME_COMPLETE';
+  
+  // Calculate final rankings
+  const players = [...room.players.values()].sort((a, b) => b.score - a.score);
+  
+  io.to(room.id).emit('game:complete', {
+    finalRankings: players.map((p, index) => ({
+      rank: index + 1,
+      id: p.id,
+      name: p.name,
+      score: p.score,
+      debt: p.debt
+    })),
+    state: roomSnapshot(room)
+  });
+  
+  // Reset game state after 30 seconds
+  setTimeout(() => {
+    room.status = 'LOBBY';
+    room.gameState.currentRoundNumber = 0;
+    room.gameState.drawersThisRound.clear();
+    room.gameState.allDrawersCompleted = false;
+    room.gameState.nextDrawerIndex = 0;
+    
+    // Reset player scores
+    room.players.forEach(p => {
+      p.score = 0;
+      p.debt = 0;
+      p.isDrawer = false;
+    });
+    
+    io.to(room.id).emit('room:state', roomSnapshot(room));
+  }, 30000);
+}
+
+function pickWords(n, maxWordLength = 10, customWords = []) {
+  const defaultPool = [
     'apple','banana','cactus','bottle','castle','dragon','camera','guitar','rocket','mountain','pencil','notebook','cookie','window','island','sketch','pyramid','pirate','rainbow','airplane','dolphin','diamond','painter','sunrise','lantern','piano','laptop','planet','compass',
     'butterfly','elephant','giraffe','kangaroo','penguin','octopus','flamingo','hedgehog','squirrel','hamster','rabbit','turtle','lizard','spider','beetle','dragonfly','ladybug','caterpillar','grasshopper','firefly',
     'sandwich','hamburger','pizza','spaghetti','chocolate','strawberry','watermelon','pineapple','coconut','avocado','broccoli','carrot','tomato','potato','onion','garlic','pepper','mushroom','cucumber','lettuce',
     'computer','keyboard','monitor','speaker','headphone','microphone','telephone','television','radio','camera','printer','scanner','tablet','smartphone','laptop','desktop','software','hardware','internet','website',
     'bicycle','motorcycle','airplane','helicopter','submarine','spaceship','rocket','train','bus','truck','car','boat','ship','yacht','canoe','kayak','skateboard','scooter','rollerblade','snowboard'
   ].filter(word => word.length <= maxWordLength);
+  
+  // Add custom words that meet length requirements
+  const validCustomWords = customWords
+    .filter(word => word && typeof word === 'string' && word.trim().length > 0 && word.trim().length <= maxWordLength)
+    .map(word => word.trim().toLowerCase());
+  
+  const pool = [...defaultPool, ...validCustomWords];
   const target = Math.min(n, pool.length);
   const out = new Set();
-  while (out.size < target) {
+  
+  while (out.size < target && pool.length > 0) {
     out.add(pool[Math.floor(Math.random() * pool.length)]);
   }
+  
   return [...out];
 }
 

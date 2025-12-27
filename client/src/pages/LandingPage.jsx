@@ -11,6 +11,8 @@ export function LandingPage() {
   const [wordsPerRound, setWordsPerRound] = useState(3);
   const [maxLettersRevealed, setMaxLettersRevealed] = useState(4);
   const [maxWordLength, setMaxWordLength] = useState(10);
+  const [totalRounds, setTotalRounds] = useState(3);
+  const [customWords, setCustomWords] = useState('');
   const [isCreating, setIsCreating] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
   const navigate = useNavigate();
@@ -54,6 +56,8 @@ export function LandingPage() {
           wordsPerRound: parseNumberOrDefault(wordsPerRound, 3),
           maxLettersRevealed: parseNumberOrDefault(maxLettersRevealed, 4),
           maxWordLength: parseNumberOrDefault(maxWordLength, 10),
+          totalRounds: parseNumberOrDefault(totalRounds, 3),
+          customWords: customWords.split(',').map(w => w.trim()).filter(w => w.length > 0)
         },
       };
 
@@ -219,7 +223,25 @@ export function LandingPage() {
                 max="15"
               />
             </label>
+            <label>
+              Total rounds
+              <input 
+                type="number" 
+                value={totalRounds} 
+                onChange={handleNumericChange(setTotalRounds)}
+                min="1"
+                max="10"
+              />
+            </label>
           </div>
+          <label>
+            Custom words (comma-separated)
+            <input
+              value={customWords}
+              onChange={(e) => setCustomWords(e.target.value)}
+              placeholder="cat, dog, house, tree..."
+            />
+          </label>
           <button 
             onClick={handleCreate} 
             className="primary-btn landing-main-btn"

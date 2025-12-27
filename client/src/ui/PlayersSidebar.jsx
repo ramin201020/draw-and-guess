@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSocket } from '../socket/SocketProvider';
 
 const AVATAR_COLORS = ['#ffe5ec', '#dff0ff', '#fef9c3', '#e7f8ec', '#f3e8ff', '#ffeadd'];
@@ -31,8 +31,40 @@ function initials(name) {
 
 export function PlayersSidebar({ room, selfId, roomId }) {
   const { socket } = useSocket();
+  const [voiceParticipants, setVoiceParticipants] = useState(new Set());
+  const [mutedUsers, setMutedUsers] = useState(new Set());
+  
   const me = room.players.find((p) => p.id === selfId);
   const isHost = !!me?.isHost;
+
+  // Voice chat event handlers
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleVoiceParticipants = (participants) => {
+      setVoiceParticipants(new Set(participants));
+    };
+
+    const handleVoiceUserMuted = ({ userId, isMuted }) => {
+      setMutedUsers(prev => {
+        const newSet = new Set(prev);
+        if (isMuted) {
+          newSet.add(userId);
+        } else {
+          newSet.delete(userId);
+        }
+        return newSet;
+      });
+    };
+
+    socket.on('voice:participants', handleVoiceParticipants);
+    socket.on('voice:user-muted', handleVoiceUserMuted);
+
+    return () => {
+      socket.off('voice:participants', handleVoiceParticipants);
+      socket.off('voice:user-muted', handleVoiceUserMuted);
+    };
+  }, [socket]);
 
   const kick = (id) => {
     if (!socket) return;
@@ -58,19 +90,32 @@ export function PlayersSidebar({ room, selfId, roomId }) {
         {room.players.map((p) => {
           const avatarColor = pickFromList(p.id, AVATAR_COLORS);
           const assetIcon = pickFromList(p.id, ASSET_ICONS);
+          const inVoice = voiceParticipants.has(p.id);
+          const isMuted = mutedUsers.has(p.id);
+          
           return (
-            <div key={p.id} className={p.id === selfId ? 'player-card self' : 'player-card'}>
+            <div 
+              key={p.id} 
+              className={`player-card ${p.id === selfId ? 'self' : ''} ${inVoice ? 'in-voice' : ''} ${inVoice && isMuted ? 'muted' : ''}`}
+            >
               <div className="player-avatar" style={{ backgroundColor: avatarColor }}>
                 {p.avatar ? <img src={p.avatar} alt={`${p.name} avatar`} /> : initials(p.name)}
               </div>
               <div className="player-details">
                 <div className="player-header">
-                  <span className="player-name">{p.name}</span>
+                  <span className="player-name">
+                    {p.name}
+                    {inVoice && (
+                      <span className={`voice-indicator ${isMuted ? 'muted' : 'speaking'}`}>
+                        {isMuted ? '🔇' : '🎤'}
+                      </span>
+                    )}
+                  </span>
                   {p.isHost && <span className="badge">Host</span>}
                   {p.isDrawer && <span className="badge warm">Drawing</span>}
                 </div>
                 <div className="player-meta">
-                  <span className="score">{p.score} pts</span>
+                  <span className="score"><strong>{p.score}</strong> pts</span>
                   {p.debt > 0 && <span className="debt">-{p.debt}</span>}
                 </div>
               </div>

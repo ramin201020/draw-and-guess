@@ -7,6 +7,7 @@ import { PlayersSidebar } from '../ui/PlayersSidebar';
 import { WordHintBar } from '../ui/WordHintBar';
 import { Timer } from '../ui/Timer';
 import { RoundResults } from '../ui/RoundResults';
+import { VoiceChat } from '../ui/VoiceChat';
 
 export function RoomPage() {
   const { roomId } = useParams();
@@ -16,6 +17,7 @@ export function RoomPage() {
   const [pendingSelection, setPendingSelection] = useState(null);
   const [showResults, setShowResults] = useState(false);
   const [lastRoundWord, setLastRoundWord] = useState('');
+  const [autoProgressCountdown, setAutoProgressCountdown] = useState(null);
 
   const me = useMemo(() => roomState?.players?.find((p) => p.id === selfId) || null, [roomState, selfId]);
   const isHost = !!me?.isHost;
@@ -35,29 +37,57 @@ export function RoomPage() {
       setShowResults(false);
     };
     
-    const handleRoundEnd = ({ word, state }) => {
+    const handleDrawerTurnEnd = ({ word, drawerId, state }) => {
       setLastRoundWord(word || '');
+      // Don't show results for individual turn ends, only for round completions
+      if (state?.gameState?.allDrawersCompleted) {
+        setShowResults(true);
+      }
+    };
+    
+    const handleRoundComplete = ({ roundNumber, state }) => {
       setShowResults(true);
-      // Auto-hide results after 10 seconds if not host
-      if (!isHost) {
-        setTimeout(() => setShowResults(false), 10000);
+    };
+    
+    const handleAutoProgressCountdown = ({ countdown }) => {
+      setAutoProgressCountdown(countdown);
+    };
+    
+    const handleGameComplete = ({ finalRankings, state }) => {
+      setShowResults(true);
+      // Handle final game completion
+      console.log('Game completed with rankings:', finalRankings);
+    };
+    
+    const handleRoomState = (state) => {
+      // Update auto-progress countdown from room state
+      if (state?.gameState?.autoProgressCountdown !== undefined) {
+        setAutoProgressCountdown(state.gameState.autoProgressCountdown);
       }
     };
     
     socket.on('round:wordOptions', handleWordOptions);
     socket.on('round:start', handleRoundStart);
-    socket.on('round:end', handleRoundEnd);
+    socket.on('drawer:turnEnd', handleDrawerTurnEnd);
+    socket.on('round:complete', handleRoundComplete);
+    socket.on('autoProgress:countdown', handleAutoProgressCountdown);
+    socket.on('game:complete', handleGameComplete);
+    socket.on('room:state', handleRoomState);
     socket.on('room:closed', () => navigate('/'));
     socket.on('room:kicked', () => navigate('/'));
     
     return () => {
       socket.off('round:wordOptions', handleWordOptions);
       socket.off('round:start', handleRoundStart);
-      socket.off('round:end', handleRoundEnd);
+      socket.off('drawer:turnEnd', handleDrawerTurnEnd);
+      socket.off('round:complete', handleRoundComplete);
+      socket.off('autoProgress:countdown', handleAutoProgressCountdown);
+      socket.off('game:complete', handleGameComplete);
+      socket.off('room:state', handleRoomState);
       socket.off('room:closed');
       socket.off('room:kicked');
     };
-  }, [socket, navigate, isHost]);
+  }, [socket, navigate]);
 
   const handleTimeUp = () => {
     if (!socket || !isHost) return;
@@ -115,13 +145,14 @@ export function RoomPage() {
   const showSidebar = roomState.status === 'LOBBY' || roomState.status === 'ROUND_RESULTS';
 
   return (
-    <div className="page neon-bg room-layout-no-sidebar">
-      {/* Timer - only show during active rounds */}
-      {isRoundActive && (
+    <div className="page room-page room-layout-no-sidebar">
+      {/* Timer - show during active rounds or auto-progress countdown */}
+      {(isRoundActive || autoProgressCountdown) && (
         <Timer 
-          endsAt={roomState.currentRound.endsAt}
+          endsAt={roomState.currentRound?.endsAt}
           onTimeUp={handleTimeUp}
-          isActive={true}
+          isActive={isRoundActive}
+          autoProgressCountdown={autoProgressCountdown}
         />
       )}
 
@@ -137,48 +168,65 @@ export function RoomPage() {
       />
 
       <main className="main-panel">
-        <header className="room-header">
-          <div>
-            <p className="eyebrow">Connected · Room {roomState.id}</p>
-            <h1 className="room-title">{roomState.status === 'LOBBY' ? 'Waiting for players' : 'Game in progress'}</h1>
-            <div className="status-indicator">
+        <header className="room-header-overlay">
+          <div className="room-info-compact">
+            <div className="room-status-line">
+              <span className="room-code-compact">{roomState.id}</span>
               <span className={`status-badge ${roomState.status.toLowerCase()}`}>
                 {roomState.status === 'LOBBY' ? '⏳ Lobby' : 
                  roomState.status === 'IN_ROUND' ? '🎨 Drawing' : 
-                 roomState.status === 'ROUND_RESULTS' ? '📊 Results' : roomState.status}
+                 roomState.status === 'ROUND_RESULTS' ? '📊 Results' : 
+                 roomState.status === 'GAME_COMPLETE' ? '🏆 Complete' : roomState.status}
               </span>
               <span className="player-count">
                 {playerCount} {playerCount === 1 ? 'player' : 'players'}
               </span>
+              {roomState.gameState && (
+                <span className="round-indicator">
+                  Round {roomState.gameState.currentRoundNumber}/{roomState.gameState.totalRounds}
+                </span>
+              )}
             </div>
             {roomState.status === 'LOBBY' && (
-              <p className="lobby-hint">Invite friends, then hit start once at least two doodlers are here.</p>
+              <p className="lobby-hint-compact">Invite friends, then hit start once at least two doodlers are here.</p>
+            )}
+            {roomState.status === 'IN_ROUND' && (
+              <p className="lobby-hint-compact">
+                🎨 {isDrawer ? 'Your turn to draw!' : 
+                    roomState.players?.find(p => p.isDrawer)?.name ? 
+                    `${roomState.players.find(p => p.isDrawer).name} is drawing` : 
+                    'Someone is drawing'}
+              </p>
+            )}
+            {roomState.status === 'ROUND_RESULTS' && autoProgressCountdown && (
+              <p className="lobby-hint-compact">⏱️ Next {roomState.gameState?.currentRoundNumber >= roomState.gameState?.totalRounds ? 'game results' : 'round'} in {autoProgressCountdown}s...</p>
             )}
           </div>
-          <div className="host-controls">
+          <div className="host-controls-compact">
+            <VoiceChat roomId={roomId} selfId={selfId} players={roomState.players} />
             {isHost && (
               <>
-                <button onClick={handleStart} className="primary-btn" disabled={!canStart}>
-                  {roomState.status === 'LOBBY' ? 'Start Game' : 'Next Round'}
+                <button onClick={handleStart} className="primary-btn compact" disabled={!canStart}>
+                  {roomState.status === 'LOBBY' ? 'Start' : 'Next'}
                 </button>
                 {roomState.status === 'IN_ROUND' && (
-                  <button onClick={handleEndRound} className="danger-btn">End Round</button>
+                  <button onClick={handleEndRound} className="danger-btn compact">End</button>
                 )}
               </>
             )}
-            <button onClick={handleLeaveRoom} className="leave-btn">
-              Leave Room
+            <button onClick={handleLeaveRoom} className="leave-btn compact">
+              Leave
             </button>
           </div>
         </header>
         <WordHintBar mask={roomState.currentRound?.mask} status={roomState.status} />
-        <section className="canvas-chat">
+        <section className="canvas-section">
           <DrawingCanvas roomId={roomId} isDrawer={isDrawer} />
-          <div className="mobile-bottom-section">
-            <PlayersSidebar room={roomState} selfId={selfId} roomId={roomId} />
-            <ChatBox roomId={roomId} />
-          </div>
         </section>
+        <div className="mobile-bottom-section">
+          <PlayersSidebar room={roomState} selfId={selfId} roomId={roomId} />
+          <ChatBox roomId={roomId} />
+        </div>
       </main>
 
       {isDrawer && wordOptions.length > 0 && (

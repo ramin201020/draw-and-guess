@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-export function Timer({ endsAt, onTimeUp, isActive = true }) {
+export function Timer({ endsAt, onTimeUp, isActive = true, autoProgressCountdown = null }) {
   const [timeLeft, setTimeLeft] = useState(0);
   const [isWarning, setIsWarning] = useState(false);
   const [isCritical, setIsCritical] = useState(false);
@@ -59,6 +59,23 @@ export function Timer({ endsAt, onTimeUp, isActive = true }) {
     const timeElapsed = totalDuration - timeRemaining;
     return Math.min(100, Math.max(0, (timeElapsed / totalDuration) * 100));
   };
+
+  // Show auto-progress countdown if available
+  if (autoProgressCountdown !== null && autoProgressCountdown > 0) {
+    return (
+      <div className="timer auto-progress">
+        <div className="timer-container">
+          <div className="timer-display">
+            <span className="timer-icon">⏱️</span>
+            <span className="timer-text">Next in {autoProgressCountdown}s</span>
+          </div>
+          <div className="timer-pulse">
+            <span className="pulse-dot"></span>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!isActive || timeLeft <= 0) {
     return null;

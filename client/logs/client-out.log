@@ -83,3 +83,33 @@
 2025-12-27T12:00:43: 
 2025-12-27T12:00:43:   ➜  Local:   http://localhost:5174/
 2025-12-27T12:00:43:   ➜  Network: use --host to expose
+2025-12-27T12:42:00: 
+2025-12-27T12:42:00: > doodles-client@1.0.0 dev
+2025-12-27T12:42:00: > vite
+2025-12-27T12:42:00: 
+2025-12-27T12:42:07: Port 5173 is in use, trying another one...
+2025-12-27T12:42:08: 
+2025-12-27T12:42:08:   VITE v5.4.21  ready in 6925 ms
+2025-12-27T12:42:08: 
+2025-12-27T12:42:08:   ➜  Local:   http://localhost:5174/
+2025-12-27T12:42:08:   ➜  Network: use --host to expose
+2025-12-27T13:34:33: 
+2025-12-27T13:34:33: > doodles-client@1.0.0 dev
+2025-12-27T13:34:33: > vite
+2025-12-27T13:34:33: 
+2025-12-27T13:34:38: Port 5173 is in use, trying another one...
+2025-12-27T13:34:38: 
+2025-12-27T13:34:38:   VITE v5.4.21  ready in 4299 ms
+2025-12-27T13:34:38: 
+2025-12-27T13:34:38:   ➜  Local:   http://localhost:5174/
+2025-12-27T13:34:38:   ➜  Network: use --host to expose
+2025-12-27T19:13:42: 
+2025-12-27T19:13:42: > doodles-client@1.0.0 dev
+2025-12-27T19:13:42: > vite
+2025-12-27T19:13:42: 
+2025-12-27T19:13:47: Port 5173 is in use, trying another one...
+2025-12-27T19:13:47: 
+2025-12-27T19:13:47:   VITE v5.4.21  ready in 3866 ms
+2025-12-27T19:13:47: 
+2025-12-27T19:13:47:   ➜  Local:   http://localhost:5174/
+2025-12-27T19:13:47:   ➜  Network: use --host to expose
