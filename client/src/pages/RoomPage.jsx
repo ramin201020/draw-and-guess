@@ -139,11 +139,18 @@ export function RoomPage() {
       <main className="main-panel">
         <header className="room-header">
           <div>
-            <p className="eyebrow">Doodles Lobby · Room {roomState.id}</p>
+            <p className="eyebrow">Connected · Room {roomState.id}</p>
             <h1 className="room-title">{roomState.status === 'LOBBY' ? 'Waiting for players' : 'Game in progress'}</h1>
-            <p>
-              Status: <strong>{roomState.status}</strong>
-            </p>
+            <div className="status-indicator">
+              <span className={`status-badge ${roomState.status.toLowerCase()}`}>
+                {roomState.status === 'LOBBY' ? '⏳ Lobby' : 
+                 roomState.status === 'IN_ROUND' ? '🎨 Drawing' : 
+                 roomState.status === 'ROUND_RESULTS' ? '📊 Results' : roomState.status}
+              </span>
+              <span className="player-count">
+                {playerCount} {playerCount === 1 ? 'player' : 'players'}
+              </span>
+            </div>
             {roomState.status === 'LOBBY' && (
               <p className="lobby-hint">Invite friends, then hit start once at least two doodlers are here.</p>
             )}
