@@ -1,20 +1,91 @@
-/* Custom Font Loading */
+/* Switzer Font Loading */
 @font-face {
-  font-family: 'CustomFont';
-  src: url('./assets/fonts/YourFont.woff2') format('woff2'),
-       url('./assets/fonts/YourFont.woff') format('woff'),
-       url('./assets/fonts/YourFont.ttf') format('truetype');
-  font-weight: normal;
+  font-family: 'Switzer';
+  src: url('./assets/fonts/Switzer_Complete/Fonts/WEB/fonts/Switzer-Variable.woff2') format('woff2'),
+       url('./assets/fonts/Switzer_Complete/Fonts/WEB/fonts/Switzer-Variable.woff') format('woff'),
+       url('./assets/fonts/Switzer_Complete/Fonts/WEB/fonts/Switzer-Variable.ttf') format('truetype');
+  font-weight: 100 900;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'CustomFont';
-  src: url('./assets/fonts/YourFont-Bold.woff2') format('woff2'),
-       url('./assets/fonts/YourFont-Bold.woff') format('woff'),
-       url('./assets/fonts/YourFont-Bold.ttf') format('truetype');
-  font-weight: bold;
+  font-family: 'Switzer';
+  src: url('./assets/fonts/Switzer_Complete/Fonts/WEB/fonts/Switzer-VariableItalic.woff2') format('woff2'),
+       url('./assets/fonts/Switzer_Complete/Fonts/WEB/fonts/Switzer-VariableItalic.woff') format('woff'),
+       url('./assets/fonts/Switzer_Complete/Fonts/WEB/fonts/Switzer-VariableItalic.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* Switzer Static Font Weights for better browser support */
+@font-face {
+  font-family: 'Switzer';
+  src: url('./assets/fonts/Switzer_Complete/Fonts/WEB/fonts/Switzer-Light.woff2') format('woff2'),
+       url('./assets/fonts/Switzer_Complete/Fonts/WEB/fonts/Switzer-Light.woff') format('woff'),
+       url('./assets/fonts/Switzer_Complete/Fonts/WEB/fonts/Switzer-Light.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Switzer';
+  src: url('./assets/fonts/Switzer_Complete/Fonts/WEB/fonts/Switzer-Regular.woff2') format('woff2'),
+       url('./assets/fonts/Switzer_Complete/Fonts/WEB/fonts/Switzer-Regular.woff') format('woff'),
+       url('./assets/fonts/Switzer_Complete/Fonts/WEB/fonts/Switzer-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Switzer';
+  src: url('./assets/fonts/Switzer_Complete/Fonts/WEB/fonts/Switzer-Medium.woff2') format('woff2'),
+       url('./assets/fonts/Switzer_Complete/Fonts/WEB/fonts/Switzer-Medium.woff') format('woff'),
+       url('./assets/fonts/Switzer_Complete/Fonts/WEB/fonts/Switzer-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Switzer';
+  src: url('./assets/fonts/Switzer_Complete/Fonts/WEB/fonts/Switzer-Semibold.woff2') format('woff2'),
+       url('./assets/fonts/Switzer_Complete/Fonts/WEB/fonts/Switzer-Semibold.woff') format('woff'),
+       url('./assets/fonts/Switzer_Complete/Fonts/WEB/fonts/Switzer-Semibold.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Switzer';
+  src: url('./assets/fonts/Switzer_Complete/Fonts/WEB/fonts/Switzer-Bold.woff2') format('woff2'),
+       url('./assets/fonts/Switzer_Complete/Fonts/WEB/fonts/Switzer-Bold.woff') format('woff'),
+       url('./assets/fonts/Switzer_Complete/Fonts/WEB/fonts/Switzer-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Switzer';
+  src: url('./assets/fonts/Switzer_Complete/Fonts/WEB/fonts/Switzer-Extrabold.woff2') format('woff2'),
+       url('./assets/fonts/Switzer_Complete/Fonts/WEB/fonts/Switzer-Extrabold.woff') format('woff'),
+       url('./assets/fonts/Switzer_Complete/Fonts/WEB/fonts/Switzer-Extrabold.ttf') format('truetype');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Switzer';
+  src: url('./assets/fonts/Switzer_Complete/Fonts/WEB/fonts/Switzer-Black.woff2') format('woff2'),
+       url('./assets/fonts/Switzer_Complete/Fonts/WEB/fonts/Switzer-Black.woff') format('woff'),
+       url('./assets/fonts/Switzer_Complete/Fonts/WEB/fonts/Switzer-Black.ttf') format('truetype');
+  font-weight: 900;
   font-style: normal;
   font-display: swap;
 }
@@ -65,17 +136,29 @@
   --panel-peach-focus: #ffb74d;
 }
 
+/* Switzer Font Weight Utility Classes */
+.font-thin { font-family: 'Switzer', sans-serif; font-weight: 100; }
+.font-extralight { font-family: 'Switzer', sans-serif; font-weight: 200; }
+.font-light { font-family: 'Switzer', sans-serif; font-weight: 300; }
+.font-normal { font-family: 'Switzer', sans-serif; font-weight: 400; }
+.font-medium { font-family: 'Switzer', sans-serif; font-weight: 500; }
+.font-semibold { font-family: 'Switzer', sans-serif; font-weight: 600; }
+.font-bold { font-family: 'Switzer', sans-serif; font-weight: 700; }
+.font-extrabold { font-family: 'Switzer', sans-serif; font-weight: 800; }
+.font-black { font-family: 'Switzer', sans-serif; font-weight: 900; }
+
 * {
   box-sizing: border-box;
 }
 
 body {
   margin: 0;
-  font-family: 'CustomFont', 'Poppins', 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-family: 'Switzer', 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
   background: linear-gradient(135deg, var(--orange-peach), var(--orange-amber), var(--primary-light));
   color: var(--text-primary);
   min-height: 100vh;
   font-size: 18px;
+  font-weight: 400;
 }
 
 .page.neon-bg {
@@ -106,13 +189,13 @@ body {
   color: var(--text-primary);
   font-size: 2.5rem;
   font-weight: 700;
-  font-family: 'CustomFont', 'Poppins', sans-serif;
+  font-family: 'Switzer', sans-serif;
 }
 
 .doodles-logo {
   font-size: 4rem;
   font-weight: 900;
-  font-family: 'CustomFont', 'Poppins', sans-serif;
+  font-family: 'Switzer', sans-serif;
   background: linear-gradient(135deg, #ff6f00, #ff8c00, #ffab40, #ff6f00);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -144,6 +227,7 @@ body {
 .section h2 {
   font-size: 1.8rem;
   font-weight: 600;
+  font-family: 'Switzer', sans-serif;
   margin-bottom: 1rem;
   color: var(--text-primary);
 }
@@ -167,6 +251,7 @@ label {
   margin-bottom: 1rem;
   font-size: 1.1rem;
   font-weight: 500;
+  font-family: 'Switzer', sans-serif;
   color: var(--text-primary);
 }
 
@@ -204,6 +289,7 @@ input:hover {
   cursor: pointer;
   font-weight: 600;
   font-size: 1.3rem;
+  font-family: 'Switzer', sans-serif;
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
@@ -263,6 +349,7 @@ input:hover {
   padding: 1.4rem 2.8rem;
   font-size: 1.4rem;
   font-weight: 700;
+  font-family: 'Switzer', sans-serif;
 }
 
 .landing-main-btn::before {
@@ -445,6 +532,7 @@ input:hover {
   margin: 0 0 0.6rem;
   font-size: 1.4rem;
   font-weight: 600;
+  font-family: 'Switzer', sans-serif;
 }
 
 .player-list {
@@ -504,6 +592,7 @@ input:hover {
 .player-name {
   font-weight: 600;
   font-size: 1.1rem;
+  font-family: 'Switzer', sans-serif;
   color: var(--text-primary);
   white-space: nowrap;
   overflow: hidden;
@@ -582,6 +671,7 @@ input:hover {
   letter-spacing: 0.15em;
   font-size: 0.8rem;
   font-weight: 700;
+  font-family: 'Switzer', sans-serif;
   color: var(--primary-accent);
   margin: 0;
   display: flex;
@@ -605,7 +695,7 @@ input:hover {
   margin: 0.3rem 0 0.5rem;
   font-size: 2.2rem;
   font-weight: 800;
-  font-family: 'CustomFont', 'Poppins', sans-serif;
+  font-family: 'Switzer', sans-serif;
   color: var(--text-primary);
   background: linear-gradient(135deg, var(--primary-deep), var(--primary-accent));
   -webkit-background-clip: text;
@@ -618,6 +708,7 @@ input:hover {
   color: var(--text-secondary);
   font-size: 1rem;
   font-weight: 500;
+  font-family: 'Switzer', sans-serif;
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -643,6 +734,7 @@ input:hover {
   border-radius: 20px;
   font-size: 0.9rem;
   font-weight: 600;
+  font-family: 'Switzer', sans-serif;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   border: 2px solid transparent;
@@ -673,6 +765,7 @@ input:hover {
 .player-count {
   font-size: 0.95rem;
   font-weight: 600;
+  font-family: 'Switzer', sans-serif;
   color: var(--text-secondary);
   background: rgba(255, 255, 255, 0.4);
   padding: 0.3rem 0.8rem;
@@ -711,6 +804,7 @@ input:hover {
   color: var(--text-secondary);
   font-size: 1.1rem;
   font-weight: 500;
+  font-family: 'Switzer', sans-serif;
 }
 
 .hint-letter {
@@ -723,6 +817,7 @@ input:hover {
   justify-content: center;
   font-size: 1.4rem;
   font-weight: 600;
+  font-family: 'Switzer', sans-serif;
   color: var(--text-secondary);
   background: var(--panel-peach-light);
   backdrop-filter: blur(3px);
@@ -871,6 +966,7 @@ input:hover {
   padding: 0.35rem 1rem;
   cursor: pointer;
   font-weight: 600;
+  font-family: 'Switzer', sans-serif;
   color: var(--text-secondary);
   backdrop-filter: blur(5px);
   transition: all 0.3s ease;
@@ -911,12 +1007,14 @@ input:hover {
 .size-control label {
   font-size: 1rem;
   font-weight: 600;
+  font-family: 'Switzer', sans-serif;
   color: var(--text-primary);
 }
 
 .size-control span {
   font-size: 1rem;
   font-weight: 600;
+  font-family: 'Switzer', sans-serif;
   color: var(--text-primary);
 }
 
@@ -1044,6 +1142,7 @@ input:hover {
 
 .chat-name {
   font-weight: 600;
+  font-family: 'Switzer', sans-serif;
   margin-right: 0.25rem;
   color: var(--text-primary);
 }
@@ -1152,6 +1251,7 @@ input:hover {
   text-transform: capitalize;
   font-size: 1.2rem;
   font-weight: 700;
+  font-family: 'Switzer', sans-serif;
 }
 
 .word-meta {
@@ -1205,6 +1305,8 @@ input:hover {
   font-size: 1.2rem;
   min-width: 44px;
 }
+
+@media (max-width: 1024px) {
   .room-layout,
   .room-layout-no-sidebar {
     grid-template-columns: 1fr;
@@ -1660,6 +1762,7 @@ input:hover {
   text-align: center;
   font-size: 2rem;
   font-weight: 700;
+  font-family: 'Switzer', sans-serif;
   color: var(--text-primary);
   margin-bottom: 1.5rem;
 }
@@ -1724,6 +1827,7 @@ input:hover {
 .result-player-name {
   font-size: 1.1rem;
   font-weight: 600;
+  font-family: 'Switzer', sans-serif;
   color: var(--text-primary);
 }
 
@@ -1746,12 +1850,14 @@ input:hover {
 .result-score-main {
   font-size: 1.3rem;
   font-weight: 700;
+  font-family: 'Switzer', sans-serif;
   color: var(--primary-deep);
 }
 
 .result-score-change {
   font-size: 0.9rem;
   font-weight: 600;
+  font-family: 'Switzer', sans-serif;
 }
 
 .result-score-change.positive {
@@ -1884,7 +1990,7 @@ input:hover {
 .timer-display {
   font-size: 2.5rem;
   font-weight: 700;
-  font-family: 'Courier New', monospace;
+  font-family: 'Switzer', 'Courier New', monospace;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   transition: color 0.3s ease;
 }
@@ -1892,6 +1998,7 @@ input:hover {
 .timer-expired-text {
   font-size: 1.2rem;
   font-weight: 600;
+  font-family: 'Switzer', sans-serif;
   color: #ff5c7c;
   margin-top: 0.5rem;
   animation: timerExpiredPulse 1s ease-in-out infinite;
