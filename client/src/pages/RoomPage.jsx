@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSocket } from '../socket/SocketProvider';
 import { DrawingCanvas } from '../ui/DrawingCanvas';
+import { DrawingToolbar } from '../ui/DrawingToolbar';
 import { ChatBox } from '../ui/ChatBox';
 import { PlayersSidebar } from '../ui/PlayersSidebar';
 import { WordHintBar } from '../ui/WordHintBar';
@@ -18,6 +19,12 @@ export function RoomPage() {
   const [showResults, setShowResults] = useState(false);
   const [lastRoundWord, setLastRoundWord] = useState('');
   const [autoProgressCountdown, setAutoProgressCountdown] = useState(null);
+  
+  // Drawing tool state
+  const [currentTool, setCurrentTool] = useState('BRUSH');
+  const [currentColor, setCurrentColor] = useState('#002855');
+  const [brushSize, setBrushSize] = useState(6);
+  const [canvasBackground, setCanvasBackground] = useState('light');
 
   const me = useMemo(() => roomState?.players?.find((p) => p.id === selfId) || null, [roomState, selfId]);
   const isHost = !!me?.isHost;
@@ -129,6 +136,28 @@ export function RoomPage() {
     setPendingSelection(word);
   };
 
+  // Drawing tool handlers
+  const handleToolChange = (tool) => {
+    setCurrentTool(tool);
+  };
+
+  const handleColorChange = (color) => {
+    setCurrentColor(color);
+  };
+
+  const handleBrushSizeChange = (size) => {
+    setBrushSize(size);
+  };
+
+  const handleBackgroundChange = (background) => {
+    setCanvasBackground(background);
+  };
+
+  const handleClearCanvas = () => {
+    if (!socket) return;
+    socket.emit('draw:clear', { roomId });
+  };
+
   if (!roomState) {
     return (
       <div className="page neon-bg">
@@ -225,16 +254,43 @@ export function RoomPage() {
 
       {/* Main Content Area */}
       <main className="main-content">
-        {/* Canvas Section - Edge to Edge on Mobile */}
+        {/* Canvas Section - 50% on desktop, 70% on mobile */}
         <section className="canvas-section">
-          <DrawingCanvas roomId={roomId} isDrawer={isDrawer} />
+          <DrawingCanvas 
+            roomId={roomId} 
+            isDrawer={isDrawer}
+            currentTool={currentTool}
+            currentColor={currentColor}
+            brushSize={brushSize}
+            canvasBackground={canvasBackground}
+          />
         </section>
 
-        {/* Mobile Bottom Panel - Players and Chat */}
+        {/* Desktop Chat Section - 50% on desktop, hidden on mobile */}
+        <section className="desktop-chat-section">
+          <PlayersSidebar room={roomState} selfId={selfId} roomId={roomId} />
+          <ChatBox roomId={roomId} />
+        </section>
+
+        {/* Mobile Bottom Panel - Hidden on desktop, 30% on mobile */}
         <div className="mobile-bottom-panel">
           <PlayersSidebar room={roomState} selfId={selfId} roomId={roomId} />
           <ChatBox roomId={roomId} />
         </div>
+
+        {/* Unified Drawing Toolbar - Bottom on all devices */}
+        <DrawingToolbar
+          isDrawer={isDrawer}
+          currentTool={currentTool}
+          currentColor={currentColor}
+          brushSize={brushSize}
+          canvasBackground={canvasBackground}
+          onToolChange={handleToolChange}
+          onColorChange={handleColorChange}
+          onBrushSizeChange={handleBrushSizeChange}
+          onBackgroundChange={handleBackgroundChange}
+          onClearCanvas={handleClearCanvas}
+        />
       </main>
 
       {isDrawer && wordOptions.length > 0 && (

@@ -517,8 +517,9 @@ input:hover {
 }
 
 .room-layout-no-sidebar {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* 50/50 split on desktop */
+  grid-template-rows: auto 1fr auto;
   gap: 0;
   width: 100vw;
   height: 100vh;
@@ -724,15 +725,64 @@ input:hover {
 }
 
 .canvas-section {
-  flex: 1;
+  grid-column: 1;
+  grid-row: 2;
   position: relative;
   width: 100%;
   height: 100%;
   overflow: hidden;
 }
 
+.desktop-chat-section {
+  grid-column: 2;
+  grid-row: 2;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-main);
+  border-left: 3px solid var(--primary);
+  overflow: hidden;
+}
+
+.desktop-chat-section .sidebar {
+  flex: 0 0 auto;
+  max-height: 40%;
+  margin: 0.5rem;
+  margin-bottom: 0;
+}
+
+.desktop-chat-section .chat-panel {
+  flex: 1;
+  margin: 0.5rem;
+  margin-top: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
 .mobile-bottom-panel {
   display: none; /* Hidden on desktop, shown on mobile */
+}
+
+/* Unified Drawing Toolbar */
+.drawing-toolbar {
+  grid-column: 1 / -1;
+  grid-row: 3;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 80px;
+  background: rgba(255, 243, 224, 0.98);
+  backdrop-filter: blur(15px);
+  border-top: 3px solid var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 0.5rem 1rem;
+  z-index: 300;
+  box-shadow: 0 -4px 20px rgba(255, 140, 0, 0.3);
+  flex-wrap: wrap;
 }
 
 .room-header {
@@ -931,35 +981,26 @@ input:hover {
 }
 
 .canvas-panel {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-  min-width: 0;
-  max-width: 100%;
-  grid-column: 1 / 3;
-  grid-row: 1;
-  position: relative;
-  background: var(--canvas-bg);
-  border-radius: 0;
-  border: none;
-  box-shadow: none;
-  height: 100%;
   width: 100%;
+  height: calc(100% - 80px); /* Account for bottom toolbar */
+  position: relative;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  margin: 0;
   overflow: hidden;
 }
 
 .canvas-container {
-  flex: 1;
+  width: 100%;
+  height: 100%;
   position: relative;
   padding: 0;
   margin: 0;
   border-radius: 0;
-  background: var(--canvas-bg);
-  box-shadow: none;
-  width: 100%;
-  height: 100%;
-  min-height: 100vh;
+  background: transparent;
+  border: none;
   overflow: hidden;
 }
 
@@ -2424,6 +2465,81 @@ input:hover {
 
 /* Mobile Layout Optimizations - COMPLETE REWRITE FOR EDGE-TO-EDGE CANVAS */
 @media (max-width: 768px) {
+  /* Mobile responsive layout - 70% canvas, 30% chat */
+  .room-layout-no-sidebar {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 70vh 30vh auto;
+  }
+
+  .canvas-section {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .canvas-panel {
+    height: calc(100% - 60px); /* Account for smaller mobile toolbar */
+  }
+
+  .desktop-chat-section {
+    display: none;
+  }
+
+  .mobile-bottom-panel {
+    grid-column: 1;
+    grid-row: 3;
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    background: rgba(255, 243, 224, 0.98);
+    backdrop-filter: blur(15px);
+    border-top: 2px solid rgba(255, 140, 0, 0.4);
+    box-shadow: 0 -4px 20px rgba(255, 140, 0, 0.3);
+    overflow: hidden;
+  }
+
+  .mobile-bottom-panel .sidebar {
+    grid-column: 1;
+    margin: 0;
+    background: rgba(255, 224, 178, 0.95);
+    border: 2px solid #ff8c00;
+    border-radius: 12px;
+    padding: 0.5rem;
+    overflow-y: auto;
+    height: 100%;
+    min-height: 0;
+  }
+
+  .mobile-bottom-panel .chat-panel {
+    grid-column: 2;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+  }
+
+  .drawing-toolbar {
+    grid-row: 4;
+    height: 60px;
+    padding: 0.25rem 0.5rem;
+    gap: 0.5rem;
+  }
+
+  .drawing-toolbar .tool-button {
+    padding: 0.25rem 0.75rem;
+    font-size: 0.9rem;
+  }
+
+  .drawing-toolbar .swatch-grid {
+    gap: 0.25rem;
+  }
+
+  .drawing-toolbar .swatch {
+    height: 28px;
+    min-width: 28px;
+  }
+
   /* Remove all padding and margins for full-screen experience */
   .page.room-page {
     padding: 0;
@@ -2433,17 +2549,6 @@ input:hover {
     height: 100dvh; /* Dynamic viewport height for mobile */
     overflow: hidden;
     background: var(--canvas-bg);
-  }
-  
-  .room-layout-no-sidebar {
-    padding: 0;
-    margin: 0;
-    width: 100vw;
-    height: 100vh;
-    height: 100dvh;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
   }
 
   /* Compact Header - Fixed at top */
@@ -2542,12 +2647,6 @@ input:hover {
     border: 1px solid #ff8c00;
     border-radius: 6px;
   }
-
-  /* Main Content - Full screen */
-  .main-content {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
     width: 100vw;
     height: 100vh;
     height: 100dvh;

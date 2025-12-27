@@ -69,39 +69,21 @@ function floodFill(imageData, startX, startY, fillColor) {
   }
 }
 
-export function DrawingCanvas({ roomId, isDrawer }) {
+export function DrawingCanvas({ 
+  roomId, 
+  isDrawer, 
+  currentTool = 'BRUSH',
+  currentColor = '#002855',
+  brushSize = 6,
+  canvasBackground = 'light'
+}) {
   const { socket } = useSocket();
   const canvasRef = useRef(null);
-  const [color, setColor] = useState(COLOR_SWATCHES[0]);
-  const [brushSize, setBrushSize] = useState(6);
-  const [isErasing, setIsErasing] = useState(false);
-  const [isFilling, setIsFilling] = useState(false);
   const [drawing, setDrawing] = useState(false);
   const [lastPoint, setLastPoint] = useState(null);
-  const [canvasBackground, setCanvasBackground] = useState('light');
-  const [toolsMinimized, setToolsMinimized] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
 
-  // Check if mobile on mount and resize
-  useEffect(() => {
-    const checkMobile = () => {
-      const isMobileDevice = window.innerWidth <= 768;
-      setIsMobile(isMobileDevice);
-      // On mobile, tools are extended by default (not minimized)
-      if (isMobileDevice) {
-        setToolsMinimized(false);
-      }
-    };
-    
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
-
-  const handleBrushSizeChange = (e) => {
-    const newSize = Number(e.target.value);
-    setBrushSize(newSize);
-  };
+  const isErasing = currentTool === 'ERASER';
+  const isFilling = currentTool === 'FILL';
 
   const drawStroke = useCallback((ctx, stroke) => {
     if (!ctx || !stroke) return;
@@ -115,14 +97,14 @@ export function DrawingCanvas({ roomId, isDrawer }) {
       ctx.strokeStyle = stroke.color || '#ffffff';
     } else {
       ctx.globalCompositeOperation = 'source-over';
-      ctx.strokeStyle = stroke.color || color;
+      ctx.strokeStyle = stroke.color || currentColor;
     }
     ctx.beginPath();
     ctx.moveTo(stroke.from.x, stroke.from.y);
     ctx.lineTo(stroke.to.x, stroke.to.y);
     ctx.stroke();
     ctx.restore();
-  }, [brushSize, color]);
+  }, [brushSize, currentColor]);
 
   useEffect(() => {
     if (!socket) return;
@@ -207,7 +189,7 @@ export function DrawingCanvas({ roomId, isDrawer }) {
     if (isFilling) {
       const ctx = canvas.getContext('2d');
       const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      floodFill(imageData, Math.floor(point.x), Math.floor(point.y), color);
+      floodFill(imageData, Math.floor(point.x), Math.floor(point.y), currentColor);
       ctx.putImageData(imageData, 0, 0);
       
       // Emit fill action to other players
@@ -215,7 +197,7 @@ export function DrawingCanvas({ roomId, isDrawer }) {
         roomId, 
         x: Math.floor(point.x), 
         y: Math.floor(point.y), 
-        color,
+        color: currentColor,
         canvasWidth: canvas.width,
         canvasHeight: canvas.height
       });
@@ -237,7 +219,7 @@ export function DrawingCanvas({ roomId, isDrawer }) {
     const stroke = {
       from: lastPoint,
       to: nextPoint,
-      color,
+      color: currentColor,
       width: brushSize,
       tool: isErasing ? 'ERASER' : 'BRUSH'
     };
@@ -256,36 +238,9 @@ export function DrawingCanvas({ roomId, isDrawer }) {
     setLastPoint(null);
   };
 
-  const clearCanvas = () => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    socket?.emit('draw:clear', { roomId });
-  };
-
-  const selectColor = (hex) => {
-    setColor(hex);
-    setIsErasing(false);
-    setIsFilling(false);
-  };
-
-  const toggleTool = (tool) => {
-    if (tool === 'ERASER') {
-      setIsErasing(true);
-      setIsFilling(false);
-    } else if (tool === 'FILL') {
-      setIsFilling(true);
-      setIsErasing(false);
-    } else {
-      setIsErasing(false);
-      setIsFilling(false);
-    }
-  };
-
   return (
     <div className="canvas-panel">
-      {/* Canvas Container - Edge to Edge on Mobile */}
+      {/* Canvas Container - Simplified for new layout */}
       <div className="canvas-container">
         <canvas
           ref={canvasRef}
@@ -297,97 +252,6 @@ export function DrawingCanvas({ roomId, isDrawer }) {
           onPointerCancel={stopDrawing}
         />
       </div>
-
-      {/* Mobile minimize button */}
-      {isMobile && (
-        <button 
-          className="mobile-minimize-btn"
-          onClick={() => setToolsMinimized(!toolsMinimized)}
-        >
-          {toolsMinimized ? '🔧' : '📱'}
-        </button>
-      )}
-
-      {/* Drawing tools - collapsible on mobile */}
-      <div className={`canvas-toolbar ${isMobile && toolsMinimized ? 'minimized' : ''}`}>
-        <div className="toolbar-group">
-          <button
-            className={!isErasing && !isFilling ? 'tool-button active' : 'tool-button'}
-            onClick={() => toggleTool('BRUSH')}
-          >
-            🖌️ {!isMobile && 'Brush'}
-          </button>
-          <button
-            className={isErasing ? 'tool-button active' : 'tool-button'}
-            onClick={() => toggleTool('ERASER')}
-          >
-            🧽 {!isMobile && 'Eraser'}
-          </button>
-          <button
-            className={isFilling ? 'tool-button active' : 'tool-button'}
-            onClick={() => toggleTool('FILL')}
-          >
-            🪣 {!isMobile && 'Fill'}
-          </button>
-        </div>
-
-        {(!isMobile || !toolsMinimized) && !isFilling && (
-          <>
-            <div className="toolbar-group size-control">
-              <label htmlFor="brush-size">{isMobile ? 'Size' : 'Brush Size'}</label>
-              <input
-                id="brush-size"
-                type="range"
-                min="2"
-                max="28"
-                value={brushSize}
-                onChange={handleBrushSizeChange}
-              />
-              <span>{brushSize}px</span>
-            </div>
-
-            <div className="toolbar-group canvas-bg-selector">
-              <label>{isMobile ? 'BG:' : 'Canvas:'}</label>
-              {CANVAS_BACKGROUNDS.map((bg) => (
-                <button
-                  key={bg.value}
-                  className={`canvas-bg-option ${bg.value} ${canvasBackground === bg.value ? 'active' : ''}`}
-                  onClick={() => setCanvasBackground(bg.value)}
-                  title={bg.name}
-                />
-              ))}
-            </div>
-          </>
-        )}
-
-        {isDrawer && (
-          <button className="secondary-btn" onClick={clearCanvas}>
-            {isMobile ? '🗑️' : '🗑️ Clear'}
-          </button>
-        )}
-      </div>
-
-      {/* Color swatches - collapsible on mobile */}
-      {(!isMobile || !toolsMinimized) && (
-        <div className="swatch-grid">
-          {COLOR_SWATCHES.map((hex) => (
-            <button
-              key={hex}
-              className={!isErasing && !isFilling && color === hex ? 'swatch active' : 'swatch'}
-              style={{ backgroundColor: hex }}
-              onClick={() => selectColor(hex)}
-            />
-          ))}
-          <label className="swatch custom">
-            <span>{isMobile ? '🎨' : 'Hex'}</span>
-            <input
-              type="color"
-              value={color}
-              onChange={(e) => selectColor(e.target.value)}
-            />
-          </label>
-        </div>
-      )}
 
       {!isDrawer && <div className="hint-text">Guess by typing in the chat below.</div>}
     </div>
