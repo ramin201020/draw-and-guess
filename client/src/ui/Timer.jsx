@@ -44,34 +44,21 @@ export function Timer({ endsAt, onTimeUp, isActive = true, autoProgressCountdown
   };
 
   const getTimerClass = () => {
-    let baseClass = 'timer';
+    let baseClass = 'timer-digital';
     if (isCritical) return `${baseClass} critical`;
     if (isWarning) return `${baseClass} warning`;
     return baseClass;
   };
 
-  const getProgressPercentage = () => {
-    if (!endsAt) return 0;
-    // Calculate total time from the round settings (default 90 seconds)
-    const now = Date.now();
-    const totalDuration = 90 * 1000; // 90 seconds in milliseconds
-    const timeRemaining = Math.max(0, endsAt - now);
-    const timeElapsed = totalDuration - timeRemaining;
-    return Math.min(100, Math.max(0, (timeElapsed / totalDuration) * 100));
-  };
-
   // Show auto-progress countdown if available
   if (autoProgressCountdown !== null && autoProgressCountdown > 0) {
     return (
-      <div className="timer auto-progress">
-        <div className="timer-container">
-          <div className="timer-display">
-            <span className="timer-icon">⏱️</span>
-            <span className="timer-text">Next in {autoProgressCountdown}s</span>
+      <div className="timer-digital auto-progress">
+        <div className="digital-display">
+          <div className="digital-segments">
+            <span className="digital-time">Next in {autoProgressCountdown}s</span>
           </div>
-          <div className="timer-pulse">
-            <span className="pulse-dot"></span>
-          </div>
+          <div className="digital-glow"></div>
         </div>
       </div>
     );
@@ -83,19 +70,13 @@ export function Timer({ endsAt, onTimeUp, isActive = true, autoProgressCountdown
 
   return (
     <div className={getTimerClass()}>
-      <div className="timer-container">
-        <div className="timer-progress">
-          <div 
-            className="timer-progress-bar" 
-            style={{ width: `${getProgressPercentage()}%` }}
-          />
+      <div className="digital-display">
+        <div className="digital-segments">
+          <span className="digital-time">{formatTime(timeLeft)}</span>
         </div>
-        <div className="timer-display">
-          <span className="timer-icon">⏰</span>
-          <span className="timer-text">{formatTime(timeLeft)}</span>
-        </div>
+        <div className="digital-glow"></div>
         {isCritical && (
-          <div className="timer-pulse">
+          <div className="digital-pulse">
             <span className="pulse-dot"></span>
           </div>
         )}

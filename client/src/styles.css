@@ -159,6 +159,81 @@ body {
   min-height: 100vh;
   font-size: 18px;
   font-weight: 400;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Hand-drawn Background Decorations */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    /* Hand-drawn star */
+    radial-gradient(circle at 15% 20%, transparent 8px, var(--orange-warm) 9px, var(--orange-warm) 11px, transparent 12px),
+    /* Hand-drawn circle */
+    radial-gradient(circle at 85% 15%, transparent 12px, var(--orange-sunset) 13px, var(--orange-sunset) 15px, transparent 16px),
+    /* Hand-drawn triangle */
+    conic-gradient(from 0deg at 10% 80%, transparent 0deg, var(--orange-coral) 60deg, transparent 120deg),
+    /* Hand-drawn square */
+    linear-gradient(45deg, transparent 48%, var(--primary-deep) 49%, var(--primary-deep) 51%, transparent 52%),
+    /* Hand-drawn wavy line */
+    repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 10px,
+      var(--orange-warm) 10px,
+      var(--orange-warm) 12px,
+      transparent 12px,
+      transparent 22px
+    );
+  background-size: 
+    200px 200px,
+    180px 180px,
+    150px 150px,
+    120px 120px,
+    300px 300px;
+  background-position: 
+    15% 20%,
+    85% 15%,
+    10% 80%,
+    90% 85%,
+    50% 50%;
+  background-repeat: no-repeat, no-repeat, no-repeat, no-repeat, repeat;
+  opacity: 0.1;
+  z-index: -2;
+  pointer-events: none;
+}
+
+/* Additional decorative elements */
+body::after {
+  content: '✏️ 🎨 ✨ 🖍️ 📝 🎭 🌟 🎪 🎨 ✏️ 🖌️ 🎯';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  font-size: 2rem;
+  color: var(--orange-sunset);
+  opacity: 0.05;
+  z-index: -1;
+  pointer-events: none;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-around;
+  padding: 2rem;
+  animation: floatDecorations 20s ease-in-out infinite;
+}
+
+@keyframes floatDecorations {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  25% { transform: translateY(-10px) rotate(1deg); }
+  50% { transform: translateY(5px) rotate(-0.5deg); }
+  75% { transform: translateY(-5px) rotate(0.5deg); }
 }
 
 .page.neon-bg {
@@ -1641,150 +1716,216 @@ input:hover {
   }
 }
 
-/* Timer Styles */
-.timer {
+/* Digital Timer Styles - Hand-drawn Look */
+.timer-digital {
   position: fixed;
   top: 20px;
   right: 20px;
   z-index: 100;
-  background: var(--panel-peach);
-  border: 2px solid var(--primary);
-  border-radius: 25px;
+  background: rgba(255, 243, 224, 0.95);
+  border: 3px solid var(--primary);
+  border-radius: 15px;
   padding: 1rem 1.5rem;
   box-shadow: 
     0 10px 30px rgba(255, 140, 0, 0.3),
     0 5px 15px rgba(255, 140, 0, 0.2);
   backdrop-filter: blur(10px);
   transition: all 0.3s ease;
+  transform: rotate(-1deg);
+  font-family: 'Courier New', 'Monaco', monospace;
+}
+
+.timer-digital::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: var(--primary);
+  border-radius: 15px;
+  z-index: -1;
+  transform: rotate(1deg);
+}
+
+.timer-digital::after {
+  content: '';
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  right: 5px;
+  bottom: 5px;
+  border: 2px dashed rgba(255, 140, 0, 0.4);
+  border-radius: 10px;
+  pointer-events: none;
+}
+
+.digital-display {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 120px;
+}
+
+.digital-segments {
+  position: relative;
+  background: #0a0a0a;
+  border: 2px solid #333;
+  border-radius: 8px;
+  padding: 0.8rem 1.2rem;
+  box-shadow: 
+    inset 0 2px 4px rgba(0, 0, 0, 0.5),
+    0 2px 8px rgba(255, 140, 0, 0.3);
+  transform: rotate(0.5deg);
+}
+
+.digital-time {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #00ff41;
+  text-shadow: 
+    0 0 10px #00ff41,
+    0 0 20px #00ff41,
+    0 0 30px #00ff41;
+  letter-spacing: 0.1em;
+  font-family: 'Courier New', 'Monaco', monospace;
+  animation: digitalFlicker 3s ease-in-out infinite;
+}
+
+.digital-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle, rgba(0, 255, 65, 0.1) 0%, transparent 70%);
+  border-radius: 8px;
+  pointer-events: none;
+}
+
+@keyframes digitalFlicker {
+  0%, 100% { opacity: 1; }
+  98% { opacity: 1; }
+  99% { opacity: 0.8; }
+  99.5% { opacity: 1; }
+}
+
+.timer-digital.warning {
+  animation: digitalWarningPulse 2s ease-in-out infinite;
+}
+
+.timer-digital.warning .digital-time {
+  color: #ffaa00;
+  text-shadow: 
+    0 0 10px #ffaa00,
+    0 0 20px #ffaa00,
+    0 0 30px #ffaa00;
+}
+
+.timer-digital.critical {
+  animation: digitalCriticalShake 0.5s ease-in-out infinite;
+}
+
+.timer-digital.critical .digital-time {
+  color: #ff0040;
+  text-shadow: 
+    0 0 10px #ff0040,
+    0 0 20px #ff0040,
+    0 0 30px #ff0040;
+  animation: digitalCriticalFlicker 0.3s ease-in-out infinite;
+}
+
+.timer-digital.auto-progress {
+  background: rgba(135, 206, 235, 0.95);
+  border-color: #87ceeb;
+  transform: rotate(1deg);
+}
+
+.timer-digital.auto-progress .digital-time {
+  color: #87ceeb;
+  text-shadow: 
+    0 0 10px #87ceeb,
+    0 0 20px #87ceeb,
+    0 0 30px #87ceeb;
+}
+
+.digital-pulse {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 16px;
+  height: 16px;
+}
+
+.digital-pulse .pulse-dot {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: #ff0040;
+  border-radius: 50%;
+  animation: digitalPulse 1s ease-in-out infinite;
+  box-shadow: 0 0 10px #ff0040;
+}
+
+@keyframes digitalWarningPulse {
+  0%, 100% { transform: rotate(-1deg) scale(1); }
+  50% { transform: rotate(-1deg) scale(1.05); }
+}
+
+@keyframes digitalCriticalShake {
+  0%, 100% { transform: rotate(-1deg) translateX(0); }
+  25% { transform: rotate(-1deg) translateX(-2px); }
+  75% { transform: rotate(-1deg) translateX(2px); }
+}
+
+@keyframes digitalCriticalFlicker {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+@keyframes digitalPulse {
+  0% { transform: scale(0.8); opacity: 1; }
+  100% { transform: scale(2); opacity: 0; }
 }
 
 @media (max-width: 768px) {
-  .timer {
+  .timer-digital {
     top: 15px;
     right: 15px;
-    padding: 0.8rem 1.2rem;
-    border-radius: 20px;
-    font-size: 1rem;
-  }
-  
-  .timer-text {
-    font-size: 1.2rem;
-  }
-  
-  .timer-container {
+    padding: 0.6rem 1rem;
+    border-radius: 12px;
     min-width: 100px;
+  }
+  
+  .digital-segments {
+    padding: 0.5rem 0.8rem;
+    border-radius: 6px;
+  }
+  
+  .digital-time {
+    font-size: 1.4rem;
   }
 }
 
 @media (max-width: 480px) {
-  .timer {
+  .timer-digital {
     top: 10px;
     right: 10px;
-    padding: 0.6rem 1rem;
-    border-radius: 15px;
-  }
-  
-  .timer-text {
-    font-size: 1.1rem;
-  }
-  
-  .timer-container {
+    padding: 0.5rem 0.8rem;
+    border-radius: 10px;
     min-width: 90px;
   }
   
-  .timer-icon {
-    font-size: 1rem;
+  .digital-segments {
+    padding: 0.4rem 0.6rem;
+    border-radius: 5px;
   }
-}
-
-.timer.warning {
-  border-color: #fbbf24;
-  background: #fef3c7;
-  animation: timerPulse 2s ease-in-out infinite;
-}
-
-.timer.critical {
-  border-color: #ef4444;
-  background: #fee2e2;
-  animation: timerCritical 1s ease-in-out infinite;
-}
-
-.timer-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-  min-width: 120px;
-}
-
-.timer-progress {
-  width: 100%;
-  height: 4px;
-  background: rgba(255, 255, 255, 0.3);
-  border-radius: 2px;
-  overflow: hidden;
-}
-
-.timer-progress-bar {
-  height: 100%;
-  background: linear-gradient(90deg, #4ade80, #fbbf24, #ef4444);
-  border-radius: 2px;
-  transition: width 1s linear;
-}
-
-.timer-display {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.timer-icon {
-  font-size: 1.2rem;
-}
-
-.timer-text {
-  font-size: 1.4rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  font-family: 'Courier New', monospace;
-}
-
-.timer.warning .timer-text {
-  color: #d97706;
-}
-
-.timer.critical .timer-text {
-  color: #dc2626;
-}
-
-.timer-pulse {
-  position: absolute;
-  top: -5px;
-  right: -5px;
-}
-
-.pulse-dot {
-  display: block;
-  width: 12px;
-  height: 12px;
-  background: #ef4444;
-  border-radius: 50%;
-  animation: pulse 1s ease-in-out infinite;
-}
-
-@keyframes timerPulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.05); }
-}
-
-@keyframes timerCritical {
-  0%, 100% { transform: scale(1); box-shadow: 0 10px 30px rgba(239, 68, 68, 0.3); }
-  50% { transform: scale(1.1); box-shadow: 0 15px 40px rgba(239, 68, 68, 0.5); }
-}
-
-@keyframes pulse {
-  0% { transform: scale(0.8); opacity: 1; }
-  100% { transform: scale(2); opacity: 0; }
+  
+  .digital-time {
+    font-size: 1.2rem;
+  }
 }
 
 /* Round Results Modal */
@@ -2414,31 +2555,36 @@ input:hover {
     overflow: hidden;
   }
 
-  /* Canvas Section - Edge to Edge */
+  /* Canvas Section - TRUE EDGE TO EDGE */
   .canvas-section {
-    flex: 1;
-    position: relative;
+    position: fixed;
+    top: 0;
+    left: 0;
     width: 100vw;
-    height: calc(100vh - 60px - 120px); /* Full height minus header and bottom panel */
-    height: calc(100dvh - 60px - 120px);
-    overflow: hidden;
+    height: 100vh;
+    height: 100dvh;
+    z-index: 10;
     background: #ffffff;
+    overflow: hidden;
   }
 
   .canvas-panel {
-    width: 100%;
-    height: 100%;
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
     position: relative;
     background: transparent;
     border: none;
     border-radius: 0;
     padding: 0;
     margin: 0;
+    overflow: hidden;
   }
 
   .canvas-container {
-    width: 100%;
-    height: 100%;
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
     position: relative;
     padding: 0;
     margin: 0;
@@ -2448,11 +2594,11 @@ input:hover {
     overflow: hidden;
   }
 
-  /* Canvas - True Edge to Edge */
+  /* Canvas - TRUE EDGE TO EDGE - COVERS ENTIRE SCREEN */
   .draw-canvas {
     width: 100vw !important;
-    height: calc(100vh - 60px - 120px) !important; /* Full available height */
-    height: calc(100dvh - 60px - 120px) !important;
+    height: 100vh !important;
+    height: 100dvh !important;
     border-radius: 0 !important;
     border: none !important;
     background: #ffffff;
@@ -2461,9 +2607,10 @@ input:hover {
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
-    position: absolute;
+    position: fixed;
     top: 0;
     left: 0;
+    z-index: 5;
     cursor: crosshair;
   }
 
@@ -2484,34 +2631,35 @@ input:hover {
     background: #f9f7f4 !important;
   }
 
-  /* Mobile Bottom Panel - Fixed at bottom */
+  /* Mobile Bottom Panel - Fixed at bottom with higher z-index */
   .mobile-bottom-panel {
     position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
     height: 120px;
-    background: rgba(255, 243, 224, 0.95);
-    backdrop-filter: blur(10px);
-    border-top: 2px solid rgba(255, 140, 0, 0.3);
+    background: rgba(255, 243, 224, 0.98);
+    backdrop-filter: blur(15px);
+    border-top: 2px solid rgba(255, 140, 0, 0.4);
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 0.5rem;
     padding: 0.5rem;
-    z-index: 80;
-    box-shadow: 0 -2px 10px rgba(255, 140, 0, 0.2);
+    z-index: 200; /* Higher than canvas */
+    box-shadow: 0 -4px 20px rgba(255, 140, 0, 0.3);
   }
 
   /* Players Sidebar in Bottom Panel */
   .sidebar {
     grid-column: 1;
-    background: rgba(255, 224, 178, 0.9);
+    background: rgba(255, 224, 178, 0.95);
     border: 2px solid #ff8c00;
     border-radius: 12px;
     padding: 0.5rem;
     overflow-y: auto;
     height: 100%;
     min-height: 0;
+    z-index: 201;
   }
 
   .sidebar-title {
@@ -2582,11 +2730,12 @@ input:hover {
     flex-direction: column;
     height: 100%;
     min-height: 0;
+    z-index: 201;
   }
 
   .chat-box {
     flex: 1;
-    background: rgba(255, 224, 178, 0.9);
+    background: rgba(255, 224, 178, 0.95);
     border: 2px solid #ff8c00;
     border-radius: 12px;
     padding: 0.5rem;
@@ -2624,18 +2773,18 @@ input:hover {
     min-height: 32px;
   }
 
-  /* Mobile Toolbar - Floating over canvas */
+  /* Mobile Toolbar - Floating over canvas with high z-index */
   .canvas-toolbar {
     position: fixed;
     bottom: 130px; /* Above bottom panel */
     left: 0.5rem;
     right: 0.5rem;
-    background: rgba(255, 243, 224, 0.95);
+    background: rgba(255, 243, 224, 0.98);
     border: 2px solid #ff8c00;
     border-radius: 12px;
     padding: 0.5rem;
     box-shadow: 0 4px 20px rgba(255, 140, 0, 0.4);
-    z-index: 85;
+    z-index: 300; /* Higher than everything */
     flex-wrap: wrap;
     justify-content: center;
     backdrop-filter: blur(15px);
@@ -2702,12 +2851,12 @@ input:hover {
     border-radius: 5px;
   }
 
-  /* Mobile Minimize Button */
+  /* Mobile Minimize Button with highest z-index */
   .mobile-minimize-btn {
     position: fixed;
     bottom: 140px;
     right: 1rem;
-    z-index: 90;
+    z-index: 400; /* Highest z-index */
     background: var(--primary);
     color: #fff;
     border: none;
@@ -2735,12 +2884,12 @@ input:hover {
     bottom: 190px; /* Above toolbar */
     left: 0.5rem;
     right: 0.5rem;
-    background: rgba(255, 243, 224, 0.95);
+    background: rgba(255, 243, 224, 0.98);
     border: 2px solid #ff8c00;
     border-radius: 12px;
     padding: 0.4rem;
     box-shadow: 0 4px 20px rgba(255, 140, 0, 0.4);
-    z-index: 84;
+    z-index: 290; /* Below toolbar but above canvas */
     grid-template-columns: repeat(6, 1fr);
     gap: 0.3rem;
     backdrop-filter: blur(15px);
@@ -2778,9 +2927,11 @@ input:hover {
     border-radius: 8px;
   }
 
-  /* Voice Chat Mobile Adjustments */
+  /* Voice Chat Mobile Adjustments with proper z-index */
   .voice-chat-controls {
     gap: 0.3rem;
+    z-index: 250;
+    position: relative;
   }
   
   .voice-chat-btn {
@@ -2814,21 +2965,18 @@ input:hover {
     display: none;
   }
 
-  /* Timer adjustments for mobile */
-  .timer {
+  /* Timer adjustments for mobile with proper z-index */
+  .timer-digital {
     top: 70px;
     right: 0.5rem;
     padding: 0.4rem 0.8rem;
     border-radius: 12px;
     font-size: 0.8rem;
+    z-index: 150; /* Above canvas but below controls */
   }
   
-  .timer-text {
+  .digital-time {
     font-size: 1rem;
-  }
-  
-  .timer-container {
-    min-width: 80px;
   }
 }
 
