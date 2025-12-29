@@ -65,7 +65,7 @@ export function DrawingCanvas({ roomId, isDrawer }) {
   }, []);
 
   // Draw stroke function
-  const drawStroke = useCallback((ctx, stroke, canvasWidth) => {
+  const drawStroke = useCallback((ctx, stroke) => {
     if (!ctx || !stroke) return;
     
     const dpr = window.devicePixelRatio || 1;

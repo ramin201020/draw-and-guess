@@ -336,6 +336,72 @@ io.on('connection', (socket) => {
     io.to(room.id).emit('room:state', roomSnapshot(room));
   });
 
+  // Handle room rejoin after page refresh
+  socket.on('room:rejoin', ({ roomId, playerName }) => {
+    const room = rooms.get(roomId?.toUpperCase());
+    if (!room) {
+      socket.emit('room:rejoin:failed', { reason: 'ROOM_NOT_FOUND' });
+      return;
+    }
+    
+    // Check if player was in the room (by name match since socket ID changed)
+    let existingPlayer = null;
+    for (const [playerId, player] of room.players.entries()) {
+      if (player.name === playerName) {
+        existingPlayer = { playerId, player };
+        break;
+      }
+    }
+    
+    if (existingPlayer) {
+      // Remove old player entry and add with new socket ID
+      const { playerId: oldId, player } = existingPlayer;
+      room.players.delete(oldId);
+      
+      // Update player with new socket ID, preserve score and state
+      const updatedPlayer = {
+        ...player,
+        id: socket.id
+      };
+      
+      // Update host ID if this was the host
+      if (room.hostId === oldId) {
+        room.hostId = socket.id;
+        updatedPlayer.isHost = true;
+      }
+      
+      // Update drawer ID if this was the drawer
+      if (room.currentRound?.drawerId === oldId) {
+        room.currentRound.drawerId = socket.id;
+        updatedPlayer.isDrawer = true;
+      }
+      
+      // Update draw order
+      if (room.gameState?.playerDrawOrder) {
+        const orderIndex = room.gameState.playerDrawOrder.indexOf(oldId);
+        if (orderIndex !== -1) {
+          room.gameState.playerDrawOrder[orderIndex] = socket.id;
+        }
+      }
+      
+      // Update drawers this round set
+      if (room.gameState?.drawersThisRound?.has(oldId)) {
+        room.gameState.drawersThisRound.delete(oldId);
+        room.gameState.drawersThisRound.add(socket.id);
+      }
+      
+      room.players.set(socket.id, updatedPlayer);
+      socket.join(room.id);
+      
+      console.log(`Player ${playerName} rejoined room ${room.id} with new socket ${socket.id}`);
+      socket.emit('room:rejoined', roomSnapshot(room));
+      io.to(room.id).emit('room:state', roomSnapshot(room));
+    } else {
+      // Player not found, they can join as new player
+      socket.emit('room:rejoin:failed', { reason: 'PLAYER_NOT_FOUND' });
+    }
+  });
+
   socket.on('room:kick', ({ roomId, targetId }) => {
     const room = rooms.get(roomId);
     if (!room || socket.id !== room.hostId) return;
