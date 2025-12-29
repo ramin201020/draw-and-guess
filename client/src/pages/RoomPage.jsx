@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSocket } from '../socket/SocketProvider';
 import { DrawingCanvas } from '../ui/DrawingCanvas';
 import { ChatBox } from '../ui/ChatBox';
 import { PlayersSidebar } from '../ui/PlayersSidebar';
+import { WordHintBar } from '../ui/WordHintBar';
 import { Timer } from '../ui/Timer';
 import { RoundResults } from '../ui/RoundResults';
 import { VoiceChat } from '../ui/VoiceChat';
@@ -126,9 +127,8 @@ export function RoomPage() {
 
   if (!roomState) {
     return (
-      <div className="skribbl-loading">
-        <div className="loading-card">
-          <div className="loading-spinner"></div>
+      <div className="page neon-bg">
+        <div className="card">
           <p>Connecting to room...</p>
         </div>
       </div>
@@ -138,116 +138,17 @@ export function RoomPage() {
   const playerCount = roomState.players?.length || 0;
   const canStart = isHost && roomState.status === 'LOBBY' && playerCount >= 2;
   const isRoundActive = roomState.status === 'IN_ROUND' && roomState.currentRound?.endsAt;
-  const currentDrawer = roomState.players?.find(p => p.isDrawer);
-
-  // Generate word hint display
-  const renderWordHint = () => {
-    const mask = roomState.currentRound?.mask;
-    if (!mask) return null;
-    return mask.split('').map((char, i) => (
-      <span key={i} className={`hint-char ${char !== '_' ? 'revealed' : ''}`}>
-        {char === ' ' ? '\u00A0' : char}
-      </span>
-    ));
-  };
 
   return (
-    <div className="skribbl-page">
-      {/* Top Bar */}
-      <header className="skribbl-header">
-        <div className="header-left">
-          <span className="logo">🎨 Doodles</span>
-          <span className="room-code">Room: {roomId.toUpperCase()}</span>
-        </div>
-        
-        <div className="header-center">
-          {roomState.status === 'IN_ROUND' && (
-            <div className="word-hint">
-              {renderWordHint()}
-            </div>
-          )}
-          {roomState.status === 'LOBBY' && (
-            <span className="status-text">Waiting for players...</span>
-          )}
-        </div>
-        
-        <div className="header-right">
-          {roomState.gameState && (
-            <span className="round-info">
-              Round {roomState.gameState.currentRoundNumber}/{roomState.gameState.totalRounds}
-            </span>
-          )}
-          {(isRoundActive || autoProgressCountdown) && (
-            <Timer 
-              endsAt={roomState.currentRound?.endsAt}
-              onTimeUp={handleTimeUp}
-              isActive={isRoundActive}
-              autoProgressCountdown={autoProgressCountdown}
-            />
-          )}
-          <VoiceChat roomId={roomId} selfId={selfId} players={roomState.players} />
-          <button onClick={handleLeaveRoom} className="leave-btn">Leave</button>
-        </div>
-      </header>
-
-      {/* Main Game Area */}
-      <div className="skribbl-main">
-        {/* Left: Players */}
-        <aside className="skribbl-players">
-          <PlayersSidebar room={roomState} selfId={selfId} roomId={roomId} />
-        </aside>
-
-        {/* Center: Canvas */}
-        <main className="skribbl-canvas-area">
-          {roomState.status === 'IN_ROUND' && (
-            <div className="drawing-status">
-              {isDrawer ? (
-                <span className="your-turn">✏️ Your turn to draw!</span>
-              ) : currentDrawer ? (
-                <span className="other-drawing">{currentDrawer.name} is drawing</span>
-              ) : null}
-            </div>
-          )}
-          
-          <DrawingCanvas 
-            roomId={roomId} 
-            isDrawer={isDrawer}
-          />
-          
-          {/* Lobby Controls */}
-          {roomState.status === 'LOBBY' && (
-            <div className="lobby-controls">
-              <p className="lobby-info">
-                {playerCount} player{playerCount !== 1 ? 's' : ''} in lobby
-              </p>
-              {isHost ? (
-                <button 
-                  onClick={handleStart} 
-                  className="start-btn"
-                  disabled={!canStart}
-                >
-                  {canStart ? 'Start Game' : 'Need 2+ players'}
-                </button>
-              ) : (
-                <p className="waiting-text">Waiting for host to start...</p>
-              )}
-            </div>
-          )}
-        </main>
-
-        {/* Right: Chat */}
-        <aside className="skribbl-chat">
-          <ChatBox roomId={roomId} />
-        </aside>
-      </div>
-
-      {/* Host Controls (floating) */}
-      {isHost && roomState.status === 'IN_ROUND' && (
-        <div className="host-floating-controls">
-          <button onClick={handleEndRound} className="end-round-btn">
-            End Round
-          </button>
-        </div>
+    <div className="page room-page room-layout-no-sidebar">
+      {/* Timer - show during active rounds or auto-progress countdown */}
+      {(isRoundActive || autoProgressCountdown) && (
+        <Timer 
+          endsAt={roomState.currentRound?.endsAt}
+          onTimeUp={handleTimeUp}
+          isActive={isRoundActive}
+          autoProgressCountdown={autoProgressCountdown}
+        />
       )}
 
       {/* Round Results Modal */}
@@ -261,22 +162,104 @@ export function RoomPage() {
         roundNumber={roomState.currentRound?.number || 1}
       />
 
-      {/* Word Selection Modal */}
+      {/* Compact Header for Mobile */}
+      <header className="room-header-overlay">
+        <div className="room-info-compact">
+          <div className="room-status-line">
+            <span className="room-code-compact">{roomState.id}</span>
+            <span className={`status-badge ${roomState.status.toLowerCase()}`}>
+              {roomState.status === 'LOBBY' ? '⏳ Lobby' : 
+               roomState.status === 'IN_ROUND' ? '🎨 Drawing' : 
+               roomState.status === 'ROUND_RESULTS' ? '📊 Results' : 
+               roomState.status === 'GAME_COMPLETE' ? '🏆 Complete' : roomState.status}
+            </span>
+            <span className="player-count">
+              {playerCount} {playerCount === 1 ? 'player' : 'players'}
+            </span>
+            {roomState.gameState && (
+              <span className="round-indicator">
+                Round {roomState.gameState.currentRoundNumber}/{roomState.gameState.totalRounds}
+              </span>
+            )}
+          </div>
+          {roomState.status === 'LOBBY' && (
+            <p className="lobby-hint-compact">Invite friends, then hit start once at least two doodlers are here.</p>
+          )}
+          {roomState.status === 'IN_ROUND' && (
+            <p className="lobby-hint-compact">
+              🎨 {isDrawer ? 'Your turn to draw!' : 
+                  roomState.players?.find(p => p.isDrawer)?.name ? 
+                  `${roomState.players.find(p => p.isDrawer).name} is drawing` : 
+                  'Someone is drawing'}
+            </p>
+          )}
+          {roomState.status === 'ROUND_RESULTS' && autoProgressCountdown && (
+            <p className="lobby-hint-compact">⏱️ Next {roomState.gameState?.currentRoundNumber >= roomState.gameState?.totalRounds ? 'game results' : 'round'} in {autoProgressCountdown}s...</p>
+          )}
+        </div>
+        <div className="host-controls-compact">
+          <VoiceChat roomId={roomId} selfId={selfId} players={roomState.players} />
+          {isHost && (
+            <>
+              <button onClick={handleStart} className="primary-btn compact" disabled={!canStart}>
+                {roomState.status === 'LOBBY' ? 'Start' : 'Next'}
+              </button>
+              {roomState.status === 'IN_ROUND' && (
+                <button onClick={handleEndRound} className="danger-btn compact">End</button>
+              )}
+            </>
+          )}
+          <button onClick={handleLeaveRoom} className="leave-btn compact">
+            Leave
+          </button>
+        </div>
+      </header>
+
+      {/* Word Hint Bar */}
+      <WordHintBar mask={roomState.currentRound?.mask} status={roomState.status} />
+
+      {/* Main Content Area */}
+      <main className="main-content">
+        {/* Canvas Section - 50% on desktop, 70% on mobile */}
+        <section className="canvas-section">
+          <DrawingCanvas 
+            roomId={roomId} 
+            isDrawer={isDrawer}
+          />
+        </section>
+
+        {/* Desktop Chat Section - 50% on desktop, hidden on mobile */}
+        <section className="desktop-chat-section">
+          <PlayersSidebar room={roomState} selfId={selfId} roomId={roomId} />
+          <ChatBox roomId={roomId} />
+        </section>
+
+        {/* Mobile Bottom Panel - Hidden on desktop, 30% on mobile */}
+        <div className="mobile-bottom-panel">
+          <PlayersSidebar room={roomState} selfId={selfId} roomId={roomId} />
+          <ChatBox roomId={roomId} />
+        </div>
+      </main>
+
       {isDrawer && wordOptions.length > 0 && (
-        <div className="modal-overlay">
-          <div className="word-modal">
+        <div className="modal-backdrop">
+          <div className="modal">
             <h2>Choose a word to draw</h2>
-            <div className="word-options">
-              {wordOptions.map((w) => (
-                <button
-                  key={w}
-                  className={`word-option ${pendingSelection === w ? 'selected' : ''}`}
-                  onClick={() => chooseWord(w)}
-                  disabled={!!pendingSelection}
-                >
-                  {w}
-                </button>
-              ))}
+            <div className="word-columns">
+              {wordOptions.map((w) => {
+                const selected = pendingSelection === w;
+                return (
+                  <button
+                    key={w}
+                    className={selected ? 'word-card selected' : 'word-card'}
+                    onClick={() => chooseWord(w)}
+                    disabled={!!pendingSelection}
+                  >
+                    <span className="word-text">{w}</span>
+                    <span className="word-meta">{w.length} letters</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
