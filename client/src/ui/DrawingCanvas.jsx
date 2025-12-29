@@ -33,6 +33,18 @@ export function DrawingCanvas({ roomId, isDrawer }) {
   const [drawing, setDrawing] = useState(false);
   const [lastPoint, setLastPoint] = useState(null);
   const [canvasBackground, setCanvasBackground] = useState('light');
+  const [colorsMinimized, setColorsMinimized] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Check if mobile on mount and resize
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const handleBrushSizeChange = (e) => {
     const newSize = Number(e.target.value);
@@ -205,24 +217,35 @@ export function DrawingCanvas({ roomId, isDrawer }) {
         />
       </div>
 
+      {/* Mobile minimize button for color swatches */}
+      {isMobile && (
+        <button 
+          className="mobile-color-minimize-btn"
+          onClick={() => setColorsMinimized(!colorsMinimized)}
+          title={colorsMinimized ? 'Show colors' : 'Hide colors'}
+        >
+          🎨
+        </button>
+      )}
+
       <div className="canvas-toolbar">
         <div className="toolbar-group">
           <button
             className={!isErasing ? 'tool-button active' : 'tool-button'}
             onClick={() => toggleTool('BRUSH')}
           >
-            Brush
+            {isMobile ? '🖌️' : 'Brush'}
           </button>
           <button
             className={isErasing ? 'tool-button active' : 'tool-button'}
             onClick={() => toggleTool('ERASER')}
           >
-            Eraser
+            {isMobile ? '🧽' : 'Eraser'}
           </button>
         </div>
 
         <div className="toolbar-group size-control">
-          <label htmlFor="brush-size">Size</label>
+          <label htmlFor="brush-size">{isMobile ? 'Size' : 'Size'}</label>
           <input
             ref={sliderRef}
             id="brush-size"
@@ -236,7 +259,7 @@ export function DrawingCanvas({ roomId, isDrawer }) {
         </div>
 
         <div className="toolbar-group canvas-bg-selector">
-          <label>Canvas:</label>
+          <label>{isMobile ? 'BG:' : 'Canvas:'}</label>
           {CANVAS_BACKGROUNDS.map((bg) => (
             <button
               key={bg.value}
@@ -249,29 +272,32 @@ export function DrawingCanvas({ roomId, isDrawer }) {
 
         {isDrawer && (
           <button className="secondary-btn" onClick={clearCanvas}>
-            Clear
+            {isMobile ? '🗑️' : 'Clear'}
           </button>
         )}
       </div>
 
-      <div className="swatch-grid">
-        {COLOR_SWATCHES.map((hex) => (
-          <button
-            key={hex}
-            className={!isErasing && color === hex ? 'swatch active' : 'swatch'}
-            style={{ backgroundColor: hex }}
-            onClick={() => selectColor(hex)}
-          />
-        ))}
-        <label className="swatch custom">
-          <span>Hex</span>
-          <input
-            type="color"
-            value={color}
-            onChange={(e) => selectColor(e.target.value)}
-          />
-        </label>
-      </div>
+      {/* Color swatches - collapsible on mobile */}
+      {(!isMobile || !colorsMinimized) && (
+        <div className="swatch-grid">
+          {COLOR_SWATCHES.map((hex) => (
+            <button
+              key={hex}
+              className={!isErasing && color === hex ? 'swatch active' : 'swatch'}
+              style={{ backgroundColor: hex }}
+              onClick={() => selectColor(hex)}
+            />
+          ))}
+          <label className="swatch custom">
+            <span>{isMobile ? '🎨' : 'Hex'}</span>
+            <input
+              type="color"
+              value={color}
+              onChange={(e) => selectColor(e.target.value)}
+            />
+          </label>
+        </div>
+      )}
 
       {!isDrawer && <div className="hint-text">Guess by typing in the chat below.</div>}
     </div>

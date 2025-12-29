@@ -70,6 +70,8 @@ export function LandingPage() {
         if (response?.ok) {
           console.log('Room created successfully:', response);
           setRoomState(response.state);
+          // Save player name for reconnection
+          localStorage.setItem('playerName', name || 'Host');
           // Navigate immediately without waiting
           navigate(`/room/${response.roomId}`, { replace: true });
         } else {
@@ -117,6 +119,8 @@ export function LandingPage() {
         if (res?.ok) {
           console.log('Joined room successfully:', res);
           setRoomState(res.state);
+          // Save player name for reconnection
+          localStorage.setItem('playerName', name || 'Player');
           navigate(`/room/${roomId.trim()}`, { replace: true });
         } else {
           console.error('Failed to join room:', res);

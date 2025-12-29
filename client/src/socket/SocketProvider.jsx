@@ -23,6 +23,11 @@ export function SocketProvider({ children }) {
     console.log('🔧 Environment:', import.meta.env.MODE);
     console.log('🏭 Production mode:', import.meta.env.PROD);
 
+    // Try to restore room from localStorage
+    const savedRoomId = localStorage.getItem('currentRoomId');
+    const savedPlayerName = localStorage.getItem('playerName');
+    console.log('💾 Checking for saved room:', savedRoomId, 'Player:', savedPlayerName);
+
     const s = io(backendUrl, {
       // Connection optimization for faster connection
       transports: ['websocket', 'polling'], // Prefer websocket, fallback to polling
@@ -63,6 +68,15 @@ export function SocketProvider({ children }) {
       console.log('🔗 Socket connected state:', s.connected);
       setSelfId(s.id);
       setConnectionStatus('connected');
+
+      // Try to rejoin room if we have saved data
+      if (savedRoomId && savedPlayerName) {
+        console.log('🔄 Attempting to rejoin room:', savedRoomId);
+        s.emit('room:rejoin', { 
+          roomId: savedRoomId, 
+          playerName: savedPlayerName 
+        });
+      }
     });
 
     s.on('disconnect', (reason) => {
@@ -81,6 +95,15 @@ export function SocketProvider({ children }) {
     s.on('reconnect', (attemptNumber) => {
       console.log('🔄 Socket reconnected after', attemptNumber, 'attempts');
       setConnectionStatus('connected');
+      
+      // Try to rejoin room after reconnection
+      if (savedRoomId && savedPlayerName) {
+        console.log('🔄 Rejoining room after reconnection:', savedRoomId);
+        s.emit('room:rejoin', { 
+          roomId: savedRoomId, 
+          playerName: savedPlayerName 
+        });
+      }
     });
 
     s.on('reconnect_attempt', (attemptNumber) => {
@@ -98,10 +121,36 @@ export function SocketProvider({ children }) {
     });
 
     // Game event handlers
-    s.on('room:state', (state) => setRoomState(state));
+    s.on('room:state', (state) => {
+      setRoomState(state);
+      // Save room ID to localStorage for reconnection
+      if (state?.id) {
+        localStorage.setItem('currentRoomId', state.id);
+      }
+    });
+    
+    s.on('room:rejoined', (state) => {
+      console.log('✅ Successfully rejoined room:', state);
+      setRoomState(state);
+    });
+    
+    s.on('room:rejoin:failed', ({ reason }) => {
+      console.log('❌ Failed to rejoin room:', reason);
+      // Clear saved room data if rejoin fails
+      localStorage.removeItem('currentRoomId');
+    });
+    
     s.on('round:end', ({ state }) => setRoomState(state));
-    s.on('room:closed', () => setRoomState(null));
-    s.on('room:kicked', () => setRoomState(null));
+    
+    s.on('room:closed', () => {
+      setRoomState(null);
+      localStorage.removeItem('currentRoomId');
+    });
+    
+    s.on('room:kicked', () => {
+      setRoomState(null);
+      localStorage.removeItem('currentRoomId');
+    });
     
     s.on('round:maskUpdate', ({ roomId, mask }) => {
       setRoomState((prev) => {
@@ -139,6 +188,8 @@ export function SocketProvider({ children }) {
       s.off('reconnect_error');
       s.off('reconnect_failed');
       s.off('room:state');
+      s.off('room:rejoined');
+      s.off('room:rejoin:failed');
       s.off('round:end');
       s.off('room:closed');
       s.off('room:kicked');

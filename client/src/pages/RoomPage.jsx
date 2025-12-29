@@ -127,6 +127,9 @@ export function RoomPage() {
   const handleLeaveRoom = () => {
     if (!socket) return;
     socket.emit('room:leave', { roomId });
+    // Clear saved room data when leaving
+    localStorage.removeItem('currentRoomId');
+    localStorage.removeItem('playerName');
     navigate('/');
   };
 
