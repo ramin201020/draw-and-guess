@@ -1,5 +1,3 @@
-import React from 'react';
-
 export function RoundResults({ 
   isVisible, 
   word, 
@@ -7,99 +5,49 @@ export function RoundResults({
   onNextRound, 
   onBackToLobby, 
   isHost,
-  roundNumber,
-  scoreChanges = {} // New prop to receive actual score changes from server
+  roundNumber
 }) {
   if (!isVisible) return null;
 
-  // Sort players by score (highest first)
   const sortedPlayers = [...(players || [])].sort((a, b) => b.score - a.score);
 
-  const getPlayerInitials = (name) => {
-    return name?.split(' ').map(n => n[0]).join('').toUpperCase() || '?';
-  };
-
-  const getScoreChange = (player) => {
-    // Use actual score changes if provided, otherwise show placeholder
-    return scoreChanges[player.id] || (player.isDrawer ? '+75' : '+50');
-  };
-
   return (
-    <div className="round-results-overlay">
-      {/* Semi-transparent canvas overlay */}
-      <div className="canvas-overlay">
-        <div className="overlay-content">
-          <h2 className="overlay-title">
-            🎉 Round {roundNumber} Complete!
-          </h2>
-          
-          {word && (
-            <div className="overlay-word">
-              The word was: <strong>"{word.toUpperCase()}"</strong>
+    <div className="results-overlay">
+      <div className="results-modal">
+        <h2>Round {roundNumber} Complete!</h2>
+        
+        {word && (
+          <div className="results-word">
+            {word.toUpperCase()}
+          </div>
+        )}
+
+        <div className="results-players">
+          {sortedPlayers.slice(0, 5).map((player, index) => (
+            <div key={player.id} className="result-player">
+              <span className="result-rank">#{index + 1}</span>
+              <span className="result-name">
+                {player.name}
+                {player.isDrawer && ' ✏️'}
+              </span>
+              <span className="result-score">{player.score} pts</span>
             </div>
+          ))}
+        </div>
+
+        <div className="results-actions">
+          {isHost ? (
+            <>
+              <button className="primary-btn" onClick={onNextRound}>
+                Next Round
+              </button>
+              <button className="secondary-btn" onClick={onBackToLobby}>
+                Back to Lobby
+              </button>
+            </>
+          ) : (
+            <p style={{ color: '#8b949e' }}>Waiting for host...</p>
           )}
-
-          <div className="overlay-scoreboard">
-            {sortedPlayers.map((player, index) => (
-              <div 
-                key={player.id} 
-                className={`overlay-player ${
-                  index === 0 ? 'winner' : ''
-                } ${player.isDrawer ? 'drawer' : ''}`}
-              >
-                <div className="overlay-player-info">
-                  <div className="overlay-player-avatar">
-                    {getPlayerInitials(player.name)}
-                  </div>
-                  <div className="overlay-player-details">
-                    <div className="overlay-player-name">
-                      {player.name}
-                      {index === 0 && <span className="overlay-badge">👑</span>}
-                      {player.isDrawer && <span className="overlay-badge">🎨</span>}
-                    </div>
-                    <div className="overlay-player-score">
-                      <strong>{player.score}</strong> pts
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="overlay-score-change">
-                  <span className="score-increase">
-                    {getScoreChange(player)}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="overlay-actions">
-            {isHost && (
-              <>
-                <button 
-                  className="modern-btn modern-btn-primary" 
-                  onClick={onNextRound}
-                >
-                  <span className="btn-icon">🎮</span>
-                  <span className="btn-text">Next Round</span>
-                  <div className="btn-hover-effect"></div>
-                </button>
-                <button 
-                  className="modern-btn modern-btn-secondary" 
-                  onClick={onBackToLobby}
-                >
-                  <span className="btn-icon">🏠</span>
-                  <span className="btn-text">Back to Lobby</span>
-                  <div className="btn-hover-effect"></div>
-                </button>
-              </>
-            )}
-            {!isHost && (
-              <div className="waiting-message">
-                <div className="waiting-spinner">⏳</div>
-                <span>Waiting for host to start next round...</span>
-              </div>
-            )}
-          </div>
         </div>
       </div>
     </div>

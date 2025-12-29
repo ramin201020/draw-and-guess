@@ -1,305 +1,306 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSocket } from '../socket/SocketProvider';
 
-const COLOR_SWATCHES = [
-  '#002855',
-  '#1d4ed8',
-  '#0ea5e9',
-  '#10b981',
-  '#f97316',
-  '#f43f5e',
-  '#a855f7',
-  '#ec4899',
-  '#facc15',
-  '#7c3aed',
-  '#111827',
-  '#ffffff'
+const COLORS = [
+  '#FFFFFF', '#C1C1C1', '#EF130B', '#FF7100', '#FFE400', '#00CC00',
+  '#00B2FF', '#231FD3', '#A300BA', '#D37CAA', '#A0522D', '#000000',
+  '#4C4C4C', '#740B07', '#C23800', '#E8A200', '#005510', '#00569E',
+  '#0E0865', '#550069', '#A75574', '#63300D'
 ];
 
-const CANVAS_BACKGROUNDS = [
-  { name: 'White', value: 'light', color: '#ffffff' },
-  { name: 'Light Gray', value: 'gray', color: '#f5f5f5' },
-  { name: 'Beige', value: 'beige', color: '#f9f7f4' },
-  { name: 'Dark', value: 'dark', color: '#0d0d1a' }
-];
+const BRUSH_SIZES = [4, 8, 14, 22, 32];
 
 export function DrawingCanvas({ roomId, isDrawer }) {
   const { socket } = useSocket();
   const canvasRef = useRef(null);
-  const sliderRef = useRef(null);
-  const [color, setColor] = useState(COLOR_SWATCHES[0]);
-  const [brushSize, setBrushSize] = useState(6);
+  const containerRef = useRef(null);
+  
+  const [color, setColor] = useState('#000000');
+  const [brushSize, setBrushSize] = useState(8);
   const [isErasing, setIsErasing] = useState(false);
   const [drawing, setDrawing] = useState(false);
   const [lastPoint, setLastPoint] = useState(null);
-  const [canvasBackground, setCanvasBackground] = useState('light');
-  const [colorsMinimized, setColorsMinimized] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
 
-  // Check if mobile on mount and resize
+  // Set up canvas with fixed dimensions
   useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth <= 768);
+    const canvas = canvasRef.current;
+    const container = containerRef.current;
+    if (!canvas || !container) return;
+
+    const setupCanvas = () => {
+      const rect = container.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      
+      // Set display size
+      canvas.style.width = rect.width + 'px';
+      canvas.style.height = rect.height + 'px';
+      
+      // Set actual size in memory
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      
+      // Scale context to match DPR
+      const ctx = canvas.getContext('2d');
+      ctx.scale(dpr, dpr);
+      
+      // Fill with white background
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(0, 0, rect.width, rect.height);
     };
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+
+    setupCanvas();
+    
+    // Only resize on window resize, not continuously
+    let resizeTimeout;
+    const handleResize = () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(setupCanvas, 100);
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      clearTimeout(resizeTimeout);
+    };
   }, []);
 
-  const handleBrushSizeChange = (e) => {
-    const newSize = Number(e.target.value);
-    setBrushSize(newSize);
-    
-    // Add vibration effect when slider reaches the end
-    if (newSize === 28 || newSize === 2) {
-      if (sliderRef.current) {
-        sliderRef.current.classList.add('slider-vibrate');
-        setTimeout(() => {
-          if (sliderRef.current) {
-            sliderRef.current.classList.remove('slider-vibrate');
-          }
-        }, 400);
-      }
-    }
-  };
-
-  const drawStroke = useCallback((ctx, stroke) => {
+  // Draw stroke function
+  const drawStroke = useCallback((ctx, stroke, canvasWidth) => {
     if (!ctx || !stroke) return;
+    
+    const dpr = window.devicePixelRatio || 1;
+    
     ctx.save();
-    ctx.lineJoin = 'round';
     ctx.lineCap = 'round';
-    ctx.lineWidth = stroke.width || brushSize;
-    const tool = stroke.tool || 'BRUSH';
-    if (tool === 'ERASER') {
+    ctx.lineJoin = 'round';
+    ctx.lineWidth = stroke.width;
+    
+    if (stroke.tool === 'ERASER') {
       ctx.globalCompositeOperation = 'destination-out';
-      ctx.strokeStyle = stroke.color || '#ffffff';
+      ctx.strokeStyle = 'rgba(255,255,255,1)';
     } else {
       ctx.globalCompositeOperation = 'source-over';
-      ctx.strokeStyle = stroke.color || color;
+      ctx.strokeStyle = stroke.color;
     }
+    
     ctx.beginPath();
-    ctx.moveTo(stroke.from.x, stroke.from.y);
-    ctx.lineTo(stroke.to.x, stroke.to.y);
+    ctx.moveTo(stroke.from.x / dpr, stroke.from.y / dpr);
+    ctx.lineTo(stroke.to.x / dpr, stroke.to.y / dpr);
     ctx.stroke();
     ctx.restore();
-  }, [brushSize, color]);
+  }, []);
 
+  // Socket event handlers
   useEffect(() => {
     if (!socket) return;
+    
     const handleIncomingStroke = (payload) => {
       const stroke = payload?.stroke ?? payload;
-      const ctx = canvasRef.current?.getContext('2d');
-      if (!ctx || !stroke) return;
-      drawStroke(ctx, stroke);
+      const canvas = canvasRef.current;
+      if (!canvas || !stroke) return;
+      const ctx = canvas.getContext('2d');
+      drawStroke(ctx, stroke, canvas.width);
     };
+    
     const handleClear = () => {
       const canvas = canvasRef.current;
       if (!canvas) return;
       const ctx = canvas.getContext('2d');
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const dpr = window.devicePixelRatio || 1;
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(0, 0, canvas.width / dpr, canvas.height / dpr);
     };
+    
     socket.on('draw:stroke', handleIncomingStroke);
     socket.on('draw:clear', handleClear);
+    
     return () => {
       socket.off('draw:stroke', handleIncomingStroke);
       socket.off('draw:clear', handleClear);
     };
   }, [socket, drawStroke]);
 
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const resize = () => {
-      const rect = canvas.getBoundingClientRect();
-      const ctx = canvas.getContext('2d');
-      let snapshot = null;
-      try {
-        snapshot = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      } catch (err) {
-        // ignore
-      }
-      canvas.width = rect.width * window.devicePixelRatio;
-      canvas.height = rect.height * window.devicePixelRatio;
-      if (snapshot) {
-        ctx.putImageData(snapshot, 0, 0);
-      }
-    };
-    resize();
-    window.addEventListener('resize', resize);
-    return () => window.removeEventListener('resize', resize);
-  }, []);
-
+  // Emit stroke to server
   const emitStroke = useCallback((stroke) => {
     if (!socket) return;
     socket.emit('draw:stroke', { roomId, stroke });
   }, [socket, roomId]);
 
+  // Get canvas coordinates from event
   const getCanvasPoint = (event) => {
     const canvas = canvasRef.current;
     if (!canvas) return null;
+    
     const rect = canvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    
+    // Handle both mouse and touch events
+    const clientX = event.touches ? event.touches[0].clientX : event.clientX;
+    const clientY = event.touches ? event.touches[0].clientY : event.clientY;
+    
     return {
-      x: (event.clientX - rect.left) * window.devicePixelRatio,
-      y: (event.clientY - rect.top) * window.devicePixelRatio
+      x: (clientX - rect.left) * dpr,
+      y: (clientY - rect.top) * dpr
     };
   };
 
+  // Drawing handlers
   const handlePointerDown = (event) => {
     if (!isDrawer) return;
     event.preventDefault();
+    
     const canvas = canvasRef.current;
     if (!canvas) return;
-    canvas.setPointerCapture(event.pointerId);
+    
+    if (event.pointerId !== undefined) {
+      canvas.setPointerCapture(event.pointerId);
+    }
+    
     const point = getCanvasPoint(event);
     if (!point) return;
+    
     setDrawing(true);
     setLastPoint(point);
+    
+    // Draw a dot for single clicks
+    const ctx = canvas.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    ctx.save();
+    ctx.fillStyle = isErasing ? '#FFFFFF' : color;
+    ctx.beginPath();
+    ctx.arc(point.x / dpr, point.y / dpr, brushSize / 2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
   };
 
   const handlePointerMove = (event) => {
     if (!drawing || !lastPoint || !isDrawer) return;
     event.preventDefault();
+    
     const canvas = canvasRef.current;
     if (!canvas) return;
+    
     const ctx = canvas.getContext('2d');
     const nextPoint = getCanvasPoint(event);
     if (!nextPoint) return;
+    
     const stroke = {
       from: lastPoint,
       to: nextPoint,
-      color,
+      color: color,
       width: brushSize,
       tool: isErasing ? 'ERASER' : 'BRUSH'
     };
-    drawStroke(ctx, stroke);
+    
+    drawStroke(ctx, stroke, canvas.width);
     emitStroke(stroke);
     setLastPoint(nextPoint);
   };
 
-  const stopDrawing = (event) => {
+  const handlePointerUp = (event) => {
     if (!drawing) return;
-    if (event) {
-      const canvas = canvasRef.current;
-      canvas?.releasePointerCapture(event.pointerId);
+    
+    const canvas = canvasRef.current;
+    if (canvas && event?.pointerId !== undefined) {
+      canvas.releasePointerCapture(event.pointerId);
     }
+    
     setDrawing(false);
     setLastPoint(null);
   };
 
+  // Clear canvas
   const clearCanvas = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
+    
     const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const dpr = window.devicePixelRatio || 1;
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(0, 0, canvas.width / dpr, canvas.height / dpr);
+    
     socket?.emit('draw:clear', { roomId });
   };
 
-  const selectColor = (hex) => {
-    setColor(hex);
-    setIsErasing(false);
-  };
-
-  const toggleTool = (tool) => {
-    setIsErasing(tool === 'ERASER');
-  };
-
   return (
-    <div className="canvas-panel">
-      <div className="canvas-container">
+    <div className="canvas-wrapper">
+      {/* Canvas */}
+      <div className="canvas-container" ref={containerRef}>
         <canvas
           ref={canvasRef}
-          className={`draw-canvas ${canvasBackground} ${isDrawer ? '' : 'spectator'}`}
+          className={`game-canvas ${isDrawer ? 'can-draw' : 'spectator'}`}
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}
-          onPointerUp={stopDrawing}
-          onPointerLeave={stopDrawing}
-          onPointerCancel={stopDrawing}
+          onPointerUp={handlePointerUp}
+          onPointerLeave={handlePointerUp}
+          onPointerCancel={handlePointerUp}
         />
       </div>
 
-      {/* Mobile minimize button for color swatches */}
-      {isMobile && (
-        <button 
-          className="mobile-color-minimize-btn"
-          onClick={() => setColorsMinimized(!colorsMinimized)}
-          title={colorsMinimized ? 'Show colors' : 'Hide colors'}
-        >
-          🎨
-        </button>
-      )}
+      {/* Tools - Only show for drawer */}
+      {isDrawer && (
+        <div className="canvas-tools">
+          {/* Colors */}
+          <div className="color-palette">
+            {COLORS.map((c) => (
+              <button
+                key={c}
+                className={`color-btn ${color === c && !isErasing ? 'active' : ''}`}
+                style={{ backgroundColor: c }}
+                onClick={() => { setColor(c); setIsErasing(false); }}
+              />
+            ))}
+          </div>
 
-      <div className="canvas-toolbar">
-        <div className="toolbar-group">
-          <button
-            className={!isErasing ? 'tool-button active' : 'tool-button'}
-            onClick={() => toggleTool('BRUSH')}
-          >
-            {isMobile ? '🖌️' : 'Brush'}
-          </button>
-          <button
-            className={isErasing ? 'tool-button active' : 'tool-button'}
-            onClick={() => toggleTool('ERASER')}
-          >
-            {isMobile ? '🧽' : 'Eraser'}
-          </button>
-        </div>
+          {/* Brush Sizes */}
+          <div className="brush-sizes">
+            {BRUSH_SIZES.map((size) => (
+              <button
+                key={size}
+                className={`size-btn ${brushSize === size ? 'active' : ''}`}
+                onClick={() => setBrushSize(size)}
+              >
+                <span 
+                  className="size-dot" 
+                  style={{ width: size, height: size }}
+                />
+              </button>
+            ))}
+          </div>
 
-        <div className="toolbar-group size-control">
-          <label htmlFor="brush-size">{isMobile ? 'Size' : 'Size'}</label>
-          <input
-            ref={sliderRef}
-            id="brush-size"
-            type="range"
-            min="2"
-            max="28"
-            value={brushSize}
-            onChange={handleBrushSizeChange}
-          />
-          <span>{brushSize}px</span>
-        </div>
-
-        <div className="toolbar-group canvas-bg-selector">
-          <label>{isMobile ? 'BG:' : 'Canvas:'}</label>
-          {CANVAS_BACKGROUNDS.map((bg) => (
+          {/* Tool Buttons */}
+          <div className="tool-buttons">
             <button
-              key={bg.value}
-              className={`canvas-bg-option ${bg.value} ${canvasBackground === bg.value ? 'active' : ''}`}
-              onClick={() => setCanvasBackground(bg.value)}
-              title={bg.name}
-            />
-          ))}
-        </div>
-
-        {isDrawer && (
-          <button className="secondary-btn" onClick={clearCanvas}>
-            {isMobile ? '🗑️' : 'Clear'}
-          </button>
-        )}
-      </div>
-
-      {/* Color swatches - collapsible on mobile */}
-      {(!isMobile || !colorsMinimized) && (
-        <div className="swatch-grid">
-          {COLOR_SWATCHES.map((hex) => (
+              className={`tool-btn ${!isErasing ? 'active' : ''}`}
+              onClick={() => setIsErasing(false)}
+              title="Brush"
+            >
+              ✏️
+            </button>
             <button
-              key={hex}
-              className={!isErasing && color === hex ? 'swatch active' : 'swatch'}
-              style={{ backgroundColor: hex }}
-              onClick={() => selectColor(hex)}
-            />
-          ))}
-          <label className="swatch custom">
-            <span>{isMobile ? '🎨' : 'Hex'}</span>
-            <input
-              type="color"
-              value={color}
-              onChange={(e) => selectColor(e.target.value)}
-            />
-          </label>
+              className={`tool-btn ${isErasing ? 'active' : ''}`}
+              onClick={() => setIsErasing(true)}
+              title="Eraser"
+            >
+              🧽
+            </button>
+            <button
+              className="tool-btn clear-btn"
+              onClick={clearCanvas}
+              title="Clear Canvas"
+            >
+              🗑️
+            </button>
+          </div>
         </div>
       )}
 
-      {!isDrawer && <div className="hint-text">Guess by typing in the chat below.</div>}
+      {/* Spectator hint */}
+      {!isDrawer && (
+        <div className="spectator-hint">
+          Type your guess in the chat →
+        </div>
+      )}
     </div>
   );
 }

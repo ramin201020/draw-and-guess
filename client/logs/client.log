@@ -162,3 +162,13 @@
 2025-12-29T10:20:07: 
 2025-12-29T10:20:07:   ➜  Local:   http://localhost:5173/
 2025-12-29T10:20:07:   ➜  Network: use --host to expose
+2025-12-29T10:41:07: 
+2025-12-29T10:41:07: > doodles-client@1.0.0 dev
+2025-12-29T10:41:07: > vite
+2025-12-29T10:41:07: 
+2025-12-29T10:41:13: [33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+2025-12-29T10:41:13: 
+2025-12-29T10:41:13:   VITE v5.4.21  ready in 5410 ms
+2025-12-29T10:41:13: 
+2025-12-29T10:41:13:   ➜  Local:   http://localhost:5173/
+2025-12-29T10:41:13:   ➜  Network: use --host to expose
