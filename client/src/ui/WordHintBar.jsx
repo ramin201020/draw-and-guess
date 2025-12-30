@@ -1,3 +1,5 @@
+import React from 'react';
+
 export function WordHintBar({ mask, status }) {
   if (status !== 'IN_ROUND' || !mask) {
     return null;
