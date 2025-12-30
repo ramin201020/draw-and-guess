@@ -7,11 +7,15 @@ const app = express();
 
 // Enhanced CORS configuration
 const corsOptions = {
-  origin: process.env.NODE_ENV === 'production' 
-    ? process.env.CORS_ORIGIN?.split(',') || ['http://localhost:5173']
-    : ['http://localhost:5173', 'http://127.0.0.1:5173'],
+  origin: [
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+    'https://doodles-giok.onrender.com',
+    /\.vercel\.app$/,
+    /\.onrender\.com$/
+  ],
   methods: ['GET', 'POST'],
-  credentials: false,
+  credentials: true,
   optionsSuccessStatus: 200
 };
 
