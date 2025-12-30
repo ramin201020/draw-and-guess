@@ -105,12 +105,19 @@ export function LandingPage() {
     <div className="landing-page">
       <div className="landing-card">
         <div className="connection-status" style={{ color: statusColor, borderColor: statusColor }}>
-          {connectionStatus === 'connected' ? '🟢 Connected' : connectionStatus === 'connecting' ? '🟡 Connecting...' : '🔴 ' + connectionStatus}
+          {connectionStatus === 'connected' ? `🟢 Connected (${selfId?.slice(-4) || 'N/A'})` : connectionStatus === 'connecting' ? '🟡 Connecting...' : '🔴 ' + connectionStatus}
         </div>
 
         <h1 className="landing-title">Doodles</h1>
 
         {error && <div className="error-message">⚠️ {error} <button onClick={() => setError('')}>×</button></div>}
+
+        {/* Debug Info */}
+        {connectionStatus === 'connected' && (
+          <div style={{ fontSize: '12px', color: '#666', marginBottom: '10px' }}>
+            Socket ID: {selfId} | Backend: https://doodles-giok.onrender.com
+          </div>
+        )}
 
         <div className="landing-field">
           <label className="landing-label">Name</label>
