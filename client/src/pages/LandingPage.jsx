@@ -165,113 +165,121 @@ export function LandingPage() {
   return (
     <div className="page neon-bg">
       <div className="card">
-        <div style={{ 
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          alignItems: 'center',
-          marginBottom: '1rem',
-          flexWrap: 'wrap',
-          gap: '1rem'
-        }}>
-          <h1 className="title doodles-logo" style={{ margin: 0, flex: '1 1 auto' }}>Doodles</h1>
+        <div className="landing-header">
           <div style={{ 
-            color: getConnectionStatusColor(),
-            fontSize: '0.9rem',
-            fontWeight: '600',
-            padding: '0.5rem 1rem',
-            borderRadius: '20px',
-            backgroundColor: 'rgba(255,255,255,0.1)',
-            border: `2px solid ${getConnectionStatusColor()}`,
-            whiteSpace: 'nowrap'
+            display: 'flex', 
+            justifyContent: 'space-between', 
+            alignItems: 'center',
+            marginBottom: '1rem',
+            flexWrap: 'wrap',
+            gap: '1rem'
           }}>
-            {getConnectionStatusText()}
-          </div>
-        </div>
-        <label>
-          Name
-          <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" />
-        </label>
-
-        <div className="section">
-          <h2>Create Room</h2>
-          <div className="settings-grid">
-            <label>
-              Max points (first guess)
-              <input type="number" value={maxPoints} onChange={handleNumericChange(setMaxPoints)} />
-            </label>
-            <label>
-              Round time (seconds)
-              <input type="number" value={roundTimeSec} onChange={handleNumericChange(setRoundTimeSec)} />
-            </label>
-            <label>
-              Word options for drawer
-              <input type="number" value={wordsPerRound} onChange={handleNumericChange(setWordsPerRound)} />
-            </label>
-            <label>
-              Max letters revealed
-              <input 
-                type="number" 
-                value={maxLettersRevealed} 
-                onChange={handleNumericChange(setMaxLettersRevealed)}
-                min="1"
-                max="8"
-              />
-            </label>
-            <label>
-              Max word length
-              <input 
-                type="number" 
-                value={maxWordLength} 
-                onChange={handleNumericChange(setMaxWordLength)}
-                min="3"
-                max="15"
-              />
-            </label>
-            <label>
-              Total rounds
-              <input 
-                type="number" 
-                value={totalRounds} 
-                onChange={handleNumericChange(setTotalRounds)}
-                min="1"
-                max="10"
-              />
-            </label>
+            <h1 className="title doodles-logo" style={{ margin: 0, flex: '1 1 auto' }}>Doodles</h1>
+            <div style={{ 
+              color: getConnectionStatusColor(),
+              fontSize: '0.9rem',
+              fontWeight: '600',
+              padding: '0.5rem 1rem',
+              borderRadius: '20px',
+              backgroundColor: 'rgba(255,255,255,0.1)',
+              border: `2px solid ${getConnectionStatusColor()}`,
+              whiteSpace: 'nowrap'
+            }}>
+              {getConnectionStatusText()}
+            </div>
           </div>
           <label>
-            Custom words (comma-separated)
-            <input
-              value={customWords}
-              onChange={(e) => setCustomWords(e.target.value)}
-              placeholder="cat, dog, house, tree..."
-            />
+            Name
+            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" />
           </label>
-          <button 
-            onClick={handleCreate} 
-            className="primary-btn landing-main-btn"
-            disabled={isCreating || connectionStatus !== 'connected'}
-          >
-            {isCreating ? '🔄 Creating Room...' : 'Create Room'}
-          </button>
         </div>
 
-        <div className="section">
-          <h2>Join Room</h2>
-          <label>
-            Enter a room code to join
-            <input
-              value={roomId}
-              onChange={(e) => setRoomId(e.target.value)}
-              placeholder="Paste or type a code like ab12cd"
-            />
-          </label>
-          <button 
-            onClick={handleJoin} 
-            className="secondary-btn landing-main-btn"
-            disabled={isJoining || connectionStatus !== 'connected' || !roomId.trim()}
-          >
-            {isJoining ? '🔄 Joining Room...' : 'Join by code'}
-          </button>
+        <div className="landing-content">
+          <div className="create-room-section">
+            <div className="section">
+              <h2>Create Room</h2>
+              <div className="settings-grid">
+                <label>
+                  Max points (first guess)
+                  <input type="number" value={maxPoints} onChange={handleNumericChange(setMaxPoints)} />
+                </label>
+                <label>
+                  Round time (seconds)
+                  <input type="number" value={roundTimeSec} onChange={handleNumericChange(setRoundTimeSec)} />
+                </label>
+                <label>
+                  Word options for drawer
+                  <input type="number" value={wordsPerRound} onChange={handleNumericChange(setWordsPerRound)} />
+                </label>
+                <label>
+                  Max letters revealed
+                  <input 
+                    type="number" 
+                    value={maxLettersRevealed} 
+                    onChange={handleNumericChange(setMaxLettersRevealed)}
+                    min="1"
+                    max="8"
+                  />
+                </label>
+                <label>
+                  Max word length
+                  <input 
+                    type="number" 
+                    value={maxWordLength} 
+                    onChange={handleNumericChange(setMaxWordLength)}
+                    min="3"
+                    max="15"
+                  />
+                </label>
+                <label>
+                  Total rounds
+                  <input 
+                    type="number" 
+                    value={totalRounds} 
+                    onChange={handleNumericChange(setTotalRounds)}
+                    min="1"
+                    max="10"
+                  />
+                </label>
+              </div>
+              <label>
+                Custom words (comma-separated)
+                <input
+                  value={customWords}
+                  onChange={(e) => setCustomWords(e.target.value)}
+                  placeholder="cat, dog, house, tree..."
+                />
+              </label>
+              <button 
+                onClick={handleCreate} 
+                className="primary-btn landing-main-btn"
+                disabled={isCreating || connectionStatus !== 'connected'}
+              >
+                {isCreating ? '🔄 Creating Room...' : 'Create Room'}
+              </button>
+            </div>
+          </div>
+
+          <div className="join-room-section">
+            <div className="section">
+              <h2>Join Room</h2>
+              <label>
+                Enter a room code to join
+                <input
+                  value={roomId}
+                  onChange={(e) => setRoomId(e.target.value)}
+                  placeholder="Paste or type a code like ab12cd"
+                />
+              </label>
+              <button 
+                onClick={handleJoin} 
+                className="secondary-btn landing-main-btn"
+                disabled={isJoining || connectionStatus !== 'connected' || !roomId.trim()}
+              >
+                {isJoining ? '🔄 Joining Room...' : 'Join by code'}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
