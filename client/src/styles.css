@@ -18,9 +18,245 @@ body {
 }
 
 /* ============================================
-   LANDING PAGE
+   LANDING PAGE - NEW DESIGN
    ============================================ */
 
+.landing-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: linear-gradient(135deg, #FFE4C4 0%, #FFDAB9 50%, #FFB347 100%);
+}
+
+.landing-card {
+  background: #FFF8F0;
+  border: 3px solid #8B7355;
+  border-radius: 24px;
+  padding: 2rem 3rem;
+  width: 100%;
+  max-width: 700px;
+  box-shadow: 0 20px 60px rgba(139, 115, 85, 0.25);
+  position: relative;
+}
+
+.connection-status {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.5);
+  border: 2px solid;
+}
+
+.landing-title {
+  font-size: 2rem;
+  font-weight: 700;
+  font-style: italic;
+  color: #FF8C00;
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.landing-field {
+  margin-bottom: 1.5rem;
+}
+
+.landing-label {
+  display: block;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #4a3728;
+  margin-bottom: 0.5rem;
+}
+
+.landing-input {
+  width: 100%;
+  max-width: 400px;
+  padding: 0.75rem 1rem;
+  border: none;
+  border-radius: 20px;
+  background: #FFDAB9;
+  color: #4a3728;
+  font-size: 0.9rem;
+}
+
+.landing-input::placeholder {
+  color: #8B7355;
+}
+
+.landing-input:focus {
+  outline: 2px solid #FF8C00;
+}
+
+.landing-divider {
+  height: 1px;
+  background: #DEB887;
+  margin: 1.5rem 0;
+}
+
+.create-section {
+  margin-bottom: 1.5rem;
+}
+
+.section-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #4a3728;
+  margin-bottom: 1rem;
+}
+
+.settings-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.setting-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.setting-field.full-width {
+  grid-column: 1 / -1;
+}
+
+.setting-label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #4a3728;
+  margin-bottom: 0.5rem;
+}
+
+.setting-input {
+  padding: 0.6rem 1rem;
+  border: none;
+  border-radius: 20px;
+  background: #FFDAB9;
+  color: #4a3728;
+  font-size: 0.85rem;
+}
+
+.setting-input::placeholder {
+  color: #8B7355;
+  font-size: 0.8rem;
+}
+
+.setting-input:focus {
+  outline: 2px solid #FF8C00;
+}
+
+.create-room-btn {
+  width: 100%;
+  max-width: 400px;
+  margin: 1.5rem auto;
+  display: block;
+  padding: 1rem 2rem;
+  background: transparent;
+  color: #4a3728;
+  border: 3px solid #FF8C00;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.create-room-btn:hover:not(:disabled) {
+  background: #FF8C00;
+  color: white;
+}
+
+.create-room-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.join-section {
+  margin-top: 1rem;
+}
+
+.join-row {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.join-input {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border: none;
+  border-radius: 20px;
+  background: #FFDAB9;
+  color: #4a3728;
+  font-size: 0.9rem;
+}
+
+.join-input::placeholder {
+  color: #8B7355;
+}
+
+.join-input:focus {
+  outline: 2px solid #FF8C00;
+}
+
+.join-btn {
+  padding: 0.75rem 1.5rem;
+  background: #FF8C00;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.join-btn:hover:not(:disabled) {
+  background: #FF7700;
+}
+
+.join-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Mobile responsive */
+@media (max-width: 600px) {
+  .landing-card {
+    padding: 1.5rem;
+    margin: 0.5rem;
+  }
+  
+  .settings-row {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .landing-input,
+  .create-room-btn {
+    max-width: 100%;
+  }
+  
+  .join-row {
+    flex-direction: column;
+  }
+  
+  .join-input {
+    width: 100%;
+  }
+  
+  .join-btn {
+    width: 100%;
+  }
+}
+
+/* Keep old styles for backward compatibility */
 .page.neon-bg {
   min-height: 100vh;
   display: flex;
@@ -38,40 +274,6 @@ body {
   width: 100%;
   max-width: 500px;
   box-shadow: 0 20px 60px rgba(255, 140, 0, 0.25);
-}
-
-/* PC Layout for Landing Page */
-@media (min-width: 1024px) {
-  .card {
-    max-width: 1200px;
-    padding: 3rem;
-  }
-  
-  .landing-content {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 3rem;
-    margin-top: 2rem;
-  }
-  
-  .landing-header {
-    grid-column: 1 / -1;
-    text-align: center;
-    margin-bottom: 1rem;
-  }
-  
-  .create-room-section,
-  .join-room-section {
-    background: rgba(255, 235, 205, 0.5);
-    border: 2px solid #FFDAB9;
-    border-radius: 12px;
-    padding: 2rem;
-  }
-  
-  .settings-grid {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1.5rem;
-  }
 }
 
 .title {
@@ -190,134 +392,6 @@ input:focus {
 
 .secondary-btn:hover:not(:disabled) {
   background: #D2B48C;
-}
-
-/* PC Layout for Landing Page - Force Vercel Redeploy */
-@media (min-width: 1024px) {
-  .page.neon-bg .card {
-    max-width: 1200px !important;
-    padding: 3rem !important;
-  }
-  
-  .landing-content {
-    display: grid !important;
-    grid-template-columns: 1fr 1fr !important;
-    gap: 3rem !important;
-    margin-top: 2rem !important;
-  }
-  
-  .landing-header {
-    grid-column: 1 / -1;
-    text-align: center;
-    margin-bottom: 1rem;
-  }
-  
-  .create-room-section,
-  .join-room-section {
-    background: rgba(255, 235, 205, 0.5);
-    border: 2px solid #FFDAB9;
-    border-radius: 12px;
-    padding: 2rem;
-  }
-  
-  .create-room-section .section,
-  .join-room-section .section {
-    margin-top: 0;
-    padding-top: 0;
-    border-top: none;
-  }
-  
-  .settings-grid {
-    grid-template-columns: repeat(3, 1fr) !important;
-    gap: 1.5rem !important;
-  }
-  
-  .join-room-section {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-  }
-  
-  .join-room-section .section {
-    width: 100%;
-    max-width: 400px;
-  }
-  
-  .join-room-section h2 {
-    font-size: 1.5rem;
-    margin-bottom: 1.5rem;
-  }
-  
-  .join-room-section input {
-    font-size: 1.1rem;
-    padding: 1rem;
-    text-align: center;
-    margin-bottom: 1.5rem;
-  }
-  
-  .join-room-section button {
-    font-size: 1.1rem;
-    padding: 1rem 2rem;
-  }
-}
-  
-  .landing-header {
-    grid-column: 1 / -1;
-    text-align: center;
-    margin-bottom: 1rem;
-  }
-  
-  .create-room-section,
-  .join-room-section {
-    background: rgba(255, 235, 205, 0.5);
-    border: 2px solid #FFDAB9;
-    border-radius: 12px;
-    padding: 2rem;
-  }
-  
-  .create-room-section .section,
-  .join-room-section .section {
-    margin-top: 0;
-    padding-top: 0;
-    border-top: none;
-  }
-  
-  .settings-grid {
-    grid-template-columns: repeat(3, 1fr) !important;
-    gap: 1.5rem !important;
-  }
-  
-  .join-room-section {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-  }
-  
-  .join-room-section .section {
-    width: 100%;
-    max-width: 400px;
-  }
-  
-  .join-room-section h2 {
-    font-size: 1.5rem;
-    margin-bottom: 1.5rem;
-  }
-  
-  .join-room-section input {
-    font-size: 1.1rem;
-    padding: 1rem;
-    text-align: center;
-    margin-bottom: 1.5rem;
-  }
-  
-  .join-room-section button {
-    font-size: 1.1rem;
-    padding: 1rem 2rem;
-  }
 }
 
 /* ============================================

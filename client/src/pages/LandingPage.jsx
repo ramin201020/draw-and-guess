@@ -5,7 +5,6 @@ import { useSocket } from '../socket/SocketProvider';
 export function LandingPage() {
   const { socket, selfId, connectionStatus, setRoomState } = useSocket();
   const [name, setName] = useState('');
-  const [roomId, setRoomId] = useState('');
   const [maxPoints, setMaxPoints] = useState(300);
   const [roundTimeSec, setRoundTimeSec] = useState(90);
   const [wordsPerRound, setWordsPerRound] = useState(3);
@@ -13,6 +12,7 @@ export function LandingPage() {
   const [maxWordLength, setMaxWordLength] = useState(10);
   const [totalRounds, setTotalRounds] = useState(3);
   const [customWords, setCustomWords] = useState('');
+  const [roomCode, setRoomCode] = useState('');
   const [isCreating, setIsCreating] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
   const navigate = useNavigate();
@@ -25,29 +25,25 @@ export function LandingPage() {
 
   const handleNumericChange = (setter) => (e) => {
     let value = e.target.value;
-    // allow clearing the field completely
     if (value === '') {
       setter('');
       return;
     }
-    // strip leading zeros but keep a single zero value
     value = value.replace(/^0+(?=\d)/, '');
     setter(Number(value));
   };
 
   const handleCreate = async () => {
-    if (isCreating) return; // Prevent double-clicks
+    if (isCreating) return;
     
-    // Check connection status first
     if (connectionStatus !== 'connected' || !socket || !selfId) {
-      alert(`Cannot create room: ${getConnectionStatusText()}. Please wait for connection.`);
+      alert(`Cannot create room: Not connected to server. Please wait for connection.`);
       return;
     }
 
     setIsCreating(true);
 
     try {
-      // Use socket-based room creation for faster response
       const payload = {
         name: name || 'Host',
         settings: {
@@ -61,26 +57,18 @@ export function LandingPage() {
         },
       };
 
-      console.log('Creating room via socket with payload:', payload);
-
-      // Use socket for immediate response
       socket.emit('room:create', payload, (response) => {
         setIsCreating(false);
         
         if (response?.ok) {
-          console.log('Room created successfully:', response);
           setRoomState(response.state);
-          // Save player name for reconnection
           localStorage.setItem('playerName', name || 'Host');
-          // Navigate immediately without waiting
           navigate(`/room/${response.roomId}`, { replace: true });
         } else {
-          console.error('Failed to create room:', response);
           alert(`Could not create room: ${response?.error || 'Unknown error'}`);
         }
       });
 
-      // Fallback timeout in case socket doesn't respond
       setTimeout(() => {
         if (isCreating) {
           setIsCreating(false);
@@ -89,16 +77,15 @@ export function LandingPage() {
       }, 5000);
 
     } catch (err) {
-      console.error('Error creating room:', err);
       setIsCreating(false);
       alert(`Could not create room: ${err.message}`);
     }
   };
 
   const handleJoin = () => {
-    if (isJoining) return; // Prevent double-clicks
+    if (isJoining) return;
     
-    if (!roomId.trim()) {
+    if (!roomCode.trim()) {
       alert('Please enter a room code');
       return;
     }
@@ -112,24 +99,20 @@ export function LandingPage() {
 
     socket.emit(
       'room:join',
-      { roomId: roomId.trim(), name: name || 'Player' },
+      { roomId: roomCode.trim(), name: name || 'Player' },
       (res) => {
         setIsJoining(false);
         
         if (res?.ok) {
-          console.log('Joined room successfully:', res);
           setRoomState(res.state);
-          // Save player name for reconnection
           localStorage.setItem('playerName', name || 'Player');
-          navigate(`/room/${roomId.trim()}`, { replace: true });
+          navigate(`/room/${roomCode.trim()}`, { replace: true });
         } else {
-          console.error('Failed to join room:', res);
           alert(`Could not join room: ${res?.error || 'Room not found or full'}`);
         }
       }
     );
 
-    // Fallback timeout
     setTimeout(() => {
       if (isJoining) {
         setIsJoining(false);
@@ -163,122 +146,144 @@ export function LandingPage() {
   };
 
   return (
-    <div className="page neon-bg">
-      <div className="card">
-        <div className="landing-header">
-          <div style={{ 
-            display: 'flex', 
-            justifyContent: 'space-between', 
-            alignItems: 'center',
-            marginBottom: '1rem',
-            flexWrap: 'wrap',
-            gap: '1rem'
-          }}>
-            <h1 className="title doodles-logo" style={{ margin: 0, flex: '1 1 auto' }}>Doodles</h1>
-            <div style={{ 
-              color: getConnectionStatusColor(),
-              fontSize: '0.9rem',
-              fontWeight: '600',
-              padding: '0.5rem 1rem',
-              borderRadius: '20px',
-              backgroundColor: 'rgba(255,255,255,0.1)',
-              border: `2px solid ${getConnectionStatusColor()}`,
-              whiteSpace: 'nowrap'
-            }}>
-              {getConnectionStatusText()}
-            </div>
-          </div>
-          <label>
-            Name
-            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" />
-          </label>
+    <div className="landing-page">
+      <div className="landing-card">
+        {/* Connection Status */}
+        <div className="connection-status" style={{ 
+          color: getConnectionStatusColor(),
+          borderColor: getConnectionStatusColor()
+        }}>
+          {getConnectionStatusText()}
         </div>
 
-        <div className="landing-content">
-          <div className="create-room-section">
-            <div className="section">
-              <h2>Create Room</h2>
-              <div className="settings-grid">
-                <label>
-                  Max points (first guess)
-                  <input type="number" value={maxPoints} onChange={handleNumericChange(setMaxPoints)} />
-                </label>
-                <label>
-                  Round time (seconds)
-                  <input type="number" value={roundTimeSec} onChange={handleNumericChange(setRoundTimeSec)} />
-                </label>
-                <label>
-                  Word options for drawer
-                  <input type="number" value={wordsPerRound} onChange={handleNumericChange(setWordsPerRound)} />
-                </label>
-                <label>
-                  Max letters revealed
-                  <input 
-                    type="number" 
-                    value={maxLettersRevealed} 
-                    onChange={handleNumericChange(setMaxLettersRevealed)}
-                    min="1"
-                    max="8"
-                  />
-                </label>
-                <label>
-                  Max word length
-                  <input 
-                    type="number" 
-                    value={maxWordLength} 
-                    onChange={handleNumericChange(setMaxWordLength)}
-                    min="3"
-                    max="15"
-                  />
-                </label>
-                <label>
-                  Total rounds
-                  <input 
-                    type="number" 
-                    value={totalRounds} 
-                    onChange={handleNumericChange(setTotalRounds)}
-                    min="1"
-                    max="10"
-                  />
-                </label>
-              </div>
-              <label>
-                Custom words (comma-separated)
-                <input
-                  value={customWords}
-                  onChange={(e) => setCustomWords(e.target.value)}
-                  placeholder="cat, dog, house, tree..."
-                />
-              </label>
-              <button 
-                onClick={handleCreate} 
-                className="primary-btn landing-main-btn"
-                disabled={isCreating || connectionStatus !== 'connected'}
-              >
-                {isCreating ? '🔄 Creating Room...' : 'Create Room'}
-              </button>
+        {/* Title */}
+        <h1 className="landing-title">Doodles</h1>
+
+        {/* Name Input */}
+        <div className="landing-field">
+          <label className="landing-label">Name</label>
+          <input 
+            className="landing-input"
+            value={name} 
+            onChange={(e) => setName(e.target.value)} 
+            placeholder="enter your name here...." 
+          />
+        </div>
+
+        <div className="landing-divider"></div>
+
+        {/* Create Room Section */}
+        <div className="create-section">
+          <h2 className="section-title">Create room</h2>
+          
+          <div className="settings-row">
+            <div className="setting-field">
+              <label className="setting-label">Max points</label>
+              <input 
+                className="setting-input"
+                type="number" 
+                value={maxPoints} 
+                onChange={handleNumericChange(setMaxPoints)}
+                placeholder="Enter the points here..."
+              />
+            </div>
+            <div className="setting-field">
+              <label className="setting-label">Round Time (seconds)</label>
+              <input 
+                className="setting-input"
+                type="number" 
+                value={roundTimeSec} 
+                onChange={handleNumericChange(setRoundTimeSec)}
+                placeholder="Enter the round time here.."
+              />
             </div>
           </div>
 
-          <div className="join-room-section">
-            <div className="section">
-              <h2>Join Room</h2>
-              <label>
-                Enter a room code to join
-                <input
-                  value={roomId}
-                  onChange={(e) => setRoomId(e.target.value)}
-                  placeholder="Paste or type a code like ab12cd"
-                />
-              </label>
-              <button 
-                onClick={handleJoin} 
-                className="secondary-btn landing-main-btn"
-                disabled={isJoining || connectionStatus !== 'connected' || !roomId.trim()}
-              >
-                {isJoining ? '🔄 Joining Room...' : 'Join by code'}
-              </button>
+          <div className="settings-row">
+            <div className="setting-field">
+              <label className="setting-label">Word Options</label>
+              <input 
+                className="setting-input"
+                type="number" 
+                value={wordsPerRound} 
+                onChange={handleNumericChange(setWordsPerRound)}
+                placeholder="Enter the word option.."
+              />
             </div>
+            <div className="setting-field">
+              <label className="setting-label">max letters revealed</label>
+              <input 
+                className="setting-input"
+                type="number" 
+                value={maxLettersRevealed} 
+                onChange={handleNumericChange(setMaxLettersRevealed)}
+                placeholder="Enter the max letters.."
+              />
+            </div>
+          </div>
+
+          <div className="settings-row">
+            <div className="setting-field">
+              <label className="setting-label">Max word length</label>
+              <input 
+                className="setting-input"
+                type="number" 
+                value={maxWordLength} 
+                onChange={handleNumericChange(setMaxWordLength)}
+                placeholder="Enter max word length.."
+              />
+            </div>
+            <div className="setting-field">
+              <label className="setting-label">Total rounds</label>
+              <input 
+                className="setting-input"
+                type="number" 
+                value={totalRounds} 
+                onChange={handleNumericChange(setTotalRounds)}
+                placeholder="Enter total rounds.."
+              />
+            </div>
+          </div>
+
+          <div className="setting-field full-width">
+            <label className="setting-label">Custom words (comma-separated)</label>
+            <input 
+              className="setting-input"
+              value={customWords} 
+              onChange={(e) => setCustomWords(e.target.value)}
+              placeholder="cat, dog, house, tree..."
+            />
+          </div>
+        </div>
+
+        {/* Create Room Button */}
+        <button 
+          className="create-room-btn"
+          onClick={handleCreate}
+          disabled={isCreating || connectionStatus !== 'connected'}
+        >
+          {isCreating ? '🔄 Creating...' : 'Create Room'}
+        </button>
+
+        <div className="landing-divider"></div>
+
+        {/* Join Room Section */}
+        <div className="join-section">
+          <h2 className="section-title">Join Room</h2>
+          <div className="join-row">
+            <input 
+              className="join-input"
+              value={roomCode} 
+              onChange={(e) => setRoomCode(e.target.value)}
+              placeholder="Enter room code..."
+            />
+            <button 
+              className="join-btn"
+              onClick={handleJoin}
+              disabled={isJoining || connectionStatus !== 'connected' || !roomCode.trim()}
+            >
+              {isJoining ? '🔄' : 'Join'}
+            </button>
           </div>
         </div>
       </div>
