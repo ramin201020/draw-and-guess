@@ -166,7 +166,14 @@ export function RoomPage() {
       <header className="room-header-overlay">
         <div className="room-info-compact">
           <button className="settings-icon">(settings icon)</button>
-          <span className="room-code-display">room code _____ 3</span>
+          <span 
+            className="room-code-display"
+            onClick={() => navigator.clipboard?.writeText(roomState.id)}
+            title="Click to copy room code"
+            style={{ cursor: 'pointer' }}
+          >
+            {roomState.id}
+          </span>
           <span className="room-status-info">
             {playerCount} {playerCount === 1 ? 'player' : 'players'}
             {roomState.gameState && ` • Round ${roomState.gameState.currentRoundNumber}/${roomState.gameState.totalRounds}`}
@@ -191,7 +198,9 @@ export function RoomPage() {
       </header>
 
       {/* Word Hint Bar */}
-      <WordHintBar mask={roomState.currentRound?.mask} status={roomState.status} />
+      {roomState.status === 'IN_ROUND' && roomState.currentRound?.mask && (
+        <WordHintBar mask={roomState.currentRound.mask} status={roomState.status} />
+      )}
 
       {/* Main Content Area - Three Column Layout */}
       <main className="main-content-three-column">

@@ -14,6 +14,9 @@ export function WordHintBar({ mask, status }) {
           </span>
         ))}
       </div>
+      <div className="word-length-info">
+        {mask.replace(/\s/g, '').length} letters
+      </div>
     </div>
   );
 }

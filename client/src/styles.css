@@ -674,7 +674,16 @@ input:focus {
   color: white;
   font-family: 'Courier New', monospace;
   font-weight: bold;
-  font-size: 14px;
+  font-size: 16px;
+  background: #444;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid #666;
+  transition: background-color 0.2s;
+}
+
+.room-code-display:hover {
+  background: #555;
 }
 
 .room-status-info {
@@ -869,22 +878,6 @@ input:focus {
   border-radius: 4px;
   height: 100%;
   position: relative;
-}
-
-.canvas-section-left::after {
-  content: "Drawing tools, that are minimizable";
-  position: absolute;
-  bottom: 12px;
-  left: 12px;
-  right: 12px;
-  background: #FFE5D4;
-  border: 1px solid #ccc;
-  padding: 8px;
-  font-size: 12px;
-  color: #666;
-  text-align: center;
-  border-radius: 4px;
-  z-index: 10;
 }
 
 .players-section-center {
@@ -1871,4 +1864,175 @@ input:focus {
 
 .send-btn:hover {
   background: #E67E22;
+}
+/* Drawing Toolbar at Bottom of Canvas */
+.canvas-drawing-toolbar {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  right: 8px;
+  background: #FFE5D4;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 10;
+  font-size: 11px;
+}
+
+.toolbar-minimized .canvas-drawing-toolbar {
+  display: none;
+}
+
+.canvas-drawing-toolbar.minimized {
+  width: auto;
+  right: auto;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.canvas-drawing-toolbar.minimized .toolbar-content {
+  display: none;
+}
+
+.toolbar-toggle-btn {
+  background: #FF8C42;
+  color: white;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 3px;
+  font-size: 10px;
+  cursor: pointer;
+  margin-right: 8px;
+}
+
+.toolbar-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.tool-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.tool-btn {
+  background: white;
+  border: 1px solid #ccc;
+  padding: 4px 6px;
+  border-radius: 3px;
+  font-size: 10px;
+  cursor: pointer;
+}
+
+.tool-btn.active {
+  background: #FF8C42;
+  color: white;
+  border-color: #E67E22;
+}
+
+.color-palette {
+  display: flex;
+  gap: 2px;
+}
+
+.color-btn {
+  width: 16px;
+  height: 16px;
+  border: 1px solid #333;
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+.color-btn.active {
+  border-width: 2px;
+  border-color: #000;
+}
+
+.brush-size-control {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.brush-size-slider {
+  width: 60px;
+  height: 4px;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 4px;
+}
+
+.action-btn {
+  background: #666;
+  color: white;
+  border: none;
+  padding: 4px 6px;
+  border-radius: 3px;
+  font-size: 9px;
+  cursor: pointer;
+}
+
+.action-btn:hover {
+  background: #555;
+}
+
+.clear-btn {
+  background: #ff4444;
+}
+
+.clear-btn:hover {
+  background: #cc3333;
+}
+/* Word Hint Bar Styling */
+.word-hint-bar {
+  position: fixed;
+  top: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #FFE5D4;
+  border: 2px solid #FF8C42;
+  border-radius: 8px;
+  padding: 8px 16px;
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.word-hint-display {
+  display: flex;
+  gap: 4px;
+  font-family: 'Courier New', monospace;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.hint-char {
+  display: inline-block;
+  min-width: 20px;
+  text-align: center;
+  color: #333;
+  border-bottom: 2px solid #333;
+  padding-bottom: 2px;
+}
+
+.hint-char.revealed {
+  color: #FF8C42;
+  border-bottom-color: #FF8C42;
+}
+
+.word-length-info {
+  font-size: 11px;
+  color: #666;
+  font-weight: normal;
 }
