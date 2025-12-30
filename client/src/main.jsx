@@ -1,13 +1,15 @@
 import React from 'react';
-import ReactDOM from 'react-dom/client';
+import ReactDOM from 'react-dom';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { SocketProvider } from './socket/SocketProvider';
 import { LandingPage } from './pages/LandingPage';
 import { RoomPage } from './pages/RoomPage';
 import './styles.css';
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(
+// Make React globally available for Safari compatibility
+window.React = React;
+
+ReactDOM.render(
   <React.StrictMode>
     <SocketProvider>
       <BrowserRouter>
@@ -17,5 +19,6 @@ root.render(
         </Routes>
       </BrowserRouter>
     </SocketProvider>
-  </React.StrictMode>
+  </React.StrictMode>,
+  document.getElementById('root')
 );
