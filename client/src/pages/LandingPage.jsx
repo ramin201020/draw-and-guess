@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSocket } from '../socket/SocketProvider';
 
@@ -15,7 +15,21 @@ export function LandingPage() {
   const [roomCode, setRoomCode] = useState('');
   const [isCreating, setIsCreating] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
+  const [error, setError] = useState('');
+  const [loadingProgress, setLoadingProgress] = useState(0);
   const navigate = useNavigate();
+  const createTimeoutRef = useRef(null);
+  const joinTimeoutRef = useRef(null);
+  const progressIntervalRef = useRef(null);
+
+  // Cleanup timeouts on unmount
+  useEffect(() => {
+    return () => {
+      if (createTimeoutRef.current) clearTimeout(createTimeoutRef.current);
+      if (joinTimeoutRef.current) clearTimeout(joinTimeoutRef.current);
+      if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
+    };
+  }, []);
 
   const parseNumberOrDefault = (value, defaultValue) => {
     if (value === '' || value === null || value === undefined) return defaultValue;
@@ -33,92 +47,152 @@ export function LandingPage() {
     setter(Number(value));
   };
 
-  const handleCreate = async () => {
-    if (isCreating) return;
+  const startLoadingProgress = () => {
+    setLoadingProgress(0);
+    progressIntervalRef.current = setInterval(() => {
+      setLoadingProgress(prev => {
+        if (prev >= 90) return prev;
+        return prev + 10;
+      });
+    }, 200);
+  };
+
+  const stopLoadingProgress = () => {
+    if (progressIntervalRef.current) {
+      clearInterval(progressIntervalRef.current);
+      progressIntervalRef.current = null;
+    }
+    setLoadingProgress(100);
+    setTimeout(() => setLoadingProgress(0), 300);
+  };
+
+  const handleCreate = () => {
+    // Clear any previous errors
+    setError('');
     
-    if (connectionStatus !== 'connected' || !socket || !selfId) {
-      alert(`Cannot create room: Not connected to server. Please wait for connection.`);
+    // Prevent double-clicks
+    if (isCreating) {
+      console.log('Already creating room, ignoring click');
+      return;
+    }
+    
+    // Check connection
+    if (connectionStatus !== 'connected') {
+      setError(`Not connected to server (${connectionStatus}). Please wait...`);
+      return;
+    }
+    
+    if (!socket) {
+      setError('Socket not initialized. Please refresh the page.');
+      return;
+    }
+    
+    if (!selfId) {
+      setError('Connection not ready. Please wait a moment...');
       return;
     }
 
+    console.log('🎮 Starting room creation...');
+    console.log('Socket connected:', socket.connected);
+    console.log('Self ID:', selfId);
+    
     setIsCreating(true);
+    startLoadingProgress();
 
-    try {
-      const payload = {
-        name: name || 'Host',
-        settings: {
-          maxPoints: parseNumberOrDefault(maxPoints, 300),
-          roundTimeSec: parseNumberOrDefault(roundTimeSec, 90),
-          wordsPerRound: parseNumberOrDefault(wordsPerRound, 3),
-          maxLettersRevealed: parseNumberOrDefault(maxLettersRevealed, 4),
-          maxWordLength: parseNumberOrDefault(maxWordLength, 10),
-          totalRounds: parseNumberOrDefault(totalRounds, 3),
-          customWords: customWords.split(',').map(w => w.trim()).filter(w => w.length > 0)
-        },
-      };
+    const payload = {
+      name: name.trim() || 'Host',
+      settings: {
+        maxPoints: parseNumberOrDefault(maxPoints, 300),
+        roundTimeSec: parseNumberOrDefault(roundTimeSec, 90),
+        wordsPerRound: parseNumberOrDefault(wordsPerRound, 3),
+        maxLettersRevealed: parseNumberOrDefault(maxLettersRevealed, 4),
+        maxWordLength: parseNumberOrDefault(maxWordLength, 10),
+        totalRounds: parseNumberOrDefault(totalRounds, 3),
+        customWords: customWords.split(',').map(w => w.trim()).filter(w => w.length > 0)
+      },
+    };
 
-      socket.emit('room:create', payload, (response) => {
-        setIsCreating(false);
-        
-        if (response?.ok) {
-          setRoomState(response.state);
-          localStorage.setItem('playerName', name || 'Host');
-          navigate(`/room/${response.roomId}`, { replace: true });
-        } else {
-          alert(`Could not create room: ${response?.error || 'Unknown error'}`);
-        }
-      });
+    console.log('📤 Emitting room:create with payload:', payload);
 
-      setTimeout(() => {
-        if (isCreating) {
-          setIsCreating(false);
-          alert('Room creation timed out. Please try again.');
-        }
-      }, 5000);
-
-    } catch (err) {
+    // Set timeout for room creation
+    createTimeoutRef.current = setTimeout(() => {
+      console.log('⏰ Room creation timed out');
       setIsCreating(false);
-      alert(`Could not create room: ${err.message}`);
-    }
+      stopLoadingProgress();
+      setError('Room creation timed out. Server might be slow or unavailable. Please try again.');
+    }, 10000);
+
+    socket.emit('room:create', payload, (response) => {
+      console.log('📥 Received room:create response:', response);
+      
+      // Clear timeout
+      if (createTimeoutRef.current) {
+        clearTimeout(createTimeoutRef.current);
+        createTimeoutRef.current = null;
+      }
+      
+      stopLoadingProgress();
+      setIsCreating(false);
+      
+      if (response?.ok) {
+        console.log('✅ Room created successfully:', response.roomId);
+        setRoomState(response.state);
+        localStorage.setItem('playerName', name.trim() || 'Host');
+        localStorage.setItem('currentRoomId', response.roomId);
+        navigate(`/room/${response.roomId}`, { replace: true });
+      } else {
+        console.error('❌ Room creation failed:', response);
+        setError(`Could not create room: ${response?.error || 'Unknown error'}`);
+      }
+    });
   };
 
   const handleJoin = () => {
+    setError('');
+    
     if (isJoining) return;
     
-    if (!roomCode.trim()) {
-      alert('Please enter a room code');
+    const code = roomCode.trim().toUpperCase();
+    if (!code) {
+      setError('Please enter a room code');
       return;
     }
     
-    if (!socket || !socket.connected) {
-      alert('Cannot join room: Not connected to server. Please wait for connection.');
+    if (connectionStatus !== 'connected' || !socket) {
+      setError('Not connected to server. Please wait...');
       return;
     }
 
+    console.log('🎮 Joining room:', code);
     setIsJoining(true);
+    startLoadingProgress();
 
-    socket.emit(
-      'room:join',
-      { roomId: roomCode.trim(), name: name || 'Player' },
-      (res) => {
-        setIsJoining(false);
-        
-        if (res?.ok) {
-          setRoomState(res.state);
-          localStorage.setItem('playerName', name || 'Player');
-          navigate(`/room/${roomCode.trim()}`, { replace: true });
-        } else {
-          alert(`Could not join room: ${res?.error || 'Room not found or full'}`);
-        }
-      }
-    );
+    joinTimeoutRef.current = setTimeout(() => {
+      setIsJoining(false);
+      stopLoadingProgress();
+      setError('Join request timed out. Please try again.');
+    }, 10000);
 
-    setTimeout(() => {
-      if (isJoining) {
-        setIsJoining(false);
-        alert('Join room timed out. Please try again.');
+    socket.emit('room:join', { roomId: code, name: name.trim() || 'Player' }, (res) => {
+      if (joinTimeoutRef.current) {
+        clearTimeout(joinTimeoutRef.current);
+        joinTimeoutRef.current = null;
       }
-    }, 5000);
+      
+      stopLoadingProgress();
+      setIsJoining(false);
+      
+      if (res?.ok) {
+        console.log('✅ Joined room successfully');
+        setRoomState(res.state);
+        localStorage.setItem('playerName', name.trim() || 'Player');
+        localStorage.setItem('currentRoomId', code);
+        navigate(`/room/${code}`, { replace: true });
+      } else {
+        console.error('❌ Join failed:', res);
+        setError(`Could not join room: ${res?.error || 'Room not found or full'}`);
+      }
+    });
   };
 
   const getConnectionStatusColor = () => {
@@ -145,9 +219,21 @@ export function LandingPage() {
     }
   };
 
+  const isLoading = isCreating || isJoining;
+
   return (
     <div className="landing-page">
       <div className="landing-card">
+        {/* Loading Bar */}
+        {isLoading && loadingProgress > 0 && (
+          <div className="loading-bar-container">
+            <div 
+              className="loading-bar" 
+              style={{ width: `${loadingProgress}%` }}
+            />
+          </div>
+        )}
+
         {/* Connection Status */}
         <div className="connection-status" style={{ 
           color: getConnectionStatusColor(),
@@ -159,6 +245,14 @@ export function LandingPage() {
         {/* Title */}
         <h1 className="landing-title">Doodles</h1>
 
+        {/* Error Message */}
+        {error && (
+          <div className="error-message">
+            ⚠️ {error}
+            <button className="error-dismiss" onClick={() => setError('')}>×</button>
+          </div>
+        )}
+
         {/* Name Input */}
         <div className="landing-field">
           <label className="landing-label">Name</label>
@@ -167,6 +261,7 @@ export function LandingPage() {
             value={name} 
             onChange={(e) => setName(e.target.value)} 
             placeholder="enter your name here...." 
+            disabled={isLoading}
           />
         </div>
 
@@ -185,6 +280,7 @@ export function LandingPage() {
                 value={maxPoints} 
                 onChange={handleNumericChange(setMaxPoints)}
                 placeholder="Enter the points here..."
+                disabled={isLoading}
               />
             </div>
             <div className="setting-field">
@@ -195,6 +291,7 @@ export function LandingPage() {
                 value={roundTimeSec} 
                 onChange={handleNumericChange(setRoundTimeSec)}
                 placeholder="Enter the round time here.."
+                disabled={isLoading}
               />
             </div>
           </div>
@@ -208,6 +305,7 @@ export function LandingPage() {
                 value={wordsPerRound} 
                 onChange={handleNumericChange(setWordsPerRound)}
                 placeholder="Enter the word option.."
+                disabled={isLoading}
               />
             </div>
             <div className="setting-field">
@@ -218,6 +316,7 @@ export function LandingPage() {
                 value={maxLettersRevealed} 
                 onChange={handleNumericChange(setMaxLettersRevealed)}
                 placeholder="Enter the max letters.."
+                disabled={isLoading}
               />
             </div>
           </div>
@@ -231,6 +330,7 @@ export function LandingPage() {
                 value={maxWordLength} 
                 onChange={handleNumericChange(setMaxWordLength)}
                 placeholder="Enter max word length.."
+                disabled={isLoading}
               />
             </div>
             <div className="setting-field">
@@ -241,6 +341,7 @@ export function LandingPage() {
                 value={totalRounds} 
                 onChange={handleNumericChange(setTotalRounds)}
                 placeholder="Enter total rounds.."
+                disabled={isLoading}
               />
             </div>
           </div>
@@ -252,6 +353,7 @@ export function LandingPage() {
               value={customWords} 
               onChange={(e) => setCustomWords(e.target.value)}
               placeholder="cat, dog, house, tree..."
+              disabled={isLoading}
             />
           </div>
         </div>
@@ -262,7 +364,12 @@ export function LandingPage() {
           onClick={handleCreate}
           disabled={isCreating || connectionStatus !== 'connected'}
         >
-          {isCreating ? '🔄 Creating...' : 'Create Room'}
+          {isCreating ? (
+            <>
+              <span className="spinner"></span>
+              Creating Room...
+            </>
+          ) : 'Create Room'}
         </button>
 
         <div className="landing-divider"></div>
@@ -274,15 +381,17 @@ export function LandingPage() {
             <input 
               className="join-input"
               value={roomCode} 
-              onChange={(e) => setRoomCode(e.target.value)}
+              onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
               placeholder="Enter room code..."
+              disabled={isLoading}
+              maxLength={10}
             />
             <button 
               className="join-btn"
               onClick={handleJoin}
               disabled={isJoining || connectionStatus !== 'connected' || !roomCode.trim()}
             >
-              {isJoining ? '🔄' : 'Join'}
+              {isJoining ? <span className="spinner"></span> : 'Join'}
             </button>
           </div>
         </div>
