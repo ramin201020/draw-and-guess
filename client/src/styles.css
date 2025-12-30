@@ -272,10 +272,11 @@ body {
   color: white;
   border: none;
   border-radius: 20px;
-  font-size: 0.9rem;
+  font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
   transition: background 0.2s;
+  min-width: 80px;
 }
 
 .join-btn:hover:not(:disabled) {
