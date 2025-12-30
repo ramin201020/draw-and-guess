@@ -192,18 +192,18 @@ input:focus {
   background: #D2B48C;
 }
 
-/* PC Layout for Landing Page */
+/* PC Layout for Landing Page - Force Vercel Redeploy */
 @media (min-width: 1024px) {
-  .card {
-    max-width: 1200px;
-    padding: 3rem;
+  .page.neon-bg .card {
+    max-width: 1200px !important;
+    padding: 3rem !important;
   }
   
   .landing-content {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 3rem;
-    margin-top: 2rem;
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 3rem !important;
+    margin-top: 2rem !important;
   }
   
   .landing-header {
@@ -228,8 +228,65 @@ input:focus {
   }
   
   .settings-grid {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1.5rem;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 1.5rem !important;
+  }
+  
+  .join-room-section {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+  }
+  
+  .join-room-section .section {
+    width: 100%;
+    max-width: 400px;
+  }
+  
+  .join-room-section h2 {
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .join-room-section input {
+    font-size: 1.1rem;
+    padding: 1rem;
+    text-align: center;
+    margin-bottom: 1.5rem;
+  }
+  
+  .join-room-section button {
+    font-size: 1.1rem;
+    padding: 1rem 2rem;
+  }
+}
+  
+  .landing-header {
+    grid-column: 1 / -1;
+    text-align: center;
+    margin-bottom: 1rem;
+  }
+  
+  .create-room-section,
+  .join-room-section {
+    background: rgba(255, 235, 205, 0.5);
+    border: 2px solid #FFDAB9;
+    border-radius: 12px;
+    padding: 2rem;
+  }
+  
+  .create-room-section .section,
+  .join-room-section .section {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: none;
+  }
+  
+  .settings-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 1.5rem !important;
   }
   
   .join-room-section {
