@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSocket } from '../socket/SocketProvider';
-import { DrawingCanvas } from '../ui/DrawingCanvas';
+import { DrawingCanvasContainer } from '../ui/DrawingCanvasContainer';
 import { ChatBox } from '../ui/ChatBox';
 import { PlayersSidebar } from '../ui/PlayersSidebar';
 import { WordHintBar } from '../ui/WordHintBar';
@@ -166,6 +166,13 @@ export function RoomPage() {
       <header className="room-header-overlay">
         <div className="room-info-compact">
           <div className="room-status-line">
+            <span 
+              className="doodles-logo-compact" 
+              onClick={() => navigate('/')}
+              title="Go to home page"
+            >
+              🎨 Doodles
+            </span>
             <span className="room-code-compact">{roomState.id}</span>
             <span className={`status-badge ${roomState.status.toLowerCase()}`}>
               {roomState.status === 'LOBBY' ? '⏳ Lobby' : 
@@ -222,7 +229,7 @@ export function RoomPage() {
       <main className="main-content">
         {/* Canvas Section - 50% on desktop, 70% on mobile */}
         <section className="canvas-section">
-          <DrawingCanvas 
+          <DrawingCanvasContainer 
             roomId={roomId} 
             isDrawer={isDrawer}
           />

@@ -1,25 +1,25 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSocket } from '../socket/SocketProvider';
 
-const COLORS = [
-  '#FFFFFF', '#C1C1C1', '#EF130B', '#FF7100', '#FFE400', '#00CC00',
-  '#00B2FF', '#231FD3', '#A300BA', '#D37CAA', '#A0522D', '#000000',
-  '#4C4C4C', '#740B07', '#C23800', '#E8A200', '#005510', '#00569E',
-  '#0E0865', '#550069', '#A75574', '#63300D'
-];
-
-const BRUSH_SIZES = [4, 8, 14, 22, 32];
-
-export function DrawingCanvas({ roomId, isDrawer }) {
+export function DrawingCanvas({ 
+  roomId, 
+  isDrawer, 
+  selectedTool = 'brush',
+  selectedColor = '#000000',
+  brushSize = 8,
+  backgroundColor = '#FFFFFF',
+  onClearCanvas
+}) {
   const { socket } = useSocket();
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
   
-  const [color, setColor] = useState('#000000');
-  const [brushSize, setBrushSize] = useState(8);
-  const [isErasing, setIsErasing] = useState(false);
+  // Remove local state for color, brushSize, isErasing since they come from props
   const [drawing, setDrawing] = useState(false);
   const [lastPoint, setLastPoint] = useState(null);
+
+  // Determine if we're erasing based on selectedTool prop
+  const isErasing = selectedTool === 'eraser';
 
   // Set up canvas with fixed dimensions
   useEffect(() => {
@@ -166,7 +166,7 @@ export function DrawingCanvas({ roomId, isDrawer }) {
     const ctx = canvas.getContext('2d');
     const dpr = window.devicePixelRatio || 1;
     ctx.save();
-    ctx.fillStyle = isErasing ? '#FFFFFF' : color;
+    ctx.fillStyle = isErasing ? '#FFFFFF' : selectedColor;
     ctx.beginPath();
     ctx.arc(point.x / dpr, point.y / dpr, brushSize / 2, 0, Math.PI * 2);
     ctx.fill();
@@ -187,7 +187,7 @@ export function DrawingCanvas({ roomId, isDrawer }) {
     const stroke = {
       from: lastPoint,
       to: nextPoint,
-      color: color,
+      color: selectedColor,
       width: brushSize,
       tool: isErasing ? 'ERASER' : 'BRUSH'
     };
@@ -216,11 +216,20 @@ export function DrawingCanvas({ roomId, isDrawer }) {
     
     const ctx = canvas.getContext('2d');
     const dpr = window.devicePixelRatio || 1;
-    ctx.fillStyle = '#FFFFFF';
+    ctx.fillStyle = backgroundColor;
     ctx.fillRect(0, 0, canvas.width / dpr, canvas.height / dpr);
     
     socket?.emit('draw:clear', { roomId });
   };
+
+  // Expose clearCanvas to parent component
+  React.useEffect(() => {
+    if (onClearCanvas) {
+      // This is a bit of a hack, but we need to expose the clearCanvas function
+      // In a real app, we might use useImperativeHandle or a different pattern
+      window.clearCanvasFunction = clearCanvas;
+    }
+  }, [onClearCanvas, backgroundColor, roomId, socket]);
 
   return (
     <div className="canvas-wrapper">
@@ -236,64 +245,6 @@ export function DrawingCanvas({ roomId, isDrawer }) {
           onPointerCancel={handlePointerUp}
         />
       </div>
-
-      {/* Tools - Only show for drawer */}
-      {isDrawer && (
-        <div className="canvas-tools">
-          {/* Colors */}
-          <div className="color-palette">
-            {COLORS.map((c) => (
-              <button
-                key={c}
-                className={`color-btn ${color === c && !isErasing ? 'active' : ''}`}
-                style={{ backgroundColor: c }}
-                onClick={() => { setColor(c); setIsErasing(false); }}
-              />
-            ))}
-          </div>
-
-          {/* Brush Sizes */}
-          <div className="brush-sizes">
-            {BRUSH_SIZES.map((size) => (
-              <button
-                key={size}
-                className={`size-btn ${brushSize === size ? 'active' : ''}`}
-                onClick={() => setBrushSize(size)}
-              >
-                <span 
-                  className="size-dot" 
-                  style={{ width: size, height: size }}
-                />
-              </button>
-            ))}
-          </div>
-
-          {/* Tool Buttons */}
-          <div className="tool-buttons">
-            <button
-              className={`tool-btn ${!isErasing ? 'active' : ''}`}
-              onClick={() => setIsErasing(false)}
-              title="Brush"
-            >
-              ✏️
-            </button>
-            <button
-              className={`tool-btn ${isErasing ? 'active' : ''}`}
-              onClick={() => setIsErasing(true)}
-              title="Eraser"
-            >
-              🧽
-            </button>
-            <button
-              className="tool-btn clear-btn"
-              onClick={clearCanvas}
-              title="Clear Canvas"
-            >
-              🗑️
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* Spectator hint */}
       {!isDrawer && (
