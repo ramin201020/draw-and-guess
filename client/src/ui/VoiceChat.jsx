@@ -509,13 +509,16 @@ export function VoiceChat({ roomId, selfId, players }) {
               🎤 {voiceParticipants.size}
             </span>
             {audioLevels.get(selfId) > 10 && (
-              <div className="audio-level-indicator" style={{
-                width: '20px',
-                height: '4px',
-                background: `linear-gradient(to right, #4CAF50 ${audioLevels.get(selfId)}%, #333 ${audioLevels.get(selfId)}%)`,
-                borderRadius: '2px',
-                marginLeft: '4px'
-              }} />
+              <div 
+                className="audio-level-indicator" 
+                style={{
+                  width: '20px',
+                  height: '4px',
+                  background: `linear-gradient(to right, #4CAF50 ${audioLevels.get(selfId)}%, #333 ${audioLevels.get(selfId)}%)`,
+                  borderRadius: '2px',
+                  marginLeft: '4px'
+                }} 
+              />
             )}
           </div>
           <div className="voice-controls">
