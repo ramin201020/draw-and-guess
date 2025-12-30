@@ -165,44 +165,12 @@ export function RoomPage() {
       {/* Compact Header for Mobile */}
       <header className="room-header-overlay">
         <div className="room-info-compact">
-          <div className="room-status-line">
-            <span 
-              className="doodles-logo-compact" 
-              onClick={() => navigate('/')}
-              title="Go to home page"
-            >
-              🎨 Doodles
-            </span>
-            <span className="room-code-compact">{roomState.id}</span>
-            <span className={`status-badge ${roomState.status.toLowerCase()}`}>
-              {roomState.status === 'LOBBY' ? '⏳ Lobby' : 
-               roomState.status === 'IN_ROUND' ? '🎨 Drawing' : 
-               roomState.status === 'ROUND_RESULTS' ? '📊 Results' : 
-               roomState.status === 'GAME_COMPLETE' ? '🏆 Complete' : roomState.status}
-            </span>
-            <span className="player-count">
-              {playerCount} {playerCount === 1 ? 'player' : 'players'}
-            </span>
-            {roomState.gameState && (
-              <span className="round-indicator">
-                Round {roomState.gameState.currentRoundNumber}/{roomState.gameState.totalRounds}
-              </span>
-            )}
-          </div>
-          {roomState.status === 'LOBBY' && (
-            <p className="lobby-hint-compact">Invite friends, then hit start once at least two doodlers are here.</p>
-          )}
-          {roomState.status === 'IN_ROUND' && (
-            <p className="lobby-hint-compact">
-              🎨 {isDrawer ? 'Your turn to draw!' : 
-                  roomState.players?.find(p => p.isDrawer)?.name ? 
-                  `${roomState.players.find(p => p.isDrawer).name} is drawing` : 
-                  'Someone is drawing'}
-            </p>
-          )}
-          {roomState.status === 'ROUND_RESULTS' && autoProgressCountdown && (
-            <p className="lobby-hint-compact">⏱️ Next {roomState.gameState?.currentRoundNumber >= roomState.gameState?.totalRounds ? 'game results' : 'round'} in {autoProgressCountdown}s...</p>
-          )}
+          <button className="settings-icon">(settings icon)</button>
+          <span className="room-code-display">room code _____ 3</span>
+          <span className="room-status-info">
+            {playerCount} {playerCount === 1 ? 'player' : 'players'}
+            {roomState.gameState && ` • Round ${roomState.gameState.currentRoundNumber}/${roomState.gameState.totalRounds}`}
+          </span>
         </div>
         <div className="host-controls-compact">
           <VoiceChat roomId={roomId} selfId={selfId} players={roomState.players} />
@@ -216,8 +184,8 @@ export function RoomPage() {
               )}
             </>
           )}
-          <button onClick={handleLeaveRoom} className="leave-btn compact">
-            Leave
+          <button onClick={handleLeaveRoom} className="leave-room-btn">
+            Leave room
           </button>
         </div>
       </header>

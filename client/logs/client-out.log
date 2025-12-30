@@ -209,3 +209,21 @@
 2025-12-30T19:55:28: 7:55:28 PM [vite] server restarted.
 2025-12-30T20:49:56: 8:49:55 PM [vite] vite.config.js changed, restarting server...
 2025-12-30T20:49:59: 8:49:59 PM [vite] server restarted.
+2025-12-30T21:29:25: 
+2025-12-30T21:29:25: > doodles-client@1.0.0 dev
+2025-12-30T21:29:25: > vite
+2025-12-30T21:29:25: 
+2025-12-30T21:30:01: 
+2025-12-30T21:30:01:   VITE v5.4.21  ready in 33949 ms
+2025-12-30T21:30:01: 
+2025-12-30T21:30:01:   ➜  Local:   http://localhost:5173/
+2025-12-30T21:30:01:   ➜  Network: use --host to expose
+2025-12-30T22:11:03: 
+2025-12-30T22:11:03: > doodles-client@1.0.0 dev
+2025-12-30T22:11:03: > vite
+2025-12-30T22:11:03: 
+2025-12-30T22:11:09: 
+2025-12-30T22:11:09:   VITE v5.4.21  ready in 5213 ms
+2025-12-30T22:11:09: 
+2025-12-30T22:11:09:   ➜  Local:   http://localhost:5173/
+2025-12-30T22:11:09:   ➜  Network: use --host to expose
