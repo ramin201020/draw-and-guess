@@ -13,10 +13,8 @@ export function SocketProvider({ children }) {
 
   useEffect(() => {
     console.log('🔄 SocketProvider useEffect triggered - starting connection process');
-    // Use proxy in development for socket connection
-    const backendUrl = import.meta.env.PROD 
-      ? (import.meta.env.VITE_BACKEND_URL || 'http://localhost:4000')
-      : 'http://localhost:4000'; // Direct connection in development
+    // Hardcoded backend URL for production
+    const backendUrl = 'https://doodles-giok.onrender.com';
     
     console.log('🚀 SocketProvider useEffect triggered');
     console.log('🌐 Attempting to connect to:', backendUrl);
