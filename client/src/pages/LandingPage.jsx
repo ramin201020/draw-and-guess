@@ -5,46 +5,82 @@ import { useSocket } from '../socket/SocketProvider';
 export function LandingPage() {
   const { socket, selfId, connectionStatus, setRoomState } = useSocket();
   const [name, setName] = useState('');
-  const [maxPoints, setMaxPoints] = useState(300);
-  const [roundTimeSec, setRoundTimeSec] = useState(90);
-  const [totalRounds, setTotalRounds] = useState(3);
   const [roomCode, setRoomCode] = useState('');
   const [isCreating, setIsCreating] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
   const [error, setError] = useState('');
+  const [showSettings, setShowSettings] = useState(false);
+  
+  // Settings
+  const [maxPoints, setMaxPoints] = useState(300);
+  const [roundTimeSec, setRoundTimeSec] = useState(90);
+  const [wordsPerRound, setWordsPerRound] = useState(3);
+  const [maxLettersRevealed, setMaxLettersRevealed] = useState(4);
+  const [maxWordLength, setMaxWordLength] = useState(10);
+  const [totalRounds, setTotalRounds] = useState(3);
+  const [customWords, setCustomWords] = useState('');
+  const [maxPlayers, setMaxPlayers] = useState(12);
+  
   const navigate = useNavigate();
 
-  const handleCreate = () => {
+  const handleCreateRoom = () => {
     setError('');
-    if (isCreating || connectionStatus !== 'connected' || !socket) {
-      setError('Not connected. Please wait...');
+    
+    if (connectionStatus !== 'connected' || !socket || !selfId) {
+      setError('Not connected to server. Please wait...');
       return;
     }
 
     setIsCreating(true);
+    console.log('🎮 Creating room with socket:', socket.id);
     
-    socket.emit('room:create', {
+    const payload = {
       name: name.trim() || 'Host',
-      settings: { maxPoints, roundTimeSec, totalRounds, wordsPerRound: 3, maxLettersRevealed: 4, maxWordLength: 10 }
-    }, (res) => {
+      settings: {
+        maxPoints: Number(maxPoints) || 300,
+        roundTimeSec: Number(roundTimeSec) || 90,
+        wordsPerRound: Number(wordsPerRound) || 3,
+        maxLettersRevealed: Number(maxLettersRevealed) || 4,
+        maxWordLength: Number(maxWordLength) || 10,
+        totalRounds: Number(totalRounds) || 3,
+        maxPlayers: Number(maxPlayers) || 12,
+        customWords: customWords.split(',').map(w => w.trim()).filter(w => w.length > 0)
+      }
+    };
+
+    console.log('📤 Sending payload:', payload);
+
+    socket.emit('room:create', payload, (response) => {
+      console.log('📥 Response:', response);
       setIsCreating(false);
-      if (res?.ok) {
-        setRoomState(res.state);
-        localStorage.setItem('playerName', name.trim() || 'Host');
-        navigate(`/room/${res.roomId}`, { replace: true });
+      setShowSettings(false);
+      
+      if (response?.ok) {
+        console.log('✅ Room created:', response.roomId);
+        setRoomState(response.state);
+        localStorage.setItem('playerName', payload.name);
+        localStorage.setItem('currentRoomId', response.roomId);
+        navigate(`/room/${response.roomId}`, { replace: true });
       } else {
-        setError(res?.error || 'Failed to create room');
+        console.error('❌ Failed:', response);
+        setError(`Failed to create room: ${response?.error || 'Unknown error'}`);
       }
     });
 
-    setTimeout(() => { if (isCreating) { setIsCreating(false); setError('Timeout - try again'); } }, 15000);
+    // Timeout
+    setTimeout(() => {
+      if (isCreating) {
+        setIsCreating(false);
+        setError('Room creation timed out. Please try again.');
+      }
+    }, 15000);
   };
 
   const handleJoin = () => {
     setError('');
     const code = roomCode.trim().toUpperCase();
     if (!code) { setError('Enter a room code'); return; }
-    if (isJoining || connectionStatus !== 'connected' || !socket) { setError('Not connected'); return; }
+    if (connectionStatus !== 'connected' || !socket) { setError('Not connected'); return; }
 
     setIsJoining(true);
     
@@ -53,6 +89,7 @@ export function LandingPage() {
       if (res?.ok) {
         setRoomState(res.state);
         localStorage.setItem('playerName', name.trim() || 'Player');
+        localStorage.setItem('currentRoomId', code);
         navigate(`/room/${code}`, { replace: true });
       } else {
         setError(res?.error || 'Room not found');
@@ -82,24 +119,12 @@ export function LandingPage() {
 
         <div className="landing-divider"></div>
 
-        <h2 className="section-title">Create Room</h2>
-        <div className="settings-row">
-          <div className="setting-field">
-            <label className="setting-label">Max Points</label>
-            <input className="setting-input" type="number" value={maxPoints} onChange={(e) => setMaxPoints(Number(e.target.value) || 300)} />
-          </div>
-          <div className="setting-field">
-            <label className="setting-label">Round Time (sec)</label>
-            <input className="setting-input" type="number" value={roundTimeSec} onChange={(e) => setRoundTimeSec(Number(e.target.value) || 90)} />
-          </div>
-          <div className="setting-field">
-            <label className="setting-label">Total Rounds</label>
-            <input className="setting-input" type="number" value={totalRounds} onChange={(e) => setTotalRounds(Number(e.target.value) || 3)} />
-          </div>
-        </div>
-
-        <button className="create-room-btn" onClick={handleCreate} disabled={isCreating || connectionStatus !== 'connected'}>
-          {isCreating ? 'Creating...' : 'Create Room'}
+        <button 
+          className="create-room-btn" 
+          onClick={() => setShowSettings(true)} 
+          disabled={connectionStatus !== 'connected'}
+        >
+          Create Room
         </button>
 
         <div className="landing-divider"></div>
@@ -112,6 +137,78 @@ export function LandingPage() {
           </button>
         </div>
       </div>
+
+      {/* Settings Popup */}
+      {showSettings && (
+        <div className="modal-backdrop" onClick={() => setShowSettings(false)}>
+          <div className="settings-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Room Settings</h2>
+              <button className="close-btn" onClick={() => setShowSettings(false)}>×</button>
+            </div>
+            
+            <div className="modal-content">
+              <div className="settings-grid">
+                <div className="setting-group">
+                  <label>Max Points (first guess)</label>
+                  <input type="number" value={maxPoints} onChange={(e) => setMaxPoints(e.target.value)} />
+                </div>
+                
+                <div className="setting-group">
+                  <label>Round Time (seconds)</label>
+                  <input type="number" value={roundTimeSec} onChange={(e) => setRoundTimeSec(e.target.value)} />
+                </div>
+                
+                <div className="setting-group">
+                  <label>Word Options for Drawer</label>
+                  <input type="number" value={wordsPerRound} onChange={(e) => setWordsPerRound(e.target.value)} />
+                </div>
+                
+                <div className="setting-group">
+                  <label>Max Letters Revealed</label>
+                  <input type="number" value={maxLettersRevealed} onChange={(e) => setMaxLettersRevealed(e.target.value)} />
+                </div>
+                
+                <div className="setting-group">
+                  <label>Max Word Length</label>
+                  <input type="number" value={maxWordLength} onChange={(e) => setMaxWordLength(e.target.value)} />
+                </div>
+                
+                <div className="setting-group">
+                  <label>Total Rounds</label>
+                  <input type="number" value={totalRounds} onChange={(e) => setTotalRounds(e.target.value)} />
+                </div>
+                
+                <div className="setting-group">
+                  <label>Max Players</label>
+                  <input type="number" value={maxPlayers} onChange={(e) => setMaxPlayers(e.target.value)} />
+                </div>
+              </div>
+              
+              <div className="setting-group full-width">
+                <label>Custom Words (comma-separated)</label>
+                <textarea 
+                  value={customWords} 
+                  onChange={(e) => setCustomWords(e.target.value)}
+                  placeholder="cat, dog, house, tree, car, book..."
+                  rows="3"
+                />
+              </div>
+            </div>
+            
+            <div className="modal-footer">
+              <button className="cancel-btn" onClick={() => setShowSettings(false)}>Cancel</button>
+              <button 
+                className="create-btn" 
+                onClick={handleCreateRoom}
+                disabled={isCreating}
+              >
+                {isCreating ? 'Creating...' : 'Create Room'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

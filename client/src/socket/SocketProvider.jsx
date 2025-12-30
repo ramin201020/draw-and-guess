@@ -21,12 +21,14 @@ export function SocketProvider({ children }) {
       reconnection: true,
       reconnectionAttempts: 10,
       reconnectionDelay: 1000,
+      forceNew: true,
+      withCredentials: true
     });
 
     setSocket(s);
 
     s.on('connect', () => {
-      console.log('✅ Connected:', s.id);
+      console.log('✅ Connected with ID:', s.id);
       setSelfId(s.id);
       setConnectionStatus('connected');
     });
@@ -38,7 +40,7 @@ export function SocketProvider({ children }) {
     });
 
     s.on('connect_error', (error) => {
-      console.error('🔥 Connection error:', error.message);
+      console.error('🔥 Connection error:', error.message, error.type);
       setConnectionStatus('error');
     });
 

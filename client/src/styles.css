@@ -103,6 +103,164 @@ body {
   to { transform: rotate(360deg); }
 }
 
+/* Settings Modal */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.settings-modal {
+  background: #FFF8F0;
+  border: 3px solid #FF8C00;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 2px solid #FFDAB9;
+}
+
+.modal-header h2 {
+  margin: 0;
+  color: #D2691E;
+  font-size: 1.5rem;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 2rem;
+  color: #8B7355;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
+
+.close-btn:hover {
+  color: #FF8C00;
+}
+
+.modal-content {
+  padding: 1.5rem;
+}
+
+.settings-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.setting-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.setting-group.full-width {
+  grid-column: 1 / -1;
+}
+
+.setting-group label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #4a3728;
+  margin-bottom: 0.5rem;
+}
+
+.setting-group input,
+.setting-group textarea {
+  padding: 0.75rem;
+  border: 2px solid #DEB887;
+  border-radius: 8px;
+  background: #FFFAF5;
+  color: #4a3728;
+  font-size: 1rem;
+}
+
+.setting-group input:focus,
+.setting-group textarea:focus {
+  outline: none;
+  border-color: #FF8C00;
+}
+
+.setting-group textarea {
+  resize: vertical;
+  font-family: inherit;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  padding: 1.5rem;
+  border-top: 2px solid #FFDAB9;
+}
+
+.cancel-btn,
+.create-btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.cancel-btn {
+  background: #DEB887;
+  color: #4a3728;
+}
+
+.cancel-btn:hover {
+  background: #D2B48C;
+}
+
+.create-btn {
+  background: #FF8C00;
+  color: white;
+}
+
+.create-btn:hover:not(:disabled) {
+  background: #FF7700;
+}
+
+.create-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 600px) {
+  .settings-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .modal-footer {
+    flex-direction: column;
+  }
+  
+  .cancel-btn,
+  .create-btn {
+    width: 100%;
+  }
+}
+
 .connection-status {
   position: absolute;
   top: 1rem;
