@@ -140,7 +140,7 @@ export function RoomPage() {
   const isRoundActive = roomState.status === 'IN_ROUND' && roomState.currentRound?.endsAt;
 
   return (
-    <div className="page room-page room-layout-no-sidebar">
+    <div className="page room-page room-layout-three-column">
       {/* Timer - show during active rounds or auto-progress countdown */}
       {(isRoundActive || autoProgressCountdown) && (
         <Timer 
@@ -225,23 +225,27 @@ export function RoomPage() {
       {/* Word Hint Bar */}
       <WordHintBar mask={roomState.currentRound?.mask} status={roomState.status} />
 
-      {/* Main Content Area */}
-      <main className="main-content">
-        {/* Canvas Section - 50% on desktop, 70% on mobile */}
-        <section className="canvas-section">
+      {/* Main Content Area - Three Column Layout */}
+      <main className="main-content-three-column">
+        {/* Left: Canvas Section */}
+        <section className="canvas-section-left">
           <DrawingCanvasContainer 
             roomId={roomId} 
             isDrawer={isDrawer}
           />
         </section>
 
-        {/* Desktop Chat Section - 50% on desktop, hidden on mobile */}
-        <section className="desktop-chat-section">
+        {/* Center: Players Sidebar */}
+        <section className="players-section-center">
           <PlayersSidebar room={roomState} selfId={selfId} roomId={roomId} />
+        </section>
+
+        {/* Right: Chat Section */}
+        <section className="chat-section-right">
           <ChatBox roomId={roomId} />
         </section>
 
-        {/* Mobile Bottom Panel - Hidden on desktop, 30% on mobile */}
+        {/* Mobile Bottom Panel - Hidden on desktop, shown on mobile */}
         <div className="mobile-bottom-panel">
           <PlayersSidebar room={roomState} selfId={selfId} roomId={roomId} />
           <ChatBox roomId={roomId} />
