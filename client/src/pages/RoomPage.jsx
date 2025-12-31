@@ -129,8 +129,9 @@ export function RoomPage() {
   if (!roomState) {
     return (
       <div className="page neon-bg">
-        <div className="card">
-          <p>Connecting to room...</p>
+        <div className="card loading-card">
+          <div className="loading-spinner"></div>
+          <p className="loading-text">Connecting to room...</p>
         </div>
       </div>
     );
@@ -225,6 +226,7 @@ export function RoomPage() {
         {/* Mobile Bottom Panel - Tabbed interface for chat/players */}
         <div className="mobile-bottom-panel">
           <div className="mobile-tabs">
+            <div className={`mobile-tabs-indicator ${mobileTab}`}></div>
             <button 
               className={`mobile-tab ${mobileTab === 'chat' ? 'active' : ''}`}
               onClick={() => setMobileTab('chat')}

@@ -93,13 +93,13 @@ export function LandingPage() {
     setTimeout(() => { if (isJoining) { setIsJoining(false); setError('Timeout'); } }, 15000);
   };
 
-  const statusColor = connectionStatus === 'connected' ? '#4ade80' : connectionStatus === 'connecting' ? '#fbbf24' : '#ef4444';
+  const statusClass = connectionStatus === 'connected' ? 'connected' : connectionStatus === 'connecting' ? 'connecting' : 'disconnected';
 
   return (
     <div className="landing-page">
       <div className="landing-card">
-        <div className="connection-status" style={{ color: statusColor, borderColor: statusColor }}>
-          {connectionStatus === 'connected' ? '🟢 Connected' : connectionStatus === 'connecting' ? '🟡 Connecting...' : '🔴 ' + connectionStatus}
+        <div className={`connection-status ${statusClass}`}>
+          {connectionStatus === 'connected' ? '● Connected' : connectionStatus === 'connecting' ? '● Connecting...' : '● ' + connectionStatus}
         </div>
 
         <h1 className="landing-title">Doodles</h1>
