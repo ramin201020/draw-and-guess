@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSocket } from '../socket/SocketProvider';
 import { DrawingCanvasContainer } from '../ui/DrawingCanvasContainer';
@@ -19,6 +19,9 @@ export function RoomPage() {
   const [lastRoundWord, setLastRoundWord] = useState('');
   const [autoProgressCountdown, setAutoProgressCountdown] = useState(null);
   const [mobileTab, setMobileTab] = useState('chat'); // 'chat' or 'players'
+  const [currentWord, setCurrentWord] = useState(''); // The actual word for drawer
+  const [showDrawerResults, setShowDrawerResults] = useState(false);
+  const [drawerResultsData, setDrawerResultsData] = useState(null);
 
   const me = useMemo(() => roomState?.players?.find((p) => p.id === selfId) || null, [roomState, selfId]);
   const isHost = !!me?.isHost;
@@ -32,17 +35,32 @@ export function RoomPage() {
       setWordOptions(opts || []);
     };
     
-    const handleRoundStart = () => {
+    const handleRoundStart = ({ mask }) => {
       setPendingSelection(null);
       setWordOptions([]);
       setShowResults(false);
+      setShowDrawerResults(false);
     };
     
-    const handleDrawerTurnEnd = ({ word, state }) => {
+    const handleDrawerTurnEnd = ({ word, state, drawerId }) => {
       setLastRoundWord(word || '');
-      if (state?.gameState?.allDrawersCompleted) {
-        setShowResults(true);
-      }
+      setCurrentWord('');
+      
+      // Show drawer results for 6 seconds
+      setDrawerResultsData({
+        word,
+        players: state?.players || roomState?.players || [],
+        drawerName: state?.players?.find(p => p.id === drawerId)?.name || 'Drawer'
+      });
+      setShowDrawerResults(true);
+      
+      // Auto-hide after 6 seconds
+      setTimeout(() => {
+        setShowDrawerResults(false);
+        if (state?.gameState?.allDrawersCompleted) {
+          setShowResults(true);
+        }
+      }, 6000);
     };
     
     const handleRoundComplete = () => {
@@ -124,6 +142,7 @@ export function RoomPage() {
     if (!socket) return;
     socket.emit('round:selectWord', { roomId, word });
     setPendingSelection(word);
+    setCurrentWord(word); // Store the word for the drawer
   };
 
   if (!roomState) {
@@ -140,6 +159,10 @@ export function RoomPage() {
   const playerCount = roomState.players?.length || 0;
   const canStart = isHost && roomState.status === 'LOBBY' && playerCount >= 2;
   const isRoundActive = roomState.status === 'IN_ROUND' && roomState.currentRound?.endsAt;
+  
+  // Get current drawer info
+  const currentDrawer = roomState.players?.find(p => p.isDrawer);
+  const isChoosingWord = isRoundActive && !roomState.currentRound?.mask?.some(c => c !== '_' && c !== ' ') && wordOptions.length === 0 && !currentWord;
 
   return (
     <div className="page room-page room-layout-three-column">
@@ -168,14 +191,16 @@ export function RoomPage() {
       {/* Compact Header for Mobile */}
       <header className="room-header-overlay">
         <div className="room-info-compact">
-          <span 
-            className="room-code-display"
-            onClick={() => navigator.clipboard?.writeText(roomState.id)}
+          <div 
+            className="room-code-container"
+            onClick={() => {
+              navigator.clipboard?.writeText(roomState.id);
+            }}
             title="Click to copy room code"
-            style={{ cursor: 'pointer' }}
           >
-            {roomState.id}
-          </span>
+            <span className="room-code-display">{roomState.id}</span>
+            <span className="copy-icon">📋</span>
+          </div>
           <span className="room-status-info">
             {playerCount} {playerCount === 1 ? 'player' : 'players'}
             {roomState.gameState && ` • Round ${roomState.gameState.currentRoundNumber}/${roomState.gameState.totalRounds}`}
@@ -200,8 +225,51 @@ export function RoomPage() {
       </header>
 
       {/* Word Hint Bar */}
-      {roomState.status === 'IN_ROUND' && Array.isArray(roomState.currentRound?.mask) && roomState.currentRound.mask.length > 0 && (
-        <WordHintBar mask={roomState.currentRound.mask} status={roomState.status} />
+      {(roomState.status === 'IN_ROUND' || (isDrawer && wordOptions.length > 0)) && (
+        <WordHintBar 
+          mask={roomState.currentRound?.mask} 
+          status={roomState.status}
+          isDrawer={isDrawer}
+          word={currentWord}
+          drawerName={currentDrawer?.name}
+          isChoosingWord={isDrawer && wordOptions.length > 0}
+        />
+      )}
+      
+      {/* Show "choosing word" for non-drawers */}
+      {roomState.status === 'IN_ROUND' && !isDrawer && !roomState.currentRound?.mask && (
+        <WordHintBar 
+          mask={null} 
+          status={roomState.status}
+          isDrawer={false}
+          drawerName={currentDrawer?.name}
+          isChoosingWord={true}
+        />
+      )}
+
+      {/* Drawer Turn Results - shows for 6 seconds after each drawer */}
+      {showDrawerResults && drawerResultsData && (
+        <div className="drawer-results-overlay">
+          <div className="drawer-results-modal">
+            <h3>Turn Complete!</h3>
+            <div className="drawer-results-word">
+              The word was: <strong>{drawerResultsData.word?.toUpperCase()}</strong>
+            </div>
+            <div className="drawer-results-scores">
+              {[...drawerResultsData.players]
+                .sort((a, b) => b.score - a.score)
+                .slice(0, 8)
+                .map((player, index) => (
+                  <div key={player.id} className="drawer-result-player">
+                    <span className="result-rank">#{index + 1}</span>
+                    <span className="result-avatar">{player.avatar || '👤'}</span>
+                    <span className="result-name">{player.name}</span>
+                    <span className="result-score">{player.score} pts</span>
+                  </div>
+                ))}
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Main Content Area - Three Column Layout */}

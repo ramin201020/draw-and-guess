@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSocket } from '../socket/SocketProvider';
 
 export function DrawingCanvas({ 
@@ -8,17 +8,17 @@ export function DrawingCanvas({
   selectedColor = '#000000',
   brushSize = 8,
   backgroundColor = '#FFFFFF',
-  onClearCanvas
+  onClearCanvas,
+  onUndoAvailable
 }) {
   const { socket } = useSocket();
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
   
-  // Remove local state for color, brushSize, isErasing since they come from props
   const [drawing, setDrawing] = useState(false);
-  const [lastPoint, setLastPoint] = useState(null);
-
-  // Determine if we're erasing based on selectedTool prop
+  const [currentStroke, setCurrentStroke] = useState([]); // Points in current stroke
+  const [strokeHistory, setStrokeHistory] = useState([]); // All completed strokes for undo
+  
   const isErasing = selectedTool === 'eraser';
 
   // Set up canvas with fixed dimensions
@@ -31,26 +31,19 @@ export function DrawingCanvas({
       const rect = container.getBoundingClientRect();
       const dpr = window.devicePixelRatio || 1;
       
-      // Set display size
       canvas.style.width = rect.width + 'px';
       canvas.style.height = rect.height + 'px';
-      
-      // Set actual size in memory
       canvas.width = rect.width * dpr;
       canvas.height = rect.height * dpr;
       
-      // Scale context to match DPR
       const ctx = canvas.getContext('2d');
       ctx.scale(dpr, dpr);
-      
-      // Fill with white background
       ctx.fillStyle = '#FFFFFF';
       ctx.fillRect(0, 0, rect.width, rect.height);
     };
 
     setupCanvas();
     
-    // Only resize on window resize, not continuously
     let resizeTimeout;
     const handleResize = () => {
       clearTimeout(resizeTimeout);
@@ -64,31 +57,90 @@ export function DrawingCanvas({
     };
   }, []);
 
-  // Draw stroke function
-  const drawStroke = useCallback((ctx, stroke) => {
-    if (!ctx || !stroke) return;
+  // Draw a smooth curve through points using quadratic bezier curves
+  const drawSmoothStroke = useCallback((ctx, points, color, width, tool) => {
+    if (!ctx || !points || points.length < 2) return;
     
     const dpr = window.devicePixelRatio || 1;
     
     ctx.save();
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
-    ctx.lineWidth = stroke.width;
+    ctx.lineWidth = width;
     
-    if (stroke.tool === 'ERASER') {
+    if (tool === 'ERASER') {
       ctx.globalCompositeOperation = 'destination-out';
       ctx.strokeStyle = 'rgba(255,255,255,1)';
     } else {
       ctx.globalCompositeOperation = 'source-over';
-      ctx.strokeStyle = stroke.color;
+      ctx.strokeStyle = color;
     }
     
     ctx.beginPath();
-    ctx.moveTo(stroke.from.x / dpr, stroke.from.y / dpr);
-    ctx.lineTo(stroke.to.x / dpr, stroke.to.y / dpr);
+    
+    // Move to first point
+    ctx.moveTo(points[0].x / dpr, points[0].y / dpr);
+    
+    // Use quadratic curves for smooth lines
+    for (let i = 1; i < points.length - 1; i++) {
+      const xc = (points[i].x / dpr + points[i + 1].x / dpr) / 2;
+      const yc = (points[i].y / dpr + points[i + 1].y / dpr) / 2;
+      ctx.quadraticCurveTo(points[i].x / dpr, points[i].y / dpr, xc, yc);
+    }
+    
+    // Draw to the last point
+    if (points.length > 1) {
+      const lastPoint = points[points.length - 1];
+      ctx.lineTo(lastPoint.x / dpr, lastPoint.y / dpr);
+    }
+    
     ctx.stroke();
     ctx.restore();
   }, []);
+
+  // Draw a single line segment (for real-time updates)
+  const drawLineSegment = useCallback((ctx, from, to, color, width, tool) => {
+    if (!ctx || !from || !to) return;
+    
+    const dpr = window.devicePixelRatio || 1;
+    
+    ctx.save();
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.lineWidth = width;
+    
+    if (tool === 'ERASER') {
+      ctx.globalCompositeOperation = 'destination-out';
+      ctx.strokeStyle = 'rgba(255,255,255,1)';
+    } else {
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.strokeStyle = color;
+    }
+    
+    ctx.beginPath();
+    ctx.moveTo(from.x / dpr, from.y / dpr);
+    ctx.lineTo(to.x / dpr, to.y / dpr);
+    ctx.stroke();
+    ctx.restore();
+  }, []);
+
+  // Redraw entire canvas from stroke history
+  const redrawCanvas = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    
+    // Clear canvas
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(0, 0, canvas.width / dpr, canvas.height / dpr);
+    
+    // Redraw all strokes
+    strokeHistory.forEach(stroke => {
+      drawSmoothStroke(ctx, stroke.points, stroke.color, stroke.width, stroke.tool);
+    });
+  }, [strokeHistory, drawSmoothStroke]);
 
   // Socket event handlers
   useEffect(() => {
@@ -99,7 +151,13 @@ export function DrawingCanvas({
       const canvas = canvasRef.current;
       if (!canvas || !stroke) return;
       const ctx = canvas.getContext('2d');
-      drawStroke(ctx, stroke, canvas.width);
+      
+      // Handle both old format (from/to) and new format (points array)
+      if (stroke.points) {
+        drawSmoothStroke(ctx, stroke.points, stroke.color, stroke.width, stroke.tool);
+      } else if (stroke.from && stroke.to) {
+        drawLineSegment(ctx, stroke.from, stroke.to, stroke.color, stroke.width, stroke.tool);
+      }
     };
     
     const handleClear = () => {
@@ -109,24 +167,41 @@ export function DrawingCanvas({
       const dpr = window.devicePixelRatio || 1;
       ctx.fillStyle = '#FFFFFF';
       ctx.fillRect(0, 0, canvas.width / dpr, canvas.height / dpr);
+      setStrokeHistory([]);
+    };
+
+    const handleUndo = () => {
+      setStrokeHistory(prev => prev.slice(0, -1));
     };
     
     socket.on('draw:stroke', handleIncomingStroke);
     socket.on('draw:clear', handleClear);
+    socket.on('draw:undo', handleUndo);
     
     return () => {
       socket.off('draw:stroke', handleIncomingStroke);
       socket.off('draw:clear', handleClear);
+      socket.off('draw:undo', handleUndo);
     };
-  }, [socket, drawStroke]);
+  }, [socket, drawSmoothStroke, drawLineSegment]);
 
-  // Emit stroke to server
+  // Redraw when stroke history changes (for undo)
+  useEffect(() => {
+    redrawCanvas();
+  }, [strokeHistory, redrawCanvas]);
+
+  // Notify parent about undo availability
+  useEffect(() => {
+    if (onUndoAvailable) {
+      onUndoAvailable(strokeHistory.length > 0);
+    }
+  }, [strokeHistory.length, onUndoAvailable]);
+
   const emitStroke = useCallback((stroke) => {
     if (!socket) return;
     socket.emit('draw:stroke', { roomId, stroke });
   }, [socket, roomId]);
 
-  // Get canvas coordinates from event
   const getCanvasPoint = (event) => {
     const canvas = canvasRef.current;
     if (!canvas) return null;
@@ -134,7 +209,6 @@ export function DrawingCanvas({
     const rect = canvas.getBoundingClientRect();
     const dpr = window.devicePixelRatio || 1;
     
-    // Handle both mouse and touch events
     const clientX = event.touches ? event.touches[0].clientX : event.clientX;
     const clientY = event.touches ? event.touches[0].clientY : event.clientY;
     
@@ -144,7 +218,6 @@ export function DrawingCanvas({
     };
   };
 
-  // Drawing handlers
   const handlePointerDown = (event) => {
     if (!isDrawer) return;
     event.preventDefault();
@@ -160,7 +233,7 @@ export function DrawingCanvas({
     if (!point) return;
     
     setDrawing(true);
-    setLastPoint(point);
+    setCurrentStroke([point]);
     
     // Draw a dot for single clicks
     const ctx = canvas.getContext('2d');
@@ -174,7 +247,7 @@ export function DrawingCanvas({
   };
 
   const handlePointerMove = (event) => {
-    if (!drawing || !lastPoint || !isDrawer) return;
+    if (!drawing || !isDrawer) return;
     event.preventDefault();
     
     const canvas = canvasRef.current;
@@ -184,17 +257,31 @@ export function DrawingCanvas({
     const nextPoint = getCanvasPoint(event);
     if (!nextPoint) return;
     
-    const stroke = {
-      from: lastPoint,
-      to: nextPoint,
-      color: selectedColor,
-      width: brushSize,
-      tool: isErasing ? 'ERASER' : 'BRUSH'
-    };
+    // Add point to current stroke
+    setCurrentStroke(prev => {
+      const newStroke = [...prev, nextPoint];
+      
+      // Draw smooth curve through all points so far
+      if (newStroke.length >= 2) {
+        // Clear and redraw for smooth curves
+        redrawCanvas();
+        drawSmoothStroke(ctx, newStroke, selectedColor, brushSize, isErasing ? 'ERASER' : 'BRUSH');
+      }
+      
+      return newStroke;
+    });
     
-    drawStroke(ctx, stroke, canvas.width);
-    emitStroke(stroke);
-    setLastPoint(nextPoint);
+    // Emit individual segment for real-time sync
+    if (currentStroke.length > 0) {
+      const lastPoint = currentStroke[currentStroke.length - 1];
+      emitStroke({
+        from: lastPoint,
+        to: nextPoint,
+        color: selectedColor,
+        width: brushSize,
+        tool: isErasing ? 'ERASER' : 'BRUSH'
+      });
+    }
   };
 
   const handlePointerUp = (event) => {
@@ -205,12 +292,23 @@ export function DrawingCanvas({
       canvas.releasePointerCapture(event.pointerId);
     }
     
+    // Save completed stroke to history
+    if (currentStroke.length > 0) {
+      const completedStroke = {
+        points: currentStroke,
+        color: selectedColor,
+        width: brushSize,
+        tool: isErasing ? 'ERASER' : 'BRUSH'
+      };
+      setStrokeHistory(prev => [...prev, completedStroke]);
+    }
+    
     setDrawing(false);
-    setLastPoint(null);
+    setCurrentStroke([]);
   };
 
   // Clear canvas
-  const clearCanvas = () => {
+  const clearCanvas = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     
@@ -219,21 +317,26 @@ export function DrawingCanvas({
     ctx.fillStyle = backgroundColor;
     ctx.fillRect(0, 0, canvas.width / dpr, canvas.height / dpr);
     
+    setStrokeHistory([]);
     socket?.emit('draw:clear', { roomId });
-  };
+  }, [backgroundColor, roomId, socket]);
 
-  // Expose clearCanvas to parent component
-  React.useEffect(() => {
-    if (onClearCanvas) {
-      // This is a bit of a hack, but we need to expose the clearCanvas function
-      // In a real app, we might use useImperativeHandle or a different pattern
-      window.clearCanvasFunction = clearCanvas;
-    }
-  }, [onClearCanvas, backgroundColor, roomId, socket]);
+  // Undo last stroke
+  const undoLastStroke = useCallback(() => {
+    if (strokeHistory.length === 0) return;
+    
+    setStrokeHistory(prev => prev.slice(0, -1));
+    socket?.emit('draw:undo', { roomId });
+  }, [strokeHistory.length, roomId, socket]);
+
+  // Expose functions to parent component
+  useEffect(() => {
+    window.clearCanvasFunction = clearCanvas;
+    window.undoCanvasFunction = undoLastStroke;
+  }, [clearCanvas, undoLastStroke]);
 
   return (
     <div className="canvas-wrapper">
-      {/* Canvas */}
       <div className="canvas-container" ref={containerRef}>
         <canvas
           ref={canvasRef}
@@ -246,7 +349,6 @@ export function DrawingCanvas({
         />
       </div>
 
-      {/* Spectator hint */}
       {!isDrawer && (
         <div className="spectator-hint">
           Type your guess in the chat →

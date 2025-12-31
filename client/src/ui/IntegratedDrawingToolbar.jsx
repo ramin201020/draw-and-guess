@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 const COLORS = [
   '#FF8C42', '#FFE5D4', '#E67E22', '#FFF8F3', // Theme colors first

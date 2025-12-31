@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { DrawingCanvas } from './DrawingCanvas';
 import { CanvasDrawingToolbar } from './CanvasDrawingToolbar';
 
@@ -6,6 +6,7 @@ export function DrawingCanvasContainer({ roomId, isDrawer }) {
   const [selectedTool, setSelectedTool] = useState('brush');
   const [selectedColor, setSelectedColor] = useState('#000000');
   const [brushSize, setBrushSize] = useState(8);
+  const [canUndo, setCanUndo] = useState(false);
   const canvasRef = useRef(null);
 
   const handleToolChange = (tool) => {
@@ -26,6 +27,16 @@ export function DrawingCanvasContainer({ roomId, isDrawer }) {
     }
   };
 
+  const handleUndo = () => {
+    if (window.undoCanvasFunction) {
+      window.undoCanvasFunction();
+    }
+  };
+
+  const handleUndoAvailable = (available) => {
+    setCanUndo(available);
+  };
+
   return (
     <div className="drawing-canvas-container">
       <DrawingCanvas 
@@ -36,6 +47,7 @@ export function DrawingCanvasContainer({ roomId, isDrawer }) {
         selectedColor={selectedColor}
         brushSize={brushSize}
         onClearCanvas={handleClearCanvas}
+        onUndoAvailable={handleUndoAvailable}
       />
       
       <CanvasDrawingToolbar
@@ -47,6 +59,8 @@ export function DrawingCanvasContainer({ roomId, isDrawer }) {
         brushSize={brushSize}
         onBrushSizeChange={handleBrushSizeChange}
         onClearCanvas={handleClearCanvas}
+        onUndo={handleUndo}
+        canUndo={canUndo}
       />
     </div>
   );

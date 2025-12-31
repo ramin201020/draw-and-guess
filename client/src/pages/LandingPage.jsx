@@ -1,6 +1,9 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSocket } from '../socket/SocketProvider';
+
+// Avatar options - simple emoji avatars
+const AVATARS = ['🐱', '🐶', '🦊', '🐻', '🐼', '🐨', '🦁', '🐯', '🐸', '🐵', '🐰', '🐷', '🦄', '🐲', '🦋', '🐢'];
 
 export function LandingPage() {
   const { socket, selfId, connectionStatus, setRoomState } = useSocket();
@@ -10,6 +13,7 @@ export function LandingPage() {
   const [isJoining, setIsJoining] = useState(false);
   const [error, setError] = useState('');
   const [showSettings, setShowSettings] = useState(false);
+  const [selectedAvatar, setSelectedAvatar] = useState(AVATARS[0]);
   
   // Settings
   const [maxPoints, setMaxPoints] = useState(300);
@@ -35,6 +39,7 @@ export function LandingPage() {
     
     const payload = {
       name: name.trim() || 'Host',
+      avatar: selectedAvatar,
       settings: {
         maxPoints: Number(maxPoints) || 300,
         roundTimeSec: Number(roundTimeSec) || 90,
@@ -78,7 +83,7 @@ export function LandingPage() {
 
     setIsJoining(true);
     
-    socket.emit('room:join', { roomId: code, name: name.trim() || 'Player' }, (res) => {
+    socket.emit('room:join', { roomId: code, name: name.trim() || 'Player', avatar: selectedAvatar }, (res) => {
       setIsJoining(false);
       if (res?.ok) {
         setRoomState(res.state);
@@ -110,6 +115,22 @@ export function LandingPage() {
         <div className="landing-field">
           <label className="landing-label">Name</label>
           <input className="landing-input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name..." />
+        </div>
+
+        <div className="landing-field">
+          <label className="landing-label">Choose Your Avatar</label>
+          <div className="avatar-selector">
+            {AVATARS.map((avatar) => (
+              <button
+                key={avatar}
+                className={`avatar-btn ${selectedAvatar === avatar ? 'selected' : ''}`}
+                onClick={() => setSelectedAvatar(avatar)}
+                type="button"
+              >
+                {avatar}
+              </button>
+            ))}
+          </div>
         </div>
 
         <div className="landing-divider"></div>
