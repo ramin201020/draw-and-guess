@@ -109,6 +109,7 @@ export function LandingPage() {
         </div>
 
         <h1 className="landing-title">Doodles</h1>
+        <p className="landing-subtitle">Draw, guess, and have fun!</p>
 
         {error && <div className="error-message">⚠️ {error} <button onClick={() => setError('')}>×</button></div>}
 

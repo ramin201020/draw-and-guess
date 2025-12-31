@@ -4,9 +4,10 @@ import { io } from 'socket.io-client';
 const SocketContext = createContext(null);
 
 // Hardcoded backend URL - works for both development and production
-const BACKEND_URL = import.meta.env.PROD 
-  ? 'https://doodles-giok.onrender.com'  // Production backend
-  : 'https://doodles-giok.onrender.com'; // Use production backend even in dev
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 
+  (import.meta.env.PROD 
+    ? 'https://doodles-giok.onrender.com'  // Production backend
+    : 'https://doodles-giok.onrender.com'); // Use production backend even in dev
 
 export function SocketProvider({ children }) {
   const [socket, setSocket] = useState(null);

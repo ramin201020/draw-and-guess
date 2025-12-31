@@ -1,5 +1,5 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
+import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { SocketProvider } from './socket/SocketProvider';
 import { LandingPage } from './pages/LandingPage';
@@ -9,7 +9,10 @@ import './styles.css';
 // Make React globally available for Safari compatibility
 window.React = React;
 
-ReactDOM.render(
+const container = document.getElementById('root');
+const root = createRoot(container);
+
+root.render(
   <React.StrictMode>
     <SocketProvider>
       <BrowserRouter>
@@ -19,6 +22,5 @@ ReactDOM.render(
         </Routes>
       </BrowserRouter>
     </SocketProvider>
-  </React.StrictMode>,
-  document.getElementById('root')
+  </React.StrictMode>
 );
