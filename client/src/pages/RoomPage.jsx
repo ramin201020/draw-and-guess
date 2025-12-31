@@ -18,6 +18,7 @@ export function RoomPage() {
   const [showResults, setShowResults] = useState(false);
   const [lastRoundWord, setLastRoundWord] = useState('');
   const [autoProgressCountdown, setAutoProgressCountdown] = useState(null);
+  const [mobileTab, setMobileTab] = useState('chat'); // 'chat' or 'players'
 
   const me = useMemo(() => roomState?.players?.find((p) => p.id === selfId) || null, [roomState, selfId]);
   const isHost = !!me?.isHost;
@@ -222,10 +223,29 @@ export function RoomPage() {
           <ChatBox roomId={roomId} />
         </section>
 
-        {/* Mobile Bottom Panel - Hidden on desktop, shown on mobile */}
+        {/* Mobile Bottom Panel - Tabbed interface for chat/players */}
         <div className="mobile-bottom-panel">
-          <PlayersSidebar room={roomState} selfId={selfId} roomId={roomId} />
-          <ChatBox roomId={roomId} />
+          <div className="mobile-tabs">
+            <button 
+              className={`mobile-tab ${mobileTab === 'chat' ? 'active' : ''}`}
+              onClick={() => setMobileTab('chat')}
+            >
+              💬 Chat
+            </button>
+            <button 
+              className={`mobile-tab ${mobileTab === 'players' ? 'active' : ''}`}
+              onClick={() => setMobileTab('players')}
+            >
+              👥 Players ({playerCount})
+            </button>
+          </div>
+          <div className="mobile-tab-content">
+            {mobileTab === 'chat' ? (
+              <ChatBox roomId={roomId} />
+            ) : (
+              <PlayersSidebar room={roomState} selfId={selfId} roomId={roomId} />
+            )}
+          </div>
         </div>
       </main>
 

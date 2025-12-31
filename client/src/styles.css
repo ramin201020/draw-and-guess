@@ -1147,116 +1147,211 @@ input:focus {
 }
 
 /* ============================================
-   MOBILE RESPONSIVE
+   MOBILE RESPONSIVE - COMPLETE REDESIGN
    ============================================ */
 
+/* Mobile viewport fix */
 @media (max-width: 768px) {
-  .main-content {
-    flex-direction: column;
-    padding-top: 100px;
+  html, body {
+    overflow: hidden;
+    height: 100%;
+    height: -webkit-fill-available;
   }
   
-  /* Three column layout becomes single column on mobile */
-  .main-content-three-column {
-    display: flex;
-    flex-direction: column;
-    padding: 100px 0.5rem 0 0.5rem;
-    gap: 0;
+  .room-page {
+    height: 100vh;
+    height: -webkit-fill-available;
+    overflow: hidden;
   }
   
-  .canvas-section-left {
-    flex: 1;
-    border-radius: 0;
-    border-left: none;
-    border-right: none;
-    border-bottom: none;
-    padding: 0.5rem;
-  }
-  
-  .players-section-center,
-  .chat-section-right {
-    display: none;
-  }
-  
-  .canvas-section {
-    flex: 1;
-    padding: 0.5rem;
-  }
-  
-  .desktop-chat-section {
-    display: none;
-  }
-  
-  .mobile-bottom-panel {
-    display: flex;
-    flex-direction: column;
-    height: 30vh;
-    background: #FFE4C4;
-    border-top: 3px solid #FF8C00;
-  }
-  
-  /* Show mobile panel on mobile for three-column layout */
-  .room-layout-three-column .mobile-bottom-panel {
-    display: flex;
-  }
-  
-  .canvas-container {
-    border-radius: 0;
-    border-left: none;
-    border-right: none;
-  }
-  
-  .drawing-tools-panel {
-    border-radius: 0;
-    border-left: none;
-    border-right: none;
-    border-bottom: none;
-  }
-  
+  /* Mobile header - more compact */
   .room-header-overlay {
-    padding: 0.5rem;
-  }
-  
-  .room-status-line {
-    font-size: 0.875rem;
-  }
-  
-  .word-hint-bar {
-    top: 70px;
-    padding: 0.5rem 1rem;
-  }
-  
-  .word-hint-display {
-    font-size: 1.25rem;
-  }
-  
-  .hint-char {
-    min-width: 20px;
-    padding: 2px;
-  }
-}
-
-@media (max-width: 480px) {
-  .room-header-overlay {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0.5rem;
+    padding: 6px 10px;
+    height: auto;
+    min-height: 44px;
+    flex-wrap: wrap;
+    gap: 6px;
   }
   
   .room-info-compact {
-    text-align: center;
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
+  }
+  
+  .settings-icon {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+  
+  .room-code-display {
+    font-size: 12px;
+    padding: 3px 6px;
+  }
+  
+  .room-status-info {
+    font-size: 10px;
+    display: none;
   }
   
   .host-controls-compact {
-    justify-content: center;
+    gap: 6px;
+    flex-shrink: 0;
   }
   
-  .main-content {
-    padding-top: 120px;
+  .primary-btn.compact,
+  .danger-btn.compact {
+    padding: 4px 10px;
+    font-size: 11px;
+  }
+  
+  .leave-room-btn {
+    padding: 4px 8px;
+    font-size: 10px;
+  }
+  
+  /* Word hint bar - mobile positioning */
+  .word-hint-bar {
+    top: 50px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    max-width: 90vw;
+  }
+  
+  .word-hint-display {
+    font-size: 1rem;
+    gap: 2px;
+  }
+  
+  .hint-char {
+    min-width: 18px;
+    padding: 2px;
+    font-size: 0.9rem;
+  }
+  
+  /* Main content - mobile layout */
+  .main-content-three-column {
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    padding-top: 44px;
+    gap: 0;
+    height: calc(100vh - 44px);
+    height: calc(-webkit-fill-available - 44px);
+    overflow: hidden;
+  }
+  
+  /* Canvas section - takes most of the screen */
+  .canvas-section-left {
+    flex: 1;
+    min-height: 0;
+    border-radius: 0;
+    border: none;
+    padding: 8px;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .canvas-section-left .drawing-canvas-container {
+    flex: 1;
+    min-height: 0;
+    border-radius: 8px;
+    border: 2px solid #FF8C42;
+  }
+  
+  /* Hide desktop panels on mobile */
+  .players-section-center,
+  .chat-section-right {
+    display: none !important;
+  }
+  
+  /* Mobile bottom panel - tabbed interface */
+  .mobile-bottom-panel {
+    display: flex !important;
+    flex-direction: column;
+    height: 35vh;
+    min-height: 180px;
+    max-height: 280px;
+    background: #FFE4C4;
+    border-top: 3px solid #FF8C00;
+    position: relative;
+  }
+  
+  .room-layout-three-column .mobile-bottom-panel {
+    display: flex !important;
+  }
+  
+  /* Canvas container adjustments */
+  .drawing-canvas-container {
+    border-radius: 8px !important;
+  }
+  
+  .canvas-container {
+    border-radius: 8px;
+  }
+}
+
+/* Small mobile screens */
+@media (max-width: 480px) {
+  .room-header-overlay {
+    padding: 4px 8px;
+    min-height: 40px;
+  }
+  
+  .room-info-compact {
+    gap: 6px;
+  }
+  
+  .settings-icon {
+    display: none;
+  }
+  
+  .room-code-display {
+    font-size: 11px;
+    padding: 2px 5px;
+  }
+  
+  .host-controls-compact {
+    gap: 4px;
+  }
+  
+  .primary-btn.compact,
+  .danger-btn.compact {
+    padding: 3px 8px;
+    font-size: 10px;
+  }
+  
+  .leave-room-btn {
+    padding: 3px 6px;
+    font-size: 9px;
   }
   
   .word-hint-bar {
-    top: 90px;
+    top: 44px;
+    padding: 4px 8px;
+  }
+  
+  .word-hint-display {
+    font-size: 0.85rem;
+  }
+  
+  .hint-char {
+    min-width: 14px;
+    font-size: 0.8rem;
+  }
+  
+  .main-content-three-column {
+    padding-top: 40px;
+  }
+  
+  .canvas-section-left {
+    padding: 4px;
+  }
+  
+  .mobile-bottom-panel {
+    height: 32vh;
+    min-height: 160px;
   }
 }
 
@@ -2068,4 +2163,308 @@ input:focus {
 .create-room-btn:active {
   transform: translateY(0);
   transition: transform 0.1s ease;
+}
+
+
+/* ============================================
+   MOBILE TABS FOR BOTTOM PANEL
+   ============================================ */
+
+.mobile-tabs {
+  display: flex;
+  background: #FF8C42;
+  border-bottom: 2px solid #E67E22;
+  flex-shrink: 0;
+}
+
+.mobile-tab {
+  flex: 1;
+  padding: 10px 12px;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.mobile-tab.active {
+  background: #FFE4C4;
+  color: #8B4513;
+  border-bottom: 2px solid #FFE4C4;
+  margin-bottom: -2px;
+}
+
+.mobile-tab:not(.active):hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.mobile-tab-content {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* Mobile chat adjustments */
+@media (max-width: 768px) {
+  .mobile-tab-content .chat-container {
+    padding-top: 0;
+    height: 100%;
+  }
+  
+  .mobile-tab-content .chat-messages {
+    margin: 8px;
+    margin-bottom: 4px;
+  }
+  
+  .mobile-tab-content .chat-input-area {
+    margin: 0 8px 8px 8px;
+  }
+  
+  .mobile-tab-content .players-list {
+    padding: 8px;
+    padding-top: 8px;
+  }
+  
+  .mobile-tab-content .player-item {
+    padding: 6px 10px;
+  }
+}
+
+/* ============================================
+   MOBILE TOOLBAR IMPROVEMENTS
+   ============================================ */
+
+@media (max-width: 768px) {
+  .canvas-drawing-toolbar {
+    bottom: 4px;
+    left: 4px;
+    right: 4px;
+    padding: 6px;
+    gap: 4px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  
+  .toolbar-toggle-btn {
+    padding: 6px 10px;
+    font-size: 14px;
+    margin-right: 4px;
+  }
+  
+  .toolbar-content {
+    gap: 6px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  
+  .tool-group {
+    gap: 3px;
+  }
+  
+  .tool-btn {
+    padding: 6px 8px;
+    font-size: 14px;
+  }
+  
+  .color-palette {
+    gap: 2px;
+    flex-wrap: wrap;
+    max-width: 120px;
+    justify-content: center;
+  }
+  
+  .color-btn {
+    width: 18px;
+    height: 18px;
+  }
+  
+  .brush-size-control {
+    gap: 3px;
+  }
+  
+  .brush-size-slider {
+    width: 50px;
+  }
+  
+  .action-btn {
+    padding: 5px 8px;
+    font-size: 10px;
+  }
+  
+  /* Minimized toolbar on mobile */
+  .canvas-drawing-toolbar.minimized {
+    bottom: 4px;
+    left: 4px;
+    right: auto;
+    padding: 4px;
+  }
+}
+
+@media (max-width: 480px) {
+  .canvas-drawing-toolbar {
+    padding: 4px;
+    gap: 3px;
+  }
+  
+  .toolbar-toggle-btn {
+    padding: 5px 8px;
+    font-size: 12px;
+  }
+  
+  .tool-btn {
+    padding: 5px 6px;
+    font-size: 12px;
+  }
+  
+  .color-btn {
+    width: 16px;
+    height: 16px;
+  }
+  
+  .brush-size-slider {
+    width: 40px;
+  }
+  
+  .action-btn {
+    padding: 4px 6px;
+    font-size: 9px;
+  }
+}
+
+/* ============================================
+   VOICE CHAT MOBILE ADJUSTMENTS
+   ============================================ */
+
+@media (max-width: 768px) {
+  .voice-chat-container {
+    position: relative;
+  }
+  
+  .join-voice-btn,
+  .leave-voice-btn {
+    padding: 4px 8px;
+    font-size: 10px;
+  }
+}
+
+/* ============================================
+   TIMER MOBILE POSITIONING
+   ============================================ */
+
+@media (max-width: 768px) {
+  .timer-overlay {
+    top: auto;
+    bottom: auto;
+    right: 8px;
+    top: 48px;
+    padding: 4px 8px;
+    font-size: 0.9rem;
+    border-radius: 6px;
+  }
+}
+
+@media (max-width: 480px) {
+  .timer-overlay {
+    top: 44px;
+    right: 4px;
+    padding: 3px 6px;
+    font-size: 0.8rem;
+  }
+}
+
+/* ============================================
+   ROUND RESULTS MODAL MOBILE
+   ============================================ */
+
+@media (max-width: 768px) {
+  .modal {
+    width: 95%;
+    max-width: none;
+    padding: 1rem;
+    margin: 0.5rem;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  
+  .modal h2 {
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
+  }
+  
+  .word-card {
+    padding: 0.75rem;
+  }
+  
+  .word-text {
+    font-size: 1rem;
+  }
+  
+  .word-meta {
+    font-size: 0.75rem;
+  }
+}
+
+/* ============================================
+   CANVAS ASPECT RATIO FIX FOR MOBILE
+   ============================================ */
+
+@media (max-width: 768px) {
+  .drawing-canvas-container {
+    aspect-ratio: auto;
+    height: 100%;
+  }
+  
+  .drawing-canvas-wrapper {
+    height: 100%;
+  }
+  
+  .canvas-container {
+    height: 100%;
+    min-height: 0;
+  }
+  
+  .game-canvas {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain;
+  }
+}
+
+/* ============================================
+   PREVENT MOBILE ZOOM ON INPUT FOCUS
+   ============================================ */
+
+@media (max-width: 768px) {
+  input, textarea, select {
+    font-size: 16px !important;
+  }
+  
+  .chat-input {
+    font-size: 16px !important;
+  }
+}
+
+/* ============================================
+   SAFE AREA INSETS FOR NOTCHED DEVICES
+   ============================================ */
+
+@supports (padding: max(0px)) {
+  .room-header-overlay {
+    padding-top: max(6px, env(safe-area-inset-top));
+    padding-left: max(10px, env(safe-area-inset-left));
+    padding-right: max(10px, env(safe-area-inset-right));
+  }
+  
+  .mobile-bottom-panel {
+    padding-bottom: max(0px, env(safe-area-inset-bottom));
+  }
 }
