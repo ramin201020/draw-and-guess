@@ -500,79 +500,32 @@ export function VoiceChat({ roomId, selfId, players }) {
           onClick={joinVoiceChat}
           disabled={isConnecting}
         >
-          {isConnecting ? 'Connecting...' : 'Join voice chat'}
+          {isConnecting ? '...' : '🎤 Voice'}
         </button>
       ) : (
         <div className="voice-chat-active">
-          <div className="voice-participants-info">
-            <span className="voice-count" style={{ fontSize: '11px', color: 'white' }}>
-              🎤 {voiceParticipants.size}
-            </span>
-            {audioLevels.get(selfId) > 10 && (
-              <div 
-                className="audio-level-indicator" 
-                style={{
-                  width: '20px',
-                  height: '4px',
-                  background: `linear-gradient(to right, #4CAF50 ${audioLevels.get(selfId)}%, #333 ${audioLevels.get(selfId)}%)`,
-                  borderRadius: '2px',
-                  marginLeft: '4px'
-                }} 
-              />
-            )}
-          </div>
-          <div className="voice-controls">
-            <button 
-              className={`voice-control-btn ${isMuted ? 'muted' : 'unmuted'}`}
-              onClick={toggleMute}
-              title={isMuted ? 'Unmute' : 'Mute'}
-              style={{
-                background: isMuted ? '#ff4444' : '#4CAF50',
-                color: 'white',
-                border: 'none',
-                padding: '4px 8px',
-                borderRadius: '3px',
-                fontSize: '10px',
-                cursor: 'pointer',
-                marginRight: '4px'
-              }}
-            >
-              {isMuted ? '🔇' : '🎤'}
-            </button>
-            <button 
-              className={`voice-control-btn ${isDeafened ? 'deafened' : 'hearing'}`}
-              onClick={toggleDeafen}
-              title={isDeafened ? 'Undeafen' : 'Deafen'}
-              style={{
-                background: isDeafened ? '#ff4444' : '#666',
-                color: 'white',
-                border: 'none',
-                padding: '4px 8px',
-                borderRadius: '3px',
-                fontSize: '10px',
-                cursor: 'pointer',
-                marginRight: '4px'
-              }}
-            >
-              {isDeafened ? '🔇' : '🔊'}
-            </button>
-            <button 
-              className="voice-control-btn leave"
-              onClick={leaveVoiceChat}
-              title="Leave Voice Chat"
-              style={{
-                background: '#ff4444',
-                color: 'white',
-                border: 'none',
-                padding: '4px 8px',
-                borderRadius: '3px',
-                fontSize: '10px',
-                cursor: 'pointer'
-              }}
-            >
-              📞
-            </button>
-          </div>
+          <span className="voice-count">🎤 {voiceParticipants.size}</span>
+          <button 
+            className={`voice-control-btn ${isMuted ? 'muted' : ''}`}
+            onClick={toggleMute}
+            title={isMuted ? 'Unmute' : 'Mute'}
+          >
+            {isMuted ? '🔇' : '🎤'}
+          </button>
+          <button 
+            className={`voice-control-btn ${isDeafened ? 'deafened' : ''}`}
+            onClick={toggleDeafen}
+            title={isDeafened ? 'Undeafen' : 'Deafen'}
+          >
+            {isDeafened ? '🔇' : '🔊'}
+          </button>
+          <button 
+            className="voice-control-btn leave-voice-btn"
+            onClick={leaveVoiceChat}
+            title="Leave Voice"
+          >
+            ✕
+          </button>
         </div>
       )}
     </div>

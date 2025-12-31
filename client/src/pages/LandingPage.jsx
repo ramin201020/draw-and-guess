@@ -32,7 +32,6 @@ export function LandingPage() {
     }
 
     setIsCreating(true);
-    console.log('🎮 Creating room with socket:', socket.id);
     
     const payload = {
       name: name.trim() || 'Host',
@@ -48,21 +47,16 @@ export function LandingPage() {
       }
     };
 
-    console.log('📤 Sending payload:', payload);
-
     socket.emit('room:create', payload, (response) => {
-      console.log('📥 Response:', response);
       setIsCreating(false);
       setShowSettings(false);
       
       if (response?.ok) {
-        console.log('✅ Room created:', response.roomId);
         setRoomState(response.state);
         localStorage.setItem('playerName', payload.name);
         localStorage.setItem('currentRoomId', response.roomId);
         navigate(`/room/${response.roomId}`, { replace: true });
       } else {
-        console.error('❌ Failed:', response);
         setError(`Failed to create room: ${response?.error || 'Unknown error'}`);
       }
     });
@@ -105,20 +99,13 @@ export function LandingPage() {
     <div className="landing-page">
       <div className="landing-card">
         <div className="connection-status" style={{ color: statusColor, borderColor: statusColor }}>
-          {connectionStatus === 'connected' ? `🟢 Connected (${selfId?.slice(-4) || 'N/A'})` : connectionStatus === 'connecting' ? '🟡 Connecting...' : '🔴 ' + connectionStatus}
+          {connectionStatus === 'connected' ? '🟢 Connected' : connectionStatus === 'connecting' ? '🟡 Connecting...' : '🔴 ' + connectionStatus}
         </div>
 
         <h1 className="landing-title">Doodles</h1>
         <p className="landing-subtitle">Draw, guess, and have fun!</p>
 
         {error && <div className="error-message">⚠️ {error} <button onClick={() => setError('')}>×</button></div>}
-
-        {/* Debug Info */}
-        {connectionStatus === 'connected' && (
-          <div style={{ fontSize: '12px', color: '#666', marginBottom: '10px' }}>
-            Socket ID: {selfId} | Backend: https://doodles-giok.onrender.com
-          </div>
-        )}
 
         <div className="landing-field">
           <label className="landing-label">Name</label>
@@ -141,7 +128,7 @@ export function LandingPage() {
         <div className="join-row">
           <input className="join-input" value={roomCode} onChange={(e) => setRoomCode(e.target.value.toUpperCase())} placeholder="Room code..." />
           <button className="join-btn" onClick={handleJoin} disabled={isJoining || connectionStatus !== 'connected' || !roomCode.trim()}>
-            {isJoining ? '...' : 'Join'}
+            {isJoining ? '...' : 'Join an Experience'}
           </button>
         </div>
       </div>
@@ -207,11 +194,11 @@ export function LandingPage() {
             <div className="modal-footer">
               <button className="cancel-btn" onClick={() => setShowSettings(false)}>Cancel</button>
               <button 
-                className="create-btn" 
+                className="create-btn create-experience-btn" 
                 onClick={handleCreateRoom}
                 disabled={isCreating}
               >
-                {isCreating ? 'Creating...' : 'Create Room'}
+                {isCreating ? 'Creating...' : 'Create the Experience'}
               </button>
             </div>
           </div>

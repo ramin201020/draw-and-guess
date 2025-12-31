@@ -166,7 +166,6 @@ export function RoomPage() {
       {/* Compact Header for Mobile */}
       <header className="room-header-overlay">
         <div className="room-info-compact">
-          <button className="settings-icon">(settings icon)</button>
           <span 
             className="room-code-display"
             onClick={() => navigator.clipboard?.writeText(roomState.id)}
@@ -184,16 +183,16 @@ export function RoomPage() {
           <VoiceChat roomId={roomId} selfId={selfId} players={roomState.players} />
           {isHost && (
             <>
-              <button onClick={handleStart} className="primary-btn compact" disabled={!canStart}>
+              <button onClick={handleStart} className="start-btn" disabled={!canStart}>
                 {roomState.status === 'LOBBY' ? 'Start' : 'Next'}
               </button>
               {roomState.status === 'IN_ROUND' && (
-                <button onClick={handleEndRound} className="danger-btn compact">End</button>
+                <button onClick={handleEndRound} className="end-round-btn">End</button>
               )}
             </>
           )}
           <button onClick={handleLeaveRoom} className="leave-room-btn">
-            Leave room
+            Leave
           </button>
         </div>
       </header>
