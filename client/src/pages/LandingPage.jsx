@@ -132,12 +132,12 @@ export function LandingPage() {
           onClick={() => setShowSettings(true)} 
           disabled={connectionStatus !== 'connected'}
         >
-          Create Room
+          Create an Experience
         </button>
 
         <div className="landing-divider"></div>
 
-        <h2 className="section-title">Join Room</h2>
+        <h2 className="section-title">Join an Experience</h2>
         <div className="join-row">
           <input className="join-input" value={roomCode} onChange={(e) => setRoomCode(e.target.value.toUpperCase())} placeholder="Room code..." />
           <button className="join-btn" onClick={handleJoin} disabled={isJoining || connectionStatus !== 'connected' || !roomCode.trim()}>
