@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 
 export function Timer({ endsAt, onTimeUp, isActive = true, autoProgressCountdown = null, totalTime = 90 }) {
   const [timeLeft, setTimeLeft] = useState(0);
+  const [wobbleDirection, setWobbleDirection] = useState('left');
   const hasCalledTimeUp = useRef(false);
 
   useEffect(() => {
@@ -29,6 +30,14 @@ export function Timer({ endsAt, onTimeUp, isActive = true, autoProgressCountdown
     return () => clearInterval(interval);
   }, [endsAt, isActive, onTimeUp]);
 
+  // Wobble animation - alternate every second
+  useEffect(() => {
+    const wobbleInterval = setInterval(() => {
+      setWobbleDirection(prev => prev === 'left' ? 'right' : 'left');
+    }, 1000);
+    return () => clearInterval(wobbleInterval);
+  }, []);
+
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -38,47 +47,20 @@ export function Timer({ endsAt, onTimeUp, isActive = true, autoProgressCountdown
   // Show auto-progress countdown
   if (autoProgressCountdown !== null && autoProgressCountdown > 0) {
     return (
-      <div className="digital-timer countdown-mode">
-        <div className="timer-countdown-text">
-          Next turn in {autoProgressCountdown}s
-        </div>
+      <div className="wobbly-timer countdown-mode">
+        <span className="countdown-text">Next in {autoProgressCountdown}s</span>
       </div>
     );
   }
 
   if (!isActive || timeLeft <= 0) return null;
 
-  const progress = totalTime > 0 ? timeLeft / totalTime : 0;
   const isLow = timeLeft <= 10;
   const isWarning = timeLeft <= 30 && timeLeft > 10;
 
-  // Determine color based on time left
-  let barColor = '#4ade80'; // Green
-  if (isLow) {
-    barColor = '#ef4444'; // Red
-  } else if (isWarning) {
-    barColor = '#fbbf24'; // Yellow
-  }
-
   return (
-    <div className={`digital-timer ${isLow ? 'critical' : isWarning ? 'warning' : ''}`}>
-      <div className="timer-bar-container">
-        <div 
-          className="timer-bar-fill"
-          style={{ 
-            width: `${progress * 100}%`,
-            backgroundColor: barColor
-          }}
-        />
-        <div className="timer-bar-segments">
-          {[...Array(10)].map((_, i) => (
-            <div key={i} className="timer-segment" />
-          ))}
-        </div>
-      </div>
-      <div className="timer-digital-display">
-        <span className="timer-digits">{formatTime(timeLeft)}</span>
-      </div>
+    <div className={`wobbly-timer ${wobbleDirection} ${isLow ? 'critical' : isWarning ? 'warning' : ''}`}>
+      <span className="timer-digits">{formatTime(timeLeft)}</span>
     </div>
   );
 }

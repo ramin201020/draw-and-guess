@@ -17,20 +17,18 @@ export function WordHintBar({ mask, status, isDrawer, word, drawerName, isChoosi
 
   // For drawer, show the full word
   if (isDrawer && word) {
+    const letterCount = word.replace(/\s/g, '').length;
     return (
       <div className="word-hint-bar drawer-view">
         <div className="word-display-full">
-          <span className="word-label">Your word:</span>
           <span className="word-text">{word.toUpperCase()}</span>
         </div>
-        <div className="word-length-info">
-          {word.replace(/\s/g, '').length} letters
-        </div>
+        <span className="letter-count">{letterCount}</span>
       </div>
     );
   }
 
-  // Safely normalize mask to array - handle all edge cases
+  // Safely normalize mask to array
   let maskArray = [];
   if (Array.isArray(mask)) {
     maskArray = mask;
@@ -44,24 +42,28 @@ export function WordHintBar({ mask, status, isDrawer, word, drawerName, isChoosi
     return null;
   }
 
-  // Create a simplified display - show revealed letters and underscores as a string
-  const displayText = maskArray.map(char => {
-    if (char === ' ') return '  '; // Double space for word breaks
-    if (char === '_') return '_';
-    return char;
-  }).join(' ');
+  // Count letters (excluding spaces)
+  const letterCount = maskArray.filter(c => c !== ' ').length;
 
-  const revealedCount = maskArray.filter(c => c !== '_' && c !== ' ').length;
-  const totalLetters = maskArray.filter(c => c !== ' ').length;
+  // Create display with spaces between each character
+  // Show underscores with spaces: _ _ _ or revealed letters
+  const displayChars = maskArray.map((char, i) => {
+    if (char === ' ') {
+      return <span key={i} className="hint-space">&nbsp;&nbsp;&nbsp;</span>;
+    }
+    return (
+      <span key={i} className={`hint-char ${char !== '_' ? 'revealed' : ''}`}>
+        {char}
+      </span>
+    );
+  });
 
   return (
     <div className="word-hint-bar guesser-view">
-      <div className="word-hint-simple">
-        {displayText}
+      <div className="word-hint-display">
+        {displayChars}
       </div>
-      <div className="word-length-info">
-        {totalLetters} letters {revealedCount > 0 && `• ${revealedCount} revealed`}
-      </div>
+      <span className="letter-count">{letterCount}</span>
     </div>
   );
 }

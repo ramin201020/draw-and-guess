@@ -4203,3 +4203,368 @@ input:focus {
   color: #8B7355;
   border: 2px solid #DEB887;
 }
+
+
+/* ============================================
+   WOBBLY HAND-DRAWN TIMER
+   ============================================ */
+
+.wobbly-timer {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #FFF8F0;
+  border: 3px solid #8B4513;
+  border-radius: 8px;
+  padding: 4px 12px;
+  font-family: 'Comic Sans MS', 'Marker Felt', cursive, sans-serif;
+  box-shadow: 
+    2px 2px 0 #8B4513,
+    -1px -1px 0 #DEB887;
+  position: relative;
+  transform-origin: center bottom;
+  animation: wobble-left 1s ease-in-out infinite alternate;
+}
+
+.wobbly-timer.right {
+  animation: wobble-right 1s ease-in-out infinite alternate;
+}
+
+.wobbly-timer.left {
+  animation: wobble-left 1s ease-in-out infinite alternate;
+}
+
+@keyframes wobble-left {
+  0% {
+    transform: rotate(-2deg) translateY(0);
+  }
+  50% {
+    transform: rotate(-1deg) translateY(-1px);
+  }
+  100% {
+    transform: rotate(0deg) translateY(0);
+  }
+}
+
+@keyframes wobble-right {
+  0% {
+    transform: rotate(2deg) translateY(0);
+  }
+  50% {
+    transform: rotate(1deg) translateY(-1px);
+  }
+  100% {
+    transform: rotate(0deg) translateY(0);
+  }
+}
+
+.wobbly-timer .timer-digits {
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #4a3728;
+  letter-spacing: 1px;
+  text-shadow: 1px 1px 0 #DEB887;
+}
+
+.wobbly-timer.warning {
+  border-color: #E67E22;
+  background: #FFF3E0;
+}
+
+.wobbly-timer.warning .timer-digits {
+  color: #E67E22;
+}
+
+.wobbly-timer.critical {
+  border-color: #C0392B;
+  background: #FFEBEE;
+  animation: wobble-critical 0.3s ease-in-out infinite;
+}
+
+.wobbly-timer.critical .timer-digits {
+  color: #C0392B;
+}
+
+@keyframes wobble-critical {
+  0%, 100% {
+    transform: rotate(-3deg) scale(1);
+  }
+  25% {
+    transform: rotate(3deg) scale(1.02);
+  }
+  50% {
+    transform: rotate(-3deg) scale(1);
+  }
+  75% {
+    transform: rotate(3deg) scale(1.02);
+  }
+}
+
+.wobbly-timer.countdown-mode {
+  background: #E8F5E9;
+  border-color: #4CAF50;
+  animation: none;
+}
+
+.wobbly-timer .countdown-text {
+  font-size: 0.85rem;
+  color: #2E7D32;
+  font-weight: 600;
+}
+
+/* ============================================
+   UPDATED WORD HINT BAR - SPACED UNDERSCORES
+   ============================================ */
+
+.word-hint-bar {
+  position: fixed;
+  top: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #FFF8F0;
+  border: 3px solid #8B4513;
+  border-radius: 12px;
+  padding: 10px 20px;
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 
+    3px 3px 0 #8B4513,
+    -1px -1px 0 #DEB887;
+  font-family: 'Comic Sans MS', 'Marker Felt', cursive, sans-serif;
+}
+
+.word-hint-bar.drawer-view {
+  background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%);
+  border-color: #4CAF50;
+  box-shadow: 3px 3px 0 #388E3C;
+}
+
+.word-hint-bar.guesser-view {
+  background: #FFF8F0;
+}
+
+.word-hint-bar.choosing-word {
+  background: linear-gradient(135deg, #FFF8E1 0%, #FFECB3 100%);
+  border-color: #FFA000;
+  box-shadow: 3px 3px 0 #FF8F00;
+}
+
+.word-display-full {
+  display: flex;
+  align-items: center;
+}
+
+.word-display-full .word-text {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #2E7D32;
+  letter-spacing: 4px;
+}
+
+.word-hint-display {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hint-char {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #4a3728;
+  min-width: 20px;
+  text-align: center;
+}
+
+.hint-char.revealed {
+  color: #E67E22;
+}
+
+.hint-space {
+  width: 16px;
+}
+
+.letter-count {
+  background: #8B4513;
+  color: white;
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 12px;
+  min-width: 24px;
+  text-align: center;
+}
+
+.choosing-word-text {
+  font-size: 1rem;
+  color: #8B4513;
+  font-weight: 500;
+}
+
+.drawer-name {
+  font-weight: 700;
+  color: #E67E22;
+}
+
+/* ============================================
+   ROOM CODE COPIED FEEDBACK
+   ============================================ */
+
+.room-code-container {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  padding: 4px 10px;
+  background: #FFF8F0;
+  border-radius: 8px;
+  border: 2px solid #8B4513;
+  transition: all 0.2s ease;
+  min-width: 100px;
+  justify-content: center;
+}
+
+.room-code-container:hover {
+  background: #FFE5D4;
+  transform: scale(1.02);
+}
+
+.room-code-container:active {
+  transform: scale(0.98);
+}
+
+.room-code-display {
+  color: #4a3728;
+  font-family: 'Courier New', monospace;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.copy-icon {
+  font-size: 12px;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.room-code-container:hover .copy-icon {
+  opacity: 1;
+}
+
+.copied-text {
+  color: #4CAF50;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* ============================================
+   HEADER WITH TIMER
+   ============================================ */
+
+.room-header-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: linear-gradient(135deg, #FFE5D4 0%, #FFDAB9 100%);
+  border-bottom: 3px solid #8B4513;
+  padding: 8px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: auto;
+  min-height: 50px;
+}
+
+.room-info-compact {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.room-status-info {
+  color: #8B4513;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+@media (max-width: 768px) {
+  .room-header-overlay {
+    padding: 6px 10px;
+    min-height: 44px;
+  }
+  
+  .room-info-compact {
+    gap: 8px;
+  }
+  
+  .wobbly-timer {
+    padding: 3px 8px;
+  }
+  
+  .wobbly-timer .timer-digits {
+    font-size: 0.95rem;
+  }
+  
+  .room-code-container {
+    padding: 3px 8px;
+    min-width: auto;
+  }
+  
+  .room-code-display {
+    font-size: 12px;
+  }
+  
+  .room-status-info {
+    font-size: 10px;
+  }
+  
+  .word-hint-bar {
+    top: 52px;
+    padding: 8px 14px;
+    gap: 12px;
+  }
+  
+  .hint-char {
+    font-size: 1.1rem;
+    min-width: 16px;
+  }
+  
+  .letter-count {
+    font-size: 0.75rem;
+    padding: 3px 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .room-info-compact {
+    gap: 6px;
+  }
+  
+  .wobbly-timer {
+    padding: 2px 6px;
+    border-width: 2px;
+  }
+  
+  .wobbly-timer .timer-digits {
+    font-size: 0.85rem;
+  }
+  
+  .word-hint-bar {
+    top: 48px;
+    padding: 6px 10px;
+    gap: 8px;
+  }
+  
+  .hint-char {
+    font-size: 1rem;
+    gap: 4px;
+  }
+  
+  .word-hint-display {
+    gap: 4px;
+  }
+}

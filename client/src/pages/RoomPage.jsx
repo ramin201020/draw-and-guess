@@ -22,6 +22,7 @@ export function RoomPage() {
   const [currentWord, setCurrentWord] = useState(''); // The actual word for drawer
   const [showDrawerResults, setShowDrawerResults] = useState(false);
   const [drawerResultsData, setDrawerResultsData] = useState(null);
+  const [copiedFeedback, setCopiedFeedback] = useState(false);
 
   const me = useMemo(() => roomState?.players?.find((p) => p.id === selfId) || null, [roomState, selfId]);
   const isHost = !!me?.isHost;
@@ -166,17 +167,6 @@ export function RoomPage() {
 
   return (
     <div className="page room-page room-layout-three-column">
-      {/* Timer - show during active rounds or auto-progress countdown */}
-      {(isRoundActive || autoProgressCountdown) && (
-        <Timer 
-          endsAt={roomState.currentRound?.endsAt}
-          onTimeUp={handleTimeUp}
-          isActive={isRoundActive}
-          autoProgressCountdown={autoProgressCountdown}
-          totalTime={roomState.settings?.roundTimeSec || 90}
-        />
-      )}
-
       {/* Round Results Modal */}
       <RoundResults
         isVisible={showResults}
@@ -191,15 +181,34 @@ export function RoomPage() {
       {/* Compact Header for Mobile */}
       <header className="room-header-overlay">
         <div className="room-info-compact">
+          {/* Timer in header */}
+          {(isRoundActive || autoProgressCountdown) && (
+            <Timer 
+              endsAt={roomState.currentRound?.endsAt}
+              onTimeUp={handleTimeUp}
+              isActive={isRoundActive}
+              autoProgressCountdown={autoProgressCountdown}
+              totalTime={roomState.settings?.roundTimeSec || 90}
+            />
+          )}
+          
           <div 
             className="room-code-container"
             onClick={() => {
               navigator.clipboard?.writeText(roomState.id);
+              setCopiedFeedback(true);
+              setTimeout(() => setCopiedFeedback(false), 2000);
             }}
             title="Click to copy room code"
           >
-            <span className="room-code-display">{roomState.id}</span>
-            <span className="copy-icon">📋</span>
+            {copiedFeedback ? (
+              <span className="copied-text">Room code copied!</span>
+            ) : (
+              <>
+                <span className="room-code-display">{roomState.id}</span>
+                <span className="copy-icon">📋</span>
+              </>
+            )}
           </div>
           <span className="room-status-info">
             {playerCount} {playerCount === 1 ? 'player' : 'players'}
