@@ -219,8 +219,6 @@ function createRoom(hostSocket, payload) {
       totalRounds: settings.totalRounds || 3,
       drawersThisRound: new Set(),
       allDrawersCompleted: false,
-      playerDrawOrder: [],
-      nextDrawerIndex: 0,
       autoProgressTimer: null
     },
     chat: []
@@ -263,9 +261,9 @@ function roomSnapshot(room) {
 }
 
 function getNextDrawerName(room) {
-  if (!room.gameState?.playerDrawOrder?.length) return null;
-  const nextDrawer = room.gameState.playerDrawOrder[room.gameState.nextDrawerIndex];
-  return room.players.get(nextDrawer)?.name || null;
+  // With random selection, we don't know who's next until they're selected
+  // Return null or a placeholder
+  return null;
 }
 
 function scoreSequence(M) {
@@ -339,9 +337,9 @@ io.on('connection', (socket) => {
     room.players.set(socket.id, player);
     socket.join(room.id);
     
-    // If joining mid-game, add to the front of the draw order (will play first in next round)
-    if (room.status !== 'LOBBY' && room.gameState?.playerDrawOrder) {
-      // Don't add to current round, but will be first in next round
+    // Players joining mid-game will be eligible for random selection in the current round
+    // if they haven't drawn yet
+    if (room.status !== 'LOBBY') {
       console.log(`Player ${name} joined mid-game in room ${room.id}`);
     }
     
@@ -389,15 +387,7 @@ io.on('connection', (socket) => {
         updatedPlayer.isDrawer = true;
       }
       
-      // Update draw order
-      if (room.gameState?.playerDrawOrder) {
-        const orderIndex = room.gameState.playerDrawOrder.indexOf(oldId);
-        if (orderIndex !== -1) {
-          room.gameState.playerDrawOrder[orderIndex] = socket.id;
-        }
-      }
-      
-      // Update drawers this round set
+      // Update drawers this round set with new socket ID
       if (room.gameState?.drawersThisRound?.has(oldId)) {
         room.gameState.drawersThisRound.delete(oldId);
         room.gameState.drawersThisRound.add(socket.id);
@@ -667,43 +657,32 @@ io.on('connection', (socket) => {
 
 function initializeGameState(room) {
   const players = [...room.players.values()];
-  // Reverse order: last joined plays first, first joined plays last
-  const playerDrawOrder = players.map(p => p.id).reverse();
   
   room.gameState = {
     currentRoundNumber: 1,
     totalRounds: room.settings.totalRounds || 3,
     drawersThisRound: new Set(),
     allDrawersCompleted: false,
-    playerDrawOrder,
-    nextDrawerIndex: 0,
     autoProgressTimer: null,
     autoProgressCountdown: null
   };
 }
 
 function getNextDrawer(room) {
-  if (!room.gameState?.playerDrawOrder?.length) return null;
+  // Get all players who haven't drawn this round
+  const availablePlayers = [...room.players.values()].filter(
+    p => !room.gameState.drawersThisRound.has(p.id)
+  );
   
-  const drawOrder = room.gameState.playerDrawOrder;
-  const nextIndex = room.gameState.nextDrawerIndex;
-  
-  if (nextIndex >= drawOrder.length) {
+  if (availablePlayers.length === 0) {
     // All players have drawn, round is complete
     room.gameState.allDrawersCompleted = true;
     return null;
   }
   
-  const nextDrawerId = drawOrder[nextIndex];
-  const nextDrawer = room.players.get(nextDrawerId);
-  
-  // Skip players who left the game
-  if (!nextDrawer) {
-    room.gameState.nextDrawerIndex++;
-    return getNextDrawer(room);
-  }
-  
-  return nextDrawer;
+  // Select a random player from available players
+  const randomIndex = Math.floor(Math.random() * availablePlayers.length);
+  return availablePlayers[randomIndex];
 }
 
 function startAutoProgressTimer(room, delay = 10000) {
@@ -750,14 +729,6 @@ function startNextRound(room) {
   room.gameState.currentRoundNumber++;
   room.gameState.drawersThisRound.clear();
   room.gameState.allDrawersCompleted = false;
-  room.gameState.nextDrawerIndex = 0;
-  
-  // Update player draw order for new players who joined mid-game
-  const currentPlayers = [...room.players.values()];
-  const newPlayers = currentPlayers.filter(p => !room.gameState.playerDrawOrder.includes(p.id));
-  
-  // Add new players to the beginning (they play first)
-  room.gameState.playerDrawOrder = [...newPlayers.map(p => p.id), ...room.gameState.playerDrawOrder];
   
   startNextDrawerTurn(room);
 }
@@ -825,7 +796,6 @@ function endDrawerTurn(room, reason) {
   
   // Mark this drawer as completed
   room.gameState.drawersThisRound.add(r.drawerId);
-  room.gameState.nextDrawerIndex++;
   
   // Score this turn
   const M = room.settings.maxPoints;
@@ -858,8 +828,10 @@ function endDrawerTurn(room, reason) {
   clearRevealTimer(r);
   room.currentRound = null;
   
-  // Check if all players have drawn
-  if (room.gameState.nextDrawerIndex >= room.gameState.playerDrawOrder.length) {
+  // Check if all players have drawn (compare with total player count)
+  const totalPlayers = room.players.size;
+  const drawnCount = room.gameState.drawersThisRound.size;
+  if (drawnCount >= totalPlayers) {
     room.gameState.allDrawersCompleted = true;
   }
   
@@ -898,7 +870,6 @@ function endGame(room) {
     room.gameState.currentRoundNumber = 0;
     room.gameState.drawersThisRound.clear();
     room.gameState.allDrawersCompleted = false;
-    room.gameState.nextDrawerIndex = 0;
     
     // Reset player scores
     room.players.forEach(p => {

@@ -150,6 +150,7 @@ export function RoomPage() {
           onTimeUp={handleTimeUp}
           isActive={isRoundActive}
           autoProgressCountdown={autoProgressCountdown}
+          totalTime={roomState.settings?.roundTimeSec || 90}
         />
       )}
 
