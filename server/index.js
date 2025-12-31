@@ -195,8 +195,17 @@ function defaultSettings() {
   };
 }
 
+function generateRoomCode() {
+  const letters = 'ABCDEFGHJKLMNPQRSTUVWXYZ'; // Excluded I and O to avoid confusion
+  let code = '';
+  for (let i = 0; i < 6; i++) {
+    code += letters.charAt(Math.floor(Math.random() * letters.length));
+  }
+  return code;
+}
+
 function createRoom(hostSocket, payload) {
-  const roomId = (payload?.roomId || Math.random().toString(36).slice(2, 8)).toUpperCase();
+  const roomId = payload?.roomId || generateRoomCode();
   const settings = { ...defaultSettings(), ...(payload?.settings || {}) };
   const room = {
     id: roomId,
