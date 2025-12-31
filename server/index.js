@@ -506,16 +506,26 @@ io.on('connection', (socket) => {
     if (!room || !room.currentRound) return;
     const player = room.players.get(socket.id);
     if (!player) return;
-    const msg = { id: Math.random().toString(36).slice(2), playerId: player.id, name: player.name, text: String(text || '').slice(0, 200) };
-    io.to(room.id).emit('chat:message', msg);
-    // guess check
-    if (room.currentRound.word && msg.text.trim().toLowerCase() === room.currentRound.word) {
-      const already = room.currentRound.correctOrder.find(e => e.playerId === player.id);
-      if (!already && player.id !== room.currentRound.drawerId) {
-        room.currentRound.correctOrder.push({ playerId: player.id, at: Date.now() });
-        io.to(room.id).emit('guess:correct', { playerId: player.id });
-      }
+    
+    const messageText = String(text || '').slice(0, 200);
+    const isCorrectGuess = room.currentRound.word && 
+      messageText.trim().toLowerCase() === room.currentRound.word.toLowerCase();
+    
+    // Check if this player already guessed correctly
+    const alreadyGuessed = room.currentRound.correctOrder.find(e => e.playerId === player.id);
+    const isDrawer = player.id === room.currentRound.drawerId;
+    
+    // If it's a correct guess and player hasn't guessed yet and isn't the drawer,
+    // don't broadcast the message (to hide the answer from others)
+    if (isCorrectGuess && !alreadyGuessed && !isDrawer) {
+      room.currentRound.correctOrder.push({ playerId: player.id, at: Date.now() });
+      io.to(room.id).emit('guess:correct', { playerId: player.id });
+      return; // Don't broadcast the message containing the answer
     }
+    
+    // For regular messages (or if player already guessed/is drawer), broadcast normally
+    const msg = { id: Math.random().toString(36).slice(2), playerId: player.id, name: player.name, text: messageText };
+    io.to(room.id).emit('chat:message', msg);
   });
 
   socket.on('round:end', ({ roomId, reason }) => {
