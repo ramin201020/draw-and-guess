@@ -73,13 +73,29 @@ export function SocketProvider({ children }) {
     });
 
     s.on('round:start', ({ drawerId, endsAt, mask }) => {
+      console.log('📍 round:start received:', { drawerId, endsAt, mask });
       setRoomState((prev) => {
-        if (!prev) return prev;
-        return {
+        if (!prev) {
+          console.log('⚠️ round:start: prev state is null');
+          return prev;
+        }
+        // Ensure mask is a valid array before setting
+        const validMask = Array.isArray(mask) && mask.length > 0 
+          ? mask 
+          : (prev.currentRound?.mask || null);
+        
+        const newState = {
           ...prev,
           status: 'IN_ROUND',
-          currentRound: { ...(prev.currentRound || {}), drawerId, endsAt, mask: mask || prev.currentRound?.mask || null }
+          currentRound: { 
+            ...(prev.currentRound || {}), 
+            drawerId, 
+            endsAt, 
+            mask: validMask
+          }
         };
+        console.log('📍 round:start: new state:', newState);
+        return newState;
       });
     });
 

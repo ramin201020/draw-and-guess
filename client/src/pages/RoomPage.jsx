@@ -199,7 +199,7 @@ export function RoomPage() {
       </header>
 
       {/* Word Hint Bar */}
-      {roomState.status === 'IN_ROUND' && roomState.currentRound?.mask && (
+      {roomState.status === 'IN_ROUND' && Array.isArray(roomState.currentRound?.mask) && roomState.currentRound.mask.length > 0 && (
         <WordHintBar mask={roomState.currentRound.mask} status={roomState.status} />
       )}
 
