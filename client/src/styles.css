@@ -5000,3 +5000,351 @@ input:focus {
     font-size: 0.9rem;
   }
 }
+
+
+/* ============================================
+   IMPROVED ROOM CODE BOX
+   ============================================ */
+
+.room-code-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 8px 14px;
+  background: linear-gradient(135deg, #FFFFFF 0%, #FFF8F0 100%);
+  border-radius: 10px;
+  border: 3px solid #8B4513;
+  box-shadow: 
+    4px 4px 0 #5D3A1A,
+    inset 0 2px 0 rgba(255, 255, 255, 0.8);
+  transition: all 0.15s ease;
+}
+
+.room-code-box:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 
+    6px 6px 0 #5D3A1A,
+    inset 0 2px 0 rgba(255, 255, 255, 0.8);
+}
+
+.room-code-box:active {
+  transform: translate(0, 0);
+  box-shadow: 
+    2px 2px 0 #5D3A1A,
+    inset 0 2px 0 rgba(255, 255, 255, 0.8);
+}
+
+.room-code-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: #8B4513;
+  letter-spacing: 1px;
+}
+
+.room-code-value {
+  font-family: 'Courier New', monospace;
+  font-size: 18px;
+  font-weight: 900;
+  color: #4a3728;
+  letter-spacing: 2px;
+}
+
+.copy-icon {
+  font-size: 16px;
+  opacity: 0.7;
+}
+
+.room-code-box:hover .copy-icon {
+  opacity: 1;
+}
+
+.copied-text {
+  color: #2E7D32;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.room-info-text {
+  color: #8B4513;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* ============================================
+   POLISHED PLAYER PROFILE PICTURES
+   ============================================ */
+
+.player-card {
+  display: flex;
+  align-items: center;
+  padding: 10px 12px;
+  background: linear-gradient(145deg, #FFF8F0 0%, #FFE5D4 100%);
+  border: 3px solid #8B4513;
+  border-radius: 12px;
+  margin-bottom: 8px;
+  position: relative;
+  box-shadow: 
+    4px 4px 0 #5D3A1A,
+    inset 0 2px 0 rgba(255, 255, 255, 0.6);
+  transition: all 0.15s ease;
+}
+
+.player-card:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 
+    5px 5px 0 #5D3A1A,
+    inset 0 2px 0 rgba(255, 255, 255, 0.6);
+}
+
+.player-card.is-self {
+  background: linear-gradient(145deg, #FFF9C4 0%, #FFE082 100%);
+  border-color: #F9A825;
+  box-shadow: 4px 4px 0 #E65100;
+}
+
+.player-card.is-drawer {
+  background: linear-gradient(145deg, #C8E6C9 0%, #A5D6A7 100%);
+  border-color: #388E3C;
+  box-shadow: 4px 4px 0 #1B5E20;
+}
+
+.player-rank {
+  font-weight: 900;
+  font-size: 14px;
+  color: #8B4513;
+  min-width: 28px;
+  text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+/* Profile picture with strokes and depth */
+.player-pfp {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background: var(--pfp-color, #00FF00);
+  margin-right: 10px;
+  position: relative;
+  border: 3px solid rgba(0, 0, 0, 0.3);
+  box-shadow: 
+    inset 3px 3px 0 rgba(255, 255, 255, 0.4),
+    inset -3px -3px 0 rgba(0, 0, 0, 0.2),
+    3px 3px 6px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+}
+
+.pfp-inner {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 1;
+}
+
+.pfp-letter {
+  font-size: 20px;
+  font-weight: 900;
+  color: white;
+  text-shadow: 
+    2px 2px 0 rgba(0, 0, 0, 0.4),
+    -1px -1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.pfp-shine {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 50%;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.4) 0%, transparent 100%);
+  border-radius: 5px 5px 0 0;
+  pointer-events: none;
+}
+
+.player-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.player-name {
+  font-weight: 700;
+  color: #4a3728;
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.player-score {
+  font-size: 11px;
+  color: #8B4513;
+  font-weight: 600;
+}
+
+.badge {
+  margin-left: 4px;
+  font-size: 11px;
+}
+
+.kick-btn {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a5a 100%);
+  color: white;
+  border: 2px solid #c0392b;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 2px 2px 0 #922b21;
+  transition: all 0.15s ease;
+}
+
+.kick-btn:hover {
+  background: linear-gradient(135deg, #ff5252 0%, #e53935 100%);
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0 #922b21;
+}
+
+/* ============================================
+   HEADER LAYOUT FIXES
+   ============================================ */
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.header-center {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0 20px;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* Word hint styling */
+.word-hint-inline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Courier New', monospace;
+  font-size: 1.4rem;
+  font-weight: 900;
+  letter-spacing: 4px;
+}
+
+.hint-letter {
+  color: #4a3728;
+  text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.hint-letter.revealed {
+  color: #E67E22;
+}
+
+.hint-space {
+  width: 16px;
+}
+
+.letter-num {
+  font-size: 0.9rem;
+  color: #8B4513;
+  font-weight: 700;
+  margin-left: 12px;
+  letter-spacing: normal;
+}
+
+.choosing-text {
+  color: #8B4513;
+  font-size: 1rem;
+  font-style: italic;
+  font-weight: 500;
+}
+
+.drawer-word {
+  color: #2E7D32;
+  font-size: 1.3rem;
+  font-weight: 900;
+  letter-spacing: 3px;
+  text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+/* ============================================
+   MOBILE RESPONSIVE
+   ============================================ */
+
+@media (max-width: 768px) {
+  .room-code-box {
+    padding: 6px 10px;
+  }
+  
+  .room-code-label {
+    display: none;
+  }
+  
+  .room-code-value {
+    font-size: 14px;
+  }
+  
+  .room-info-text {
+    display: none;
+  }
+  
+  .header-center {
+    padding: 0 10px;
+  }
+  
+  .word-hint-inline {
+    font-size: 1.1rem;
+    gap: 4px;
+    letter-spacing: 2px;
+  }
+  
+  .letter-num {
+    font-size: 0.8rem;
+    margin-left: 8px;
+  }
+  
+  .player-pfp {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .pfp-letter {
+    font-size: 16px;
+  }
+  
+  .player-card {
+    padding: 8px 10px;
+    margin-bottom: 6px;
+  }
+}
+
+@media (max-width: 480px) {
+  .room-code-box {
+    padding: 4px 8px;
+  }
+  
+  .room-code-value {
+    font-size: 12px;
+    letter-spacing: 1px;
+  }
+  
+  .word-hint-inline {
+    font-size: 0.95rem;
+  }
+}
