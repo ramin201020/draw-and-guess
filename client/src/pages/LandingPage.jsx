@@ -2,8 +2,12 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSocket } from '../socket/SocketProvider';
 
-// Avatar options - simple emoji avatars
-const AVATARS = ['🐱', '🐶', '🦊', '🐻', '🐼', '🐨', '🦁', '🐯', '🐸', '🐵', '🐰', '🐷', '🦄', '🐲', '🦋', '🐢'];
+// GD style icon colors
+const GD_COLORS = [
+  '#00FF00', '#00FFFF', '#FF0000', '#FF00FF', 
+  '#FFFF00', '#FF8000', '#00FF80', '#8000FF',
+  '#FF0080', '#0080FF', '#80FF00', '#FF8080'
+];
 
 export function LandingPage() {
   const { socket, selfId, connectionStatus, setRoomState } = useSocket();
@@ -13,7 +17,7 @@ export function LandingPage() {
   const [isJoining, setIsJoining] = useState(false);
   const [error, setError] = useState('');
   const [showSettings, setShowSettings] = useState(false);
-  const [selectedAvatar, setSelectedAvatar] = useState(AVATARS[0]);
+  const [selectedColor, setSelectedColor] = useState(GD_COLORS[0]);
   
   // Settings
   const [maxPoints, setMaxPoints] = useState(300);
@@ -39,7 +43,7 @@ export function LandingPage() {
     
     const payload = {
       name: name.trim() || 'Host',
-      avatar: selectedAvatar,
+      iconColor: selectedColor,
       settings: {
         maxPoints: Number(maxPoints) || 300,
         roundTimeSec: Number(roundTimeSec) || 90,
@@ -83,7 +87,7 @@ export function LandingPage() {
 
     setIsJoining(true);
     
-    socket.emit('room:join', { roomId: code, name: name.trim() || 'Player', avatar: selectedAvatar }, (res) => {
+    socket.emit('room:join', { roomId: code, name: name.trim() || 'Player', iconColor: selectedColor }, (res) => {
       setIsJoining(false);
       if (res?.ok) {
         setRoomState(res.state);
@@ -118,16 +122,17 @@ export function LandingPage() {
         </div>
 
         <div className="landing-field">
-          <label className="landing-label">Choose Your Avatar</label>
-          <div className="avatar-selector">
-            {AVATARS.map((avatar) => (
+          <label className="landing-label">Choose Your Icon Color</label>
+          <div className="gd-color-selector">
+            {GD_COLORS.map((color) => (
               <button
-                key={avatar}
-                className={`avatar-btn ${selectedAvatar === avatar ? 'selected' : ''}`}
-                onClick={() => setSelectedAvatar(avatar)}
+                key={color}
+                className={`gd-color-btn ${selectedColor === color ? 'selected' : ''}`}
+                style={{ backgroundColor: color }}
+                onClick={() => setSelectedColor(color)}
                 type="button"
               >
-                {avatar}
+                {selectedColor === color && <span className="gd-preview">{(name || 'P').charAt(0).toUpperCase()}</span>}
               </button>
             ))}
           </div>

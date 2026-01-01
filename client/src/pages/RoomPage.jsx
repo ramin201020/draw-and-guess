@@ -4,7 +4,6 @@ import { useSocket } from '../socket/SocketProvider';
 import { DrawingCanvasContainer } from '../ui/DrawingCanvasContainer';
 import { ChatBox } from '../ui/ChatBox';
 import { PlayersSidebar } from '../ui/PlayersSidebar';
-import { WordHintBar } from '../ui/WordHintBar';
 import { Timer } from '../ui/Timer';
 import { RoundResults } from '../ui/RoundResults';
 import { VoiceChat } from '../ui/VoiceChat';
@@ -178,10 +177,10 @@ export function RoomPage() {
         roundNumber={roomState.currentRound?.number || 1}
       />
 
-      {/* Compact Header for Mobile */}
+      {/* Header with Timer, Word Hint (center), and Controls */}
       <header className="room-header-overlay">
-        <div className="room-info-compact">
-          {/* Timer in header */}
+        {/* Left section: Timer + Room Code */}
+        <div className="header-left">
           {(isRoundActive || autoProgressCountdown) && (
             <Timer 
               endsAt={roomState.currentRound?.endsAt}
@@ -202,7 +201,7 @@ export function RoomPage() {
             title="Click to copy room code"
           >
             {copiedFeedback ? (
-              <span className="copied-text">Room code copied!</span>
+              <span className="copied-text">Copied!</span>
             ) : (
               <>
                 <span className="room-code-display">{roomState.id}</span>
@@ -210,12 +209,34 @@ export function RoomPage() {
               </>
             )}
           </div>
-          <span className="room-status-info">
-            {playerCount} {playerCount === 1 ? 'player' : 'players'}
-            {roomState.gameState && ` • Round ${roomState.gameState.currentRoundNumber}/${roomState.gameState.totalRounds}`}
-          </span>
         </div>
-        <div className="host-controls-compact">
+
+        {/* Center section: Word Hint (inline, no panel) */}
+        <div className="header-center">
+          {roomState.status === 'IN_ROUND' && !isDrawer && !roomState.currentRound?.mask && currentDrawer && (
+            <span className="choosing-text">{currentDrawer.name} is choosing...</span>
+          )}
+          {isDrawer && currentWord && (
+            <span className="drawer-word">{currentWord.toUpperCase()} <span className="letter-num">({currentWord.length})</span></span>
+          )}
+          {!isDrawer && roomState.currentRound?.mask && (
+            <span className="word-hint-inline">
+              {roomState.currentRound.mask.map((char, i) => (
+                char === ' ' ? 
+                  <span key={i} className="hint-space">&nbsp;&nbsp;</span> : 
+                  <span key={i} className={`hint-letter ${char !== '_' ? 'revealed' : ''}`}>{char}</span>
+              ))}
+              <span className="letter-num">({roomState.currentRound.mask.filter(c => c !== ' ').length})</span>
+            </span>
+          )}
+        </div>
+
+        {/* Right section: Controls */}
+        <div className="header-right">
+          <span className="room-status-info">
+            {playerCount} players
+            {roomState.gameState && ` • R${roomState.gameState.currentRoundNumber}/${roomState.gameState.totalRounds}`}
+          </span>
           <VoiceChat roomId={roomId} selfId={selfId} players={roomState.players} />
           {isHost && (
             <>
@@ -232,29 +253,6 @@ export function RoomPage() {
           </button>
         </div>
       </header>
-
-      {/* Word Hint Bar */}
-      {(roomState.status === 'IN_ROUND' || (isDrawer && wordOptions.length > 0)) && (
-        <WordHintBar 
-          mask={roomState.currentRound?.mask} 
-          status={roomState.status}
-          isDrawer={isDrawer}
-          word={currentWord}
-          drawerName={currentDrawer?.name}
-          isChoosingWord={isDrawer && wordOptions.length > 0}
-        />
-      )}
-      
-      {/* Show "choosing word" for non-drawers */}
-      {roomState.status === 'IN_ROUND' && !isDrawer && !roomState.currentRound?.mask && (
-        <WordHintBar 
-          mask={null} 
-          status={roomState.status}
-          isDrawer={false}
-          drawerName={currentDrawer?.name}
-          isChoosingWord={true}
-        />
-      )}
 
       {/* Drawer Turn Results - shows for 6 seconds after each drawer */}
       {showDrawerResults && drawerResultsData && (

@@ -1,21 +1,12 @@
 import { useState } from 'react';
 
-// Extended color palette with hex colors
+// Standard colors always visible
 const COLORS = [
-  // Row 1 - Basic colors
-  '#000000', '#FFFFFF', '#C0C0C0', '#808080', '#404040',
-  // Row 2 - Reds/Pinks
-  '#FF0000', '#FF4444', '#FF6B6B', '#FF9999', '#FFCCCC',
-  // Row 3 - Oranges/Yellows
-  '#FF8C00', '#FFA500', '#FFD700', '#FFFF00', '#FFFF99',
-  // Row 4 - Greens
-  '#00FF00', '#32CD32', '#228B22', '#006400', '#90EE90',
-  // Row 5 - Blues/Cyans
-  '#00FFFF', '#00BFFF', '#0000FF', '#000080', '#87CEEB',
-  // Row 6 - Purples/Magentas
-  '#FF00FF', '#FF69B4', '#800080', '#4B0082', '#DDA0DD',
-  // Row 7 - Browns/Earth tones
-  '#8B4513', '#A0522D', '#D2691E', '#F4A460', '#DEB887'
+  '#000000', '#FFFFFF', '#808080', // Black, White, Gray
+  '#FF0000', '#FF6B6B', '#FFA500', // Reds, Orange
+  '#FFFF00', '#00FF00', '#32CD32', // Yellow, Greens
+  '#00FFFF', '#0000FF', '#800080', // Cyan, Blue, Purple
+  '#FF69B4', '#8B4513', '#DEB887'  // Pink, Browns
 ];
 
 export function CanvasDrawingToolbar({ 
@@ -31,9 +22,9 @@ export function CanvasDrawingToolbar({
   canUndo = false
 }) {
   const [isMinimized, setIsMinimized] = useState(false);
-  const [showColorPicker, setShowColorPicker] = useState(false);
-  const [showClearPopup, setShowClearPopup] = useState(false);
+  const [showCustomColor, setShowCustomColor] = useState(false);
   const [customColor, setCustomColor] = useState('#FF8C42');
+  const [showClearPopup, setShowClearPopup] = useState(false);
 
   if (!isDrawer) return null;
 
@@ -84,70 +75,45 @@ export function CanvasDrawingToolbar({
             </button>
           </div>
 
-          {/* Current Color Display + Picker Toggle */}
-          <div className="color-section">
-            <div 
-              className="current-color-btn"
-              style={{ backgroundColor: selectedColor }}
-              onClick={() => setShowColorPicker(!showColorPicker)}
-              title="Click to open color picker"
-            />
-            
-            {/* Color Picker Dropdown */}
-            {showColorPicker && (
-              <div className="color-picker-popup">
-                <div className="color-picker-header">
-                  <span>Select Color</span>
-                  <button 
-                    className="close-picker-btn"
-                    onClick={() => setShowColorPicker(false)}
-                  >
-                    ✕
-                  </button>
-                </div>
-                
-                {/* Hex Color Grid */}
-                <div className="hex-color-grid">
-                  {COLORS.map(color => (
-                    <button
-                      key={color}
-                      className={`hex-color-btn ${selectedColor === color ? 'active' : ''}`}
-                      style={{ backgroundColor: color }}
-                      onClick={() => {
-                        onColorChange(color);
-                        setShowColorPicker(false);
-                      }}
-                      title={color}
-                    />
-                  ))}
-                </div>
-                
-                {/* Custom Color Input */}
-                <div className="custom-color-section">
-                  <label>Custom:</label>
-                  <input
-                    type="color"
-                    value={customColor}
-                    onChange={(e) => setCustomColor(e.target.value)}
-                    className="custom-color-input"
-                  />
-                  <button
-                    className="apply-custom-btn"
-                    onClick={() => {
-                      onColorChange(customColor);
-                      setShowColorPicker(false);
-                    }}
-                  >
-                    Apply
-                  </button>
-                </div>
-              </div>
-            )}
+          {/* Color Palette - Always visible */}
+          <div className="color-palette">
+            {COLORS.map(color => (
+              <button
+                key={color}
+                className={`color-btn ${selectedColor === color ? 'active' : ''}`}
+                style={{ backgroundColor: color }}
+                onClick={() => onColorChange(color)}
+                title={color}
+              />
+            ))}
+            {/* Custom color button */}
+            <button
+              className={`color-btn custom-color-btn ${showCustomColor ? 'active' : ''}`}
+              onClick={() => setShowCustomColor(!showCustomColor)}
+              title="Custom Color"
+            >
+              +
+            </button>
           </div>
+
+          {/* Custom Color Picker */}
+          {showCustomColor && (
+            <div className="custom-color-picker">
+              <input
+                type="color"
+                value={customColor}
+                onChange={(e) => {
+                  setCustomColor(e.target.value);
+                  onColorChange(e.target.value);
+                }}
+                className="color-input"
+              />
+            </div>
+          )}
 
           {/* Brush Size */}
           <div className="brush-size-control">
-            <span style={{ fontSize: '9px' }}>Size:</span>
+            <span className="size-label">Size:</span>
             <input
               type="range"
               min="2"
@@ -156,7 +122,7 @@ export function CanvasDrawingToolbar({
               onChange={(e) => onBrushSizeChange(parseInt(e.target.value))}
               className="brush-size-slider"
             />
-            <span style={{ fontSize: '9px' }}>{brushSize}px</span>
+            <span className="size-value">{brushSize}</span>
           </div>
 
           {/* Actions */}
@@ -164,15 +130,15 @@ export function CanvasDrawingToolbar({
             <button 
               className="action-btn undo-btn"
               onClick={handleUndo}
-              title="Undo last stroke"
+              title="Undo"
               disabled={!canUndo}
             >
-              ↶ Undo
+              ↶
             </button>
             <button 
-              className="action-btn eraser-clear-btn"
+              className="action-btn clear-btn"
               onClick={handleClearClick}
-              title="Clear Canvas"
+              title="Clear"
             >
               🗑️
             </button>
@@ -185,7 +151,7 @@ export function CanvasDrawingToolbar({
         <div className="clear-popup-overlay" onClick={() => setShowClearPopup(false)}>
           <div className="clear-popup" onClick={(e) => e.stopPropagation()}>
             <h3>Clear Canvas?</h3>
-            <p>This will erase everything on the canvas.</p>
+            <p>This will erase everything.</p>
             <div className="clear-popup-buttons">
               <button 
                 className="cancel-clear-btn"

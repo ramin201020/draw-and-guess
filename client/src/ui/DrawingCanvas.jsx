@@ -239,11 +239,28 @@ export function DrawingCanvas({
     const ctx = canvas.getContext('2d');
     const dpr = window.devicePixelRatio || 1;
     ctx.save();
-    ctx.fillStyle = isErasing ? '#FFFFFF' : selectedColor;
+    
+    if (isErasing) {
+      ctx.globalCompositeOperation = 'destination-out';
+      ctx.fillStyle = 'rgba(255,255,255,1)';
+    } else {
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.fillStyle = selectedColor;
+    }
+    
     ctx.beginPath();
     ctx.arc(point.x / dpr, point.y / dpr, brushSize / 2, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
+    
+    // Emit the dot to other players
+    emitStroke({
+      from: point,
+      to: point,
+      color: selectedColor,
+      width: brushSize,
+      tool: isErasing ? 'ERASER' : 'BRUSH'
+    });
   };
 
   const handlePointerMove = (event) => {
