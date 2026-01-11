@@ -124,7 +124,7 @@ export function DrawingCanvas({
     ctx.restore();
   }, []);
 
-  // Redraw entire canvas from stroke history
+  // Redraw entire canvas from stroke history (only used for undo)
   const redrawCanvas = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -138,7 +138,24 @@ export function DrawingCanvas({
     
     // Redraw all strokes
     strokeHistory.forEach(stroke => {
-      drawSmoothStroke(ctx, stroke.points, stroke.color, stroke.width, stroke.tool);
+      if (stroke.points && stroke.points.length >= 2) {
+        drawSmoothStroke(ctx, stroke.points, stroke.color, stroke.width, stroke.tool);
+      } else if (stroke.points && stroke.points.length === 1) {
+        // Single point (dot)
+        const point = stroke.points[0];
+        ctx.save();
+        if (stroke.tool === 'ERASER') {
+          ctx.globalCompositeOperation = 'destination-out';
+          ctx.fillStyle = 'rgba(255,255,255,1)';
+        } else {
+          ctx.globalCompositeOperation = 'source-over';
+          ctx.fillStyle = stroke.color;
+        }
+        ctx.beginPath();
+        ctx.arc(point.x / dpr, point.y / dpr, stroke.width / 2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
     });
   }, [strokeHistory, drawSmoothStroke]);
 
@@ -172,6 +189,7 @@ export function DrawingCanvas({
 
     const handleUndo = () => {
       setStrokeHistory(prev => prev.slice(0, -1));
+      setNeedsRedraw(true);
     };
     
     socket.on('draw:stroke', handleIncomingStroke);
@@ -185,10 +203,16 @@ export function DrawingCanvas({
     };
   }, [socket, drawSmoothStroke, drawLineSegment]);
 
-  // Redraw when stroke history changes (for undo)
+  // Track if we need to redraw (for undo operations)
+  const [needsRedraw, setNeedsRedraw] = useState(false);
+
+  // Redraw when needed (for undo)
   useEffect(() => {
-    redrawCanvas();
-  }, [strokeHistory, redrawCanvas]);
+    if (needsRedraw) {
+      redrawCanvas();
+      setNeedsRedraw(false);
+    }
+  }, [needsRedraw, redrawCanvas]);
 
   // Notify parent about undo availability
   useEffect(() => {
@@ -274,23 +298,12 @@ export function DrawingCanvas({
     const nextPoint = getCanvasPoint(event);
     if (!nextPoint) return;
     
-    // Add point to current stroke
-    setCurrentStroke(prev => {
-      const newStroke = [...prev, nextPoint];
-      
-      // Draw smooth curve through all points so far
-      if (newStroke.length >= 2) {
-        // Clear and redraw for smooth curves
-        redrawCanvas();
-        drawSmoothStroke(ctx, newStroke, selectedColor, brushSize, isErasing ? 'ERASER' : 'BRUSH');
-      }
-      
-      return newStroke;
-    });
-    
-    // Emit individual segment for real-time sync
+    // Draw line segment from last point to current point (no full redraw)
     if (currentStroke.length > 0) {
       const lastPoint = currentStroke[currentStroke.length - 1];
+      drawLineSegment(ctx, lastPoint, nextPoint, selectedColor, brushSize, isErasing ? 'ERASER' : 'BRUSH');
+      
+      // Emit individual segment for real-time sync
       emitStroke({
         from: lastPoint,
         to: nextPoint,
@@ -299,6 +312,9 @@ export function DrawingCanvas({
         tool: isErasing ? 'ERASER' : 'BRUSH'
       });
     }
+    
+    // Add point to current stroke
+    setCurrentStroke(prev => [...prev, nextPoint]);
   };
 
   const handlePointerUp = (event) => {
@@ -343,6 +359,7 @@ export function DrawingCanvas({
     if (strokeHistory.length === 0) return;
     
     setStrokeHistory(prev => prev.slice(0, -1));
+    setNeedsRedraw(true);
     socket?.emit('draw:undo', { roomId });
   }, [strokeHistory.length, roomId, socket]);
 

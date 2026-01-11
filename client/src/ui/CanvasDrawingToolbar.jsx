@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { BrushIcon, EraserIcon, TrashIcon, UndoIcon } from './Icons';
 
 // Standard colors always visible
 const COLORS = [
@@ -64,14 +65,14 @@ export function CanvasDrawingToolbar({
               onClick={() => onToolChange('brush')}
               title="Brush"
             >
-              ✏️
+              <BrushIcon size={20} />
             </button>
             <button 
               className={`tool-btn ${selectedTool === 'eraser' ? 'active' : ''}`}
               onClick={() => onToolChange('eraser')}
               title="Eraser"
             >
-              🧽
+              <EraserIcon size={20} />
             </button>
           </div>
 
@@ -133,14 +134,14 @@ export function CanvasDrawingToolbar({
               title="Undo"
               disabled={!canUndo}
             >
-              ↶
+              <UndoIcon size={18} />
             </button>
             <button 
               className="action-btn clear-btn"
               onClick={handleClearClick}
               title="Clear"
             >
-              🗑️
+              <TrashIcon size={18} />
             </button>
           </div>
         </div>

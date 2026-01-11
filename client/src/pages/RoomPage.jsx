@@ -7,6 +7,7 @@ import { PlayersSidebar } from '../ui/PlayersSidebar';
 import { Timer } from '../ui/Timer';
 import { RoundResults } from '../ui/RoundResults';
 import { VoiceChat } from '../ui/VoiceChat';
+import { CountdownDisplay } from '../ui/CountdownDisplay';
 
 export function RoomPage() {
   const { roomId } = useParams();
@@ -22,6 +23,7 @@ export function RoomPage() {
   const [showDrawerResults, setShowDrawerResults] = useState(false);
   const [drawerResultsData, setDrawerResultsData] = useState(null);
   const [copiedFeedback, setCopiedFeedback] = useState(false);
+  const [isRoundComplete, setIsRoundComplete] = useState(false);
 
   const me = useMemo(() => roomState?.players?.find((p) => p.id === selfId) || null, [roomState, selfId]);
   const isHost = !!me?.isHost;
@@ -67,8 +69,9 @@ export function RoomPage() {
       setShowResults(true);
     };
     
-    const handleAutoProgressCountdown = ({ countdown }) => {
+    const handleAutoProgressCountdown = ({ countdown, isRoundComplete: roundComplete }) => {
       setAutoProgressCountdown(countdown);
+      setIsRoundComplete(roundComplete || false);
     };
     
     const handleGameComplete = ({ finalRankings }) => {
@@ -277,6 +280,11 @@ export function RoomPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Countdown Display - shows between turns/rounds */}
+      {autoProgressCountdown !== null && autoProgressCountdown > 0 && !showDrawerResults && (
+        <CountdownDisplay countdown={autoProgressCountdown} isRoundComplete={isRoundComplete} />
       )}
 
       {/* Main Content Area - Three Column Layout */}

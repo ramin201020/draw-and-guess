@@ -266,6 +266,23 @@ function getNextDrawerName(room) {
   return null;
 }
 
+// Check if all non-drawer players have guessed correctly
+function checkAllGuessed(room) {
+  const round = room.currentRound;
+  if (!round || !round.word) return false;
+  
+  const nonDrawerPlayers = [...room.players.values()].filter(
+    p => p.id !== round.drawerId
+  );
+  
+  // If there are no non-drawer players, return false
+  if (nonDrawerPlayers.length === 0) return false;
+  
+  const guessedPlayerIds = new Set(round.correctOrder.map(e => e.playerId));
+  
+  return nonDrawerPlayers.every(p => guessedPlayerIds.has(p.id));
+}
+
 function scoreSequence(M) {
   const scores = [];
   const P1 = Math.floor(M);
@@ -510,6 +527,12 @@ io.on('connection', (socket) => {
     if (isCorrectGuess && !alreadyGuessed && !isDrawer) {
       room.currentRound.correctOrder.push({ playerId: player.id, at: Date.now() });
       io.to(room.id).emit('guess:correct', { playerId: player.id });
+      io.to(room.id).emit('room:state', roomSnapshot(room));
+      
+      // Check if all non-drawer players have guessed correctly
+      if (checkAllGuessed(room)) {
+        endDrawerTurn(room, 'ALL_GUESSED');
+      }
       return; // Don't broadcast the message containing the answer
     }
     
@@ -685,21 +708,25 @@ function getNextDrawer(room) {
   return availablePlayers[randomIndex];
 }
 
-function startAutoProgressTimer(room, delay = 10000) {
+function startAutoProgressTimer(room, delay = 10000, isRoundComplete = false) {
   if (room.gameState.autoProgressTimer) {
     clearTimeout(room.gameState.autoProgressTimer);
+  }
+  if (room.gameState.countdownInterval) {
     clearInterval(room.gameState.countdownInterval);
   }
   
-  // Start countdown
-  let countdown = 10;
+  // 10 seconds for round completion, 3 seconds for turn end
+  const countdownStart = isRoundComplete ? 10 : 3;
+  let countdown = countdownStart;
   room.gameState.autoProgressCountdown = countdown;
   io.to(room.id).emit('room:state', roomSnapshot(room));
+  io.to(room.id).emit('autoProgress:countdown', { countdown, isRoundComplete });
   
   room.gameState.countdownInterval = setInterval(() => {
     countdown--;
     room.gameState.autoProgressCountdown = countdown;
-    io.to(room.id).emit('autoProgress:countdown', { countdown });
+    io.to(room.id).emit('autoProgress:countdown', { countdown, isRoundComplete });
     
     if (countdown <= 0) {
       clearInterval(room.gameState.countdownInterval);
@@ -722,7 +749,7 @@ function startAutoProgressTimer(room, delay = 10000) {
       // Start next drawer's turn
       startNextDrawerTurn(room);
     }
-  }, delay);
+  }, countdownStart * 1000);
 }
 
 function startNextRound(room) {
@@ -743,7 +770,7 @@ function startNextDrawerTurn(room) {
       roundNumber: room.gameState.currentRoundNumber,
       state: roomSnapshot(room) 
     });
-    startAutoProgressTimer(room);
+    startAutoProgressTimer(room, 10000, true); // 10 second countdown for round completion
     return;
   }
   
@@ -844,7 +871,7 @@ function endDrawerTurn(room, reason) {
   });
   
   // Auto-progress to next turn or round
-  startAutoProgressTimer(room, 3000); // 3 second delay between turns
+  startAutoProgressTimer(room, 3000, false); // 3 second countdown between turns
 }
 
 function endGame(room) {
