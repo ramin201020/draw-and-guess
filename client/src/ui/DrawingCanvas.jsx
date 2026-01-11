@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSocket } from '../socket/SocketProvider';
 
+// Fixed virtual canvas size for coordinate normalization
+const VIRTUAL_WIDTH = 800;
+const VIRTUAL_HEIGHT = 600;
+
 export function DrawingCanvas({ 
   roomId, 
   isDrawer, 
@@ -20,6 +24,34 @@ export function DrawingCanvas({
   const [strokeHistory, setStrokeHistory] = useState([]); // All completed strokes for undo
   
   const isErasing = selectedTool === 'eraser';
+
+  // Get current canvas display dimensions
+  const getCanvasDimensions = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return { width: VIRTUAL_WIDTH, height: VIRTUAL_HEIGHT };
+    const rect = canvas.getBoundingClientRect();
+    return { width: rect.width, height: rect.height };
+  }, []);
+
+  // Convert normalized coordinates (0-1) to canvas pixels
+  const normalizedToCanvas = useCallback((nx, ny) => {
+    const { width, height } = getCanvasDimensions();
+    const dpr = window.devicePixelRatio || 1;
+    return {
+      x: nx * width * dpr,
+      y: ny * height * dpr
+    };
+  }, [getCanvasDimensions]);
+
+  // Convert canvas pixels to normalized coordinates (0-1)
+  const canvasToNormalized = useCallback((x, y) => {
+    const { width, height } = getCanvasDimensions();
+    const dpr = window.devicePixelRatio || 1;
+    return {
+      nx: x / (width * dpr),
+      ny: y / (height * dpr)
+    };
+  }, [getCanvasDimensions]);
 
   // Set up canvas with fixed dimensions
   useEffect(() => {
@@ -57,52 +89,17 @@ export function DrawingCanvas({
     };
   }, []);
 
-  // Draw a smooth curve through points using quadratic bezier curves
-  const drawSmoothStroke = useCallback((ctx, points, color, width, tool) => {
-    if (!ctx || !points || points.length < 2) return;
-    
-    const dpr = window.devicePixelRatio || 1;
-    
-    ctx.save();
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-    ctx.lineWidth = width;
-    
-    if (tool === 'ERASER') {
-      ctx.globalCompositeOperation = 'destination-out';
-      ctx.strokeStyle = 'rgba(255,255,255,1)';
-    } else {
-      ctx.globalCompositeOperation = 'source-over';
-      ctx.strokeStyle = color;
-    }
-    
-    ctx.beginPath();
-    
-    // Move to first point
-    ctx.moveTo(points[0].x / dpr, points[0].y / dpr);
-    
-    // Use quadratic curves for smooth lines
-    for (let i = 1; i < points.length - 1; i++) {
-      const xc = (points[i].x / dpr + points[i + 1].x / dpr) / 2;
-      const yc = (points[i].y / dpr + points[i + 1].y / dpr) / 2;
-      ctx.quadraticCurveTo(points[i].x / dpr, points[i].y / dpr, xc, yc);
-    }
-    
-    // Draw to the last point
-    if (points.length > 1) {
-      const lastPoint = points[points.length - 1];
-      ctx.lineTo(lastPoint.x / dpr, lastPoint.y / dpr);
-    }
-    
-    ctx.stroke();
-    ctx.restore();
-  }, []);
-
-  // Draw a single line segment (for real-time updates)
-  const drawLineSegment = useCallback((ctx, from, to, color, width, tool) => {
+  // Draw a line segment using normalized coordinates
+  const drawLineSegmentNormalized = useCallback((ctx, from, to, color, width, tool) => {
     if (!ctx || !from || !to) return;
     
-    const dpr = window.devicePixelRatio || 1;
+    const { width: canvasWidth, height: canvasHeight } = getCanvasDimensions();
+    
+    // Convert normalized to display coordinates
+    const fromX = from.nx * canvasWidth;
+    const fromY = from.ny * canvasHeight;
+    const toX = to.nx * canvasWidth;
+    const toY = to.ny * canvasHeight;
     
     ctx.save();
     ctx.lineCap = 'round';
@@ -118,11 +115,34 @@ export function DrawingCanvas({
     }
     
     ctx.beginPath();
-    ctx.moveTo(from.x / dpr, from.y / dpr);
-    ctx.lineTo(to.x / dpr, to.y / dpr);
+    ctx.moveTo(fromX, fromY);
+    ctx.lineTo(toX, toY);
     ctx.stroke();
     ctx.restore();
-  }, []);
+  }, [getCanvasDimensions]);
+
+  // Draw a dot using normalized coordinates
+  const drawDotNormalized = useCallback((ctx, point, color, width, tool) => {
+    if (!ctx || !point) return;
+    
+    const { width: canvasWidth, height: canvasHeight } = getCanvasDimensions();
+    const x = point.nx * canvasWidth;
+    const y = point.ny * canvasHeight;
+    
+    ctx.save();
+    if (tool === 'ERASER') {
+      ctx.globalCompositeOperation = 'destination-out';
+      ctx.fillStyle = 'rgba(255,255,255,1)';
+    } else {
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.fillStyle = color;
+    }
+    
+    ctx.beginPath();
+    ctx.arc(x, y, width / 2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }, [getCanvasDimensions]);
 
   // Redraw entire canvas from stroke history (only used for undo)
   const redrawCanvas = useCallback(() => {
@@ -130,34 +150,25 @@ export function DrawingCanvas({
     if (!canvas) return;
     
     const ctx = canvas.getContext('2d');
-    const dpr = window.devicePixelRatio || 1;
+    const { width, height } = getCanvasDimensions();
     
     // Clear canvas
     ctx.fillStyle = '#FFFFFF';
-    ctx.fillRect(0, 0, canvas.width / dpr, canvas.height / dpr);
+    ctx.fillRect(0, 0, width, height);
     
     // Redraw all strokes
     strokeHistory.forEach(stroke => {
       if (stroke.points && stroke.points.length >= 2) {
-        drawSmoothStroke(ctx, stroke.points, stroke.color, stroke.width, stroke.tool);
+        // Draw line segments
+        for (let i = 1; i < stroke.points.length; i++) {
+          drawLineSegmentNormalized(ctx, stroke.points[i-1], stroke.points[i], stroke.color, stroke.width, stroke.tool);
+        }
       } else if (stroke.points && stroke.points.length === 1) {
         // Single point (dot)
-        const point = stroke.points[0];
-        ctx.save();
-        if (stroke.tool === 'ERASER') {
-          ctx.globalCompositeOperation = 'destination-out';
-          ctx.fillStyle = 'rgba(255,255,255,1)';
-        } else {
-          ctx.globalCompositeOperation = 'source-over';
-          ctx.fillStyle = stroke.color;
-        }
-        ctx.beginPath();
-        ctx.arc(point.x / dpr, point.y / dpr, stroke.width / 2, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.restore();
+        drawDotNormalized(ctx, stroke.points[0], stroke.color, stroke.width, stroke.tool);
       }
     });
-  }, [strokeHistory, drawSmoothStroke]);
+  }, [strokeHistory, getCanvasDimensions, drawLineSegmentNormalized, drawDotNormalized]);
 
   // Socket event handlers
   useEffect(() => {
@@ -169,11 +180,12 @@ export function DrawingCanvas({
       if (!canvas || !stroke) return;
       const ctx = canvas.getContext('2d');
       
-      // Handle both old format (from/to) and new format (points array)
-      if (stroke.points) {
-        drawSmoothStroke(ctx, stroke.points, stroke.color, stroke.width, stroke.tool);
+      // Handle normalized coordinates (from/to with nx/ny)
+      if (stroke.from && stroke.to && stroke.from.nx !== undefined) {
+        drawLineSegmentNormalized(ctx, stroke.from, stroke.to, stroke.color, stroke.width, stroke.tool);
       } else if (stroke.from && stroke.to) {
-        drawLineSegment(ctx, stroke.from, stroke.to, stroke.color, stroke.width, stroke.tool);
+        // Legacy format - draw dot
+        drawDotNormalized(ctx, { nx: stroke.from.nx || 0.5, ny: stroke.from.ny || 0.5 }, stroke.color, stroke.width, stroke.tool);
       }
     };
     
@@ -181,9 +193,9 @@ export function DrawingCanvas({
       const canvas = canvasRef.current;
       if (!canvas) return;
       const ctx = canvas.getContext('2d');
-      const dpr = window.devicePixelRatio || 1;
+      const { width, height } = getCanvasDimensions();
       ctx.fillStyle = '#FFFFFF';
-      ctx.fillRect(0, 0, canvas.width / dpr, canvas.height / dpr);
+      ctx.fillRect(0, 0, width, height);
       setStrokeHistory([]);
     };
 
@@ -201,7 +213,7 @@ export function DrawingCanvas({
       socket.off('draw:clear', handleClear);
       socket.off('draw:undo', handleUndo);
     };
-  }, [socket, drawSmoothStroke, drawLineSegment]);
+  }, [socket, drawLineSegmentNormalized, drawDotNormalized, getCanvasDimensions]);
 
   // Track if we need to redraw (for undo operations)
   const [needsRedraw, setNeedsRedraw] = useState(false);
@@ -226,19 +238,19 @@ export function DrawingCanvas({
     socket.emit('draw:stroke', { roomId, stroke });
   }, [socket, roomId]);
 
-  const getCanvasPoint = (event) => {
+  const getCanvasPointNormalized = (event) => {
     const canvas = canvasRef.current;
     if (!canvas) return null;
     
     const rect = canvas.getBoundingClientRect();
-    const dpr = window.devicePixelRatio || 1;
     
     const clientX = event.touches ? event.touches[0].clientX : event.clientX;
     const clientY = event.touches ? event.touches[0].clientY : event.clientY;
     
+    // Return normalized coordinates (0-1)
     return {
-      x: (clientX - rect.left) * dpr,
-      y: (clientY - rect.top) * dpr
+      nx: (clientX - rect.left) / rect.width,
+      ny: (clientY - rect.top) / rect.height
     };
   };
 
@@ -253,7 +265,7 @@ export function DrawingCanvas({
       canvas.setPointerCapture(event.pointerId);
     }
     
-    const point = getCanvasPoint(event);
+    const point = getCanvasPointNormalized(event);
     if (!point) return;
     
     setDrawing(true);
@@ -261,21 +273,7 @@ export function DrawingCanvas({
     
     // Draw a dot for single clicks
     const ctx = canvas.getContext('2d');
-    const dpr = window.devicePixelRatio || 1;
-    ctx.save();
-    
-    if (isErasing) {
-      ctx.globalCompositeOperation = 'destination-out';
-      ctx.fillStyle = 'rgba(255,255,255,1)';
-    } else {
-      ctx.globalCompositeOperation = 'source-over';
-      ctx.fillStyle = selectedColor;
-    }
-    
-    ctx.beginPath();
-    ctx.arc(point.x / dpr, point.y / dpr, brushSize / 2, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
+    drawDotNormalized(ctx, point, selectedColor, brushSize, isErasing ? 'ERASER' : 'BRUSH');
     
     // Emit the dot to other players
     emitStroke({
@@ -295,13 +293,13 @@ export function DrawingCanvas({
     if (!canvas) return;
     
     const ctx = canvas.getContext('2d');
-    const nextPoint = getCanvasPoint(event);
+    const nextPoint = getCanvasPointNormalized(event);
     if (!nextPoint) return;
     
-    // Draw line segment from last point to current point (no full redraw)
+    // Draw line segment from last point to current point
     if (currentStroke.length > 0) {
       const lastPoint = currentStroke[currentStroke.length - 1];
-      drawLineSegment(ctx, lastPoint, nextPoint, selectedColor, brushSize, isErasing ? 'ERASER' : 'BRUSH');
+      drawLineSegmentNormalized(ctx, lastPoint, nextPoint, selectedColor, brushSize, isErasing ? 'ERASER' : 'BRUSH');
       
       // Emit individual segment for real-time sync
       emitStroke({
@@ -346,13 +344,13 @@ export function DrawingCanvas({
     if (!canvas) return;
     
     const ctx = canvas.getContext('2d');
-    const dpr = window.devicePixelRatio || 1;
+    const { width, height } = getCanvasDimensions();
     ctx.fillStyle = backgroundColor;
-    ctx.fillRect(0, 0, canvas.width / dpr, canvas.height / dpr);
+    ctx.fillRect(0, 0, width, height);
     
     setStrokeHistory([]);
     socket?.emit('draw:clear', { roomId });
-  }, [backgroundColor, roomId, socket]);
+  }, [backgroundColor, roomId, socket, getCanvasDimensions]);
 
   // Undo last stroke
   const undoLastStroke = useCallback(() => {
