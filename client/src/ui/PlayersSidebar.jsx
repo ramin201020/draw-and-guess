@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSocket } from '../socket/SocketProvider';
-import { CrownIcon, PencilIcon, CheckIcon, MicrophoneIcon } from './Icons';
+import { CrownIcon, PencilIcon, CheckIcon, MicrophoneIcon, getProfileIcon } from './Icons';
 
 export function PlayersSidebar({ room, selfId, roomId }) {
   const { socket } = useSocket();
@@ -37,13 +37,16 @@ export function PlayersSidebar({ room, selfId, roomId }) {
         const isSelf = player.id === selfId;
         const inVoice = voiceParticipants.has(player.id);
         const hasGuessedCorrectly = guessedPlayerIds.has(player.id);
+        const ProfileIcon = getProfileIcon(index);
         
         return (
           <div 
             key={player.id} 
             className={`player-item ${isSelf ? 'is-self' : ''} ${player.isDrawer ? 'is-drawer' : ''} ${hasGuessedCorrectly ? 'has-guessed' : ''}`}
           >
-            <span className="player-rank">#{index + 1}</span>
+            <div className="player-avatar">
+              <ProfileIcon size={32} />
+            </div>
             
             <div className="player-info">
               <span className="player-name">{player.name}</span>
@@ -52,10 +55,10 @@ export function PlayersSidebar({ room, selfId, roomId }) {
 
             {/* Status badges - displayed next to player info */}
             <div className="player-badges">
-              {player.isHost && <span className="badge host-badge" title="Host"><CrownIcon size={16} /></span>}
-              {player.isDrawer && <span className="badge drawer-badge" title="Drawing"><PencilIcon size={16} /></span>}
-              {hasGuessedCorrectly && <span className="badge guessed-badge" title="Guessed correctly"><CheckIcon size={16} /></span>}
-              {inVoice && <span className="badge voice-badge" title="In voice chat"><MicrophoneIcon size={16} /></span>}
+              {player.isHost && <span className="badge host-badge" title="Host"><CrownIcon size={14} /></span>}
+              {player.isDrawer && <span className="badge drawer-badge" title="Drawing"><PencilIcon size={14} /></span>}
+              {hasGuessedCorrectly && <span className="badge guessed-badge" title="Guessed correctly"><CheckIcon size={14} /></span>}
+              {inVoice && <span className="badge voice-badge" title="In voice chat"><MicrophoneIcon size={14} /></span>}
             </div>
 
             {isHost && !isSelf && (

@@ -5405,6 +5405,14 @@ input:focus {
    PLAYER BADGES - SVG ICONS
    ============================================ */
 
+.player-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-right: 8px;
+}
+
 .player-badges {
   display: flex;
   align-items: center;
@@ -5417,8 +5425,8 @@ input:focus {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.8);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
@@ -5451,10 +5459,6 @@ input:focus {
 
 .player-item.has-guessed .player-name {
   color: #065F46;
-}
-
-.player-avatar {
-  display: none;
 }
 
 /* ============================================
