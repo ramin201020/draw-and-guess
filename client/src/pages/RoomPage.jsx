@@ -8,6 +8,7 @@ import { Timer } from '../ui/Timer';
 import { RoundResults } from '../ui/RoundResults';
 import { VoiceChat } from '../ui/VoiceChat';
 import { CountdownDisplay } from '../ui/CountdownDisplay';
+import { getProfileIcon } from '../ui/Icons';
 
 export function RoomPage() {
   const { roomId } = useParams();
@@ -165,7 +166,8 @@ export function RoomPage() {
   
   // Get current drawer info
   const currentDrawer = roomState.players?.find(p => p.isDrawer);
-  const isChoosingWord = isRoundActive && !roomState.currentRound?.mask?.some(c => c !== '_' && c !== ' ') && wordOptions.length === 0 && !currentWord;
+  const currentDrawerIndex = roomState.players?.findIndex(p => p.isDrawer) || 0;
+  const isChoosingWord = roomState.status === 'IN_ROUND' && !roomState.currentRound?.mask && currentDrawer && !isDrawer;
 
   return (
     <div className="page room-page room-layout-three-column">
@@ -295,6 +297,19 @@ export function RoomPage() {
             roomId={roomId} 
             isDrawer={isDrawer}
           />
+          
+          {/* Choosing Word Overlay - shows when drawer is selecting a word */}
+          {isChoosingWord && currentDrawer && (
+            <div className="choosing-overlay">
+              <div className="choosing-content">
+                {(() => {
+                  const ProfileIcon = getProfileIcon(currentDrawerIndex);
+                  return <ProfileIcon size={80} />;
+                })()}
+                <span className="choosing-name">{currentDrawer.name} is choosing...</span>
+              </div>
+            </div>
+          )}
         </section>
 
         {/* Center: Players Sidebar */}

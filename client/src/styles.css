@@ -5477,3 +5477,92 @@ input:focus {
 .action-btn:disabled svg {
   opacity: 0.4;
 }
+
+
+/* ============================================
+   CHOOSING WORD OVERLAY
+   ============================================ */
+
+.choosing-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  border-radius: 4px;
+}
+
+.choosing-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  animation: choosingPulse 2s ease-in-out infinite;
+}
+
+@keyframes choosingPulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.05); opacity: 0.9; }
+}
+
+.choosing-name {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #4a3728;
+  text-align: center;
+}
+
+/* Landing page profile icon preview */
+.landing-profile-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin: 1rem 0;
+}
+
+.landing-profile-preview .preview-label {
+  font-size: 0.85rem;
+  color: #8B7355;
+}
+
+
+/* ============================================
+   AVATAR SELECTOR - LANDING PAGE
+   ============================================ */
+
+.avatar-selector {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+  padding: 8px 0;
+}
+
+.avatar-btn {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: 3px solid #DEB887;
+  background: #FFF8F0;
+  cursor: pointer;
+  padding: 6px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatar-btn:hover {
+  border-color: #FF8C42;
+  transform: scale(1.1);
+}
+
+.avatar-btn.selected {
+  border-color: #FF8C42;
+  background: #FFE5D4;
+  box-shadow: 0 0 0 3px rgba(255, 140, 66, 0.3);
+  transform: scale(1.1);
+}

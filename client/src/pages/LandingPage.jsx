@@ -1,13 +1,10 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSocket } from '../socket/SocketProvider';
+import { ProfileIcon1, ProfileIcon2, ProfileIcon3, ProfileIcon4 } from '../ui/Icons';
 
-// GD style icon colors
-const GD_COLORS = [
-  '#00FF00', '#00FFFF', '#FF0000', '#FF00FF', 
-  '#FFFF00', '#FF8000', '#00FF80', '#8000FF',
-  '#FF0080', '#0080FF', '#80FF00', '#FF8080'
-];
+// Profile icons array
+const PROFILE_ICONS = [ProfileIcon1, ProfileIcon2, ProfileIcon3, ProfileIcon4];
 
 export function LandingPage() {
   const { socket, selfId, connectionStatus, setRoomState } = useSocket();
@@ -17,7 +14,7 @@ export function LandingPage() {
   const [isJoining, setIsJoining] = useState(false);
   const [error, setError] = useState('');
   const [showSettings, setShowSettings] = useState(false);
-  const [selectedColor, setSelectedColor] = useState(GD_COLORS[0]);
+  const [selectedIconIndex, setSelectedIconIndex] = useState(0);
   
   // Settings
   const [maxPoints, setMaxPoints] = useState(300);
@@ -43,7 +40,7 @@ export function LandingPage() {
     
     const payload = {
       name: name.trim() || 'Host',
-      iconColor: selectedColor,
+      avatarIndex: selectedIconIndex,
       settings: {
         maxPoints: Number(maxPoints) || 300,
         roundTimeSec: Number(roundTimeSec) || 90,
@@ -87,7 +84,7 @@ export function LandingPage() {
 
     setIsJoining(true);
     
-    socket.emit('room:join', { roomId: code, name: name.trim() || 'Player', iconColor: selectedColor }, (res) => {
+    socket.emit('room:join', { roomId: code, name: name.trim() || 'Player', avatarIndex: selectedIconIndex }, (res) => {
       setIsJoining(false);
       if (res?.ok) {
         setRoomState(res.state);
@@ -122,17 +119,16 @@ export function LandingPage() {
         </div>
 
         <div className="landing-field">
-          <label className="landing-label">Choose Your Icon Color</label>
-          <div className="gd-color-selector">
-            {GD_COLORS.map((color) => (
+          <label className="landing-label">Choose Your Avatar</label>
+          <div className="avatar-selector">
+            {PROFILE_ICONS.map((Icon, index) => (
               <button
-                key={color}
-                className={`gd-color-btn ${selectedColor === color ? 'selected' : ''}`}
-                style={{ backgroundColor: color }}
-                onClick={() => setSelectedColor(color)}
+                key={index}
+                className={`avatar-btn ${selectedIconIndex === index ? 'selected' : ''}`}
+                onClick={() => setSelectedIconIndex(index)}
                 type="button"
               >
-                {selectedColor === color && <span className="gd-preview">{(name || 'P').charAt(0).toUpperCase()}</span>}
+                <Icon size={48} />
               </button>
             ))}
           </div>
