@@ -68,11 +68,11 @@ export const MicrophoneIcon = ({ size = 16, color = '#4ade80' }) => (
 export const ProfileIcon1 = ({ size = 32 }) => (
   <svg width={size} height={size} viewBox="0 0 100 100">
     <defs>
-      <clipPath id="circle1">
+      <clipPath id="profileCircle1">
         <circle cx="50" cy="50" r="48"/>
       </clipPath>
     </defs>
-    <g clipPath="url(#circle1)">
+    <g clipPath="url(#profileCircle1)">
       <circle cx="50" cy="50" r="50" fill="#5B7B9A"/>
       <circle cx="35" cy="45" r="35" fill="#3D5A73"/>
       <circle cx="65" cy="55" r="25" fill="#4A6B8A"/>
@@ -84,11 +84,11 @@ export const ProfileIcon1 = ({ size = 32 }) => (
 export const ProfileIcon2 = ({ size = 32 }) => (
   <svg width={size} height={size} viewBox="0 0 100 100">
     <defs>
-      <clipPath id="circle2">
+      <clipPath id="profileCircle2">
         <circle cx="50" cy="50" r="48"/>
       </clipPath>
     </defs>
-    <g clipPath="url(#circle2)">
+    <g clipPath="url(#profileCircle2)">
       <circle cx="50" cy="50" r="50" fill="#5B7B9A"/>
       <ellipse cx="40" cy="60" rx="30" ry="35" fill="#3D5A73"/>
       <ellipse cx="70" cy="30" rx="25" ry="30" fill="#8BA4B8"/>
@@ -101,11 +101,11 @@ export const ProfileIcon2 = ({ size = 32 }) => (
 export const ProfileIcon3 = ({ size = 32 }) => (
   <svg width={size} height={size} viewBox="0 0 100 100">
     <defs>
-      <clipPath id="circle3">
+      <clipPath id="profileCircle3">
         <circle cx="50" cy="50" r="48"/>
       </clipPath>
     </defs>
-    <g clipPath="url(#circle3)">
+    <g clipPath="url(#profileCircle3)">
       <circle cx="50" cy="50" r="50" fill="#4A5D6A"/>
       <path d="M80 20 Q100 50 70 80 Q40 100 20 70 Q0 40 30 20 Q60 0 80 20" fill="#D9E2E8"/>
       <ellipse cx="60" cy="65" rx="35" ry="30" fill="#3D5A73"/>
@@ -117,11 +117,11 @@ export const ProfileIcon3 = ({ size = 32 }) => (
 export const ProfileIcon4 = ({ size = 32 }) => (
   <svg width={size} height={size} viewBox="0 0 100 100">
     <defs>
-      <clipPath id="circle4">
+      <clipPath id="profileCircle4">
         <circle cx="50" cy="50" r="48"/>
       </clipPath>
     </defs>
-    <g clipPath="url(#circle4)">
+    <g clipPath="url(#profileCircle4)">
       <circle cx="50" cy="50" r="50" fill="#8BA4B8"/>
       <path d="M20 80 Q0 50 30 20 Q60 -10 90 30 Q100 60 70 80 Q40 100 20 80" fill="#F5F5F5"/>
       <ellipse cx="55" cy="60" rx="30" ry="35" fill="#5B7B9A"/>

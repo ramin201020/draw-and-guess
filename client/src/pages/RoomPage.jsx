@@ -166,7 +166,7 @@ export function RoomPage() {
   
   // Get current drawer info
   const currentDrawer = roomState.players?.find(p => p.isDrawer);
-  const currentDrawerIndex = roomState.players?.findIndex(p => p.isDrawer) || 0;
+  const currentDrawerIndex = Math.max(0, roomState.players?.findIndex(p => p.isDrawer) ?? 0);
   const isChoosingWord = roomState.status === 'IN_ROUND' && !roomState.currentRound?.mask && currentDrawer && !isDrawer;
 
   return (

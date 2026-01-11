@@ -1,10 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSocket } from '../socket/SocketProvider';
 
-// Fixed virtual canvas size for coordinate normalization
-const VIRTUAL_WIDTH = 800;
-const VIRTUAL_HEIGHT = 600;
-
 export function DrawingCanvas({ 
   roomId, 
   isDrawer, 
@@ -28,30 +24,10 @@ export function DrawingCanvas({
   // Get current canvas display dimensions
   const getCanvasDimensions = useCallback(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return { width: VIRTUAL_WIDTH, height: VIRTUAL_HEIGHT };
+    if (!canvas) return { width: 800, height: 600 };
     const rect = canvas.getBoundingClientRect();
     return { width: rect.width, height: rect.height };
   }, []);
-
-  // Convert normalized coordinates (0-1) to canvas pixels
-  const normalizedToCanvas = useCallback((nx, ny) => {
-    const { width, height } = getCanvasDimensions();
-    const dpr = window.devicePixelRatio || 1;
-    return {
-      x: nx * width * dpr,
-      y: ny * height * dpr
-    };
-  }, [getCanvasDimensions]);
-
-  // Convert canvas pixels to normalized coordinates (0-1)
-  const canvasToNormalized = useCallback((x, y) => {
-    const { width, height } = getCanvasDimensions();
-    const dpr = window.devicePixelRatio || 1;
-    return {
-      nx: x / (width * dpr),
-      ny: y / (height * dpr)
-    };
-  }, [getCanvasDimensions]);
 
   // Set up canvas with fixed dimensions
   useEffect(() => {
