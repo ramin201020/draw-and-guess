@@ -10,6 +10,9 @@ const COLORS = [
   '#FF69B4', '#8B4513', '#DEB887'  // Pink, Browns
 ];
 
+// Brush sizes with visual dot representation
+const BRUSH_SIZES = [4, 8, 12, 18, 24, 32, 40];
+
 export function CanvasDrawingToolbar({ 
   isDrawer, 
   selectedTool, 
@@ -112,18 +115,26 @@ export function CanvasDrawingToolbar({
             </div>
           )}
 
-          {/* Brush Size */}
-          <div className="brush-size-control">
-            <span className="size-label">Size:</span>
-            <input
-              type="range"
-              min="2"
-              max="40"
-              value={brushSize}
-              onChange={(e) => onBrushSizeChange(parseInt(e.target.value))}
-              className="brush-size-slider"
-            />
-            <span className="size-value">{brushSize}</span>
+          {/* Brush Size - Dot Selector */}
+          <div className="brush-size-dots">
+            {BRUSH_SIZES.map(size => (
+              <button
+                key={size}
+                className={`size-dot ${brushSize === size ? 'active' : ''}`}
+                onClick={() => onBrushSizeChange(size)}
+                title={`${size}px`}
+              >
+                <span 
+                  className="dot-preview" 
+                  style={{ 
+                    width: Math.min(size * 0.6, 20), 
+                    height: Math.min(size * 0.6, 20),
+                    backgroundColor: selectedColor 
+                  }}
+                />
+              </button>
+            ))}
+            <span className="size-label">{brushSize}px</span>
           </div>
 
           {/* Actions */}
