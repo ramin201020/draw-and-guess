@@ -1945,10 +1945,10 @@ input:focus {
 }
 
 .brush-size-slider {
-  width: 80px;
-  height: 4px;
-  background: rgba(255, 255, 255, 0.7);
-  border-radius: 2px;
+  width: 100px;
+  height: 8px;
+  background: linear-gradient(to right, #DEB887, #FF8C42);
+  border-radius: 4px;
   outline: none;
   cursor: pointer;
   -webkit-appearance: none;
@@ -1957,21 +1957,39 @@ input:focus {
 
 .brush-size-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
-  width: 16px;
-  height: 16px;
+  width: 24px;
+  height: 24px;
   background: #FF8C42;
   border-radius: 50%;
   cursor: pointer;
-  border: 2px solid white;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+  border: 3px solid white;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  transition: transform 0.1s ease;
+}
+
+.brush-size-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.1);
+}
+
+.brush-size-slider::-moz-range-thumb {
+  width: 24px;
+  height: 24px;
+  background: #FF8C42;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 3px solid white;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
 }
 
 .brush-size-display {
-  font-size: 0.75rem;
-  font-weight: 600;
+  font-size: 0.85rem;
+  font-weight: 700;
   color: #8B4513;
-  min-width: 30px;
+  min-width: 35px;
   text-align: center;
+  background: #FFDAB9;
+  padding: 2px 6px;
+  border-radius: 4px;
 }
 
 /* Canvas Actions Group */
@@ -2413,12 +2431,51 @@ input:focus {
 .brush-size-control {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 8px;
 }
 
-.brush-size-slider {
-  width: 60px;
-  height: 4px;
+.brush-size-control .brush-size-slider {
+  width: 80px;
+  height: 8px;
+  background: linear-gradient(to right, #DEB887, #FF8C42);
+  border-radius: 4px;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.brush-size-control .brush-size-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 22px;
+  height: 22px;
+  background: #FF8C42;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 3px solid white;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.brush-size-control .brush-size-slider::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  background: #FF8C42;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 3px solid white;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.size-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #4a3728;
+}
+
+.size-value {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #FF8C42;
+  min-width: 25px;
+  text-align: center;
 }
 
 .action-buttons {
